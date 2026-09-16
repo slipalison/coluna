@@ -63,3 +63,45 @@ jobs:
     uses: slipalison/github-workflows/.github/workflows/npm.yml@main
     with:
       versao: ${{ needs.esteira.outputs.versao }}
+
+  # ------------------------------------------------------------------------
+  # O catalogo. Vai para o GitHub Pages porque ele precisa de URL permanente:
+  # um link que muda a cada publicacao nao serve para revisar componente com
+  # outra pessoa, que e a unica razao de o catalogo existir.
+  catalogo:
+    needs: esteira
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      # OIDC: o `deploy-pages` troca este token por uma credencial de curta
+      # duracao em vez de guardar segredo no repositorio.
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.publicar.outputs.page_url }}
+    steps:
+      - name: Preparar
+        uses: slipalison/github-workflows/.github/actions/preparar@main
+        with:
+          linguagem: node
+
+      - name: npm ci
+        run: npm ci --ignore-scripts
+
+      - name: Construir o catalogo
+        env:
+          STORYBOOK_DISABLE_TELEMETRY: "1"
+        run: npm run build-storybook
+
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: storybook-static
+
+      - name: Publicar
+        id: publicar
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

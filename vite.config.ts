@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     // Os tipos saem de `src/`, e não do bundle: o consumidor recebe a mesma
     // assinatura que o código fonte declara, com os comentários junto.
-    dts({ include: ["src"], exclude: ["src/**/*.test.tsx", "src/test/**"], rollupTypes: true }),
+    dts({ include: ["src"], exclude: ["src/**/*.test.tsx", "src/**/*.stories.tsx", "src/test/**"], rollupTypes: true }),
   ],
   build: {
     lib: {
@@ -40,7 +40,12 @@ export default defineConfig({
       reportsDirectory: "coverage",
       thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/**/*.test.{ts,tsx}", "src/test/**", "src/index.ts"],
+      exclude: [
+        "src/**/*.test.{ts,tsx}",
+        "src/**/*.stories.tsx",
+        "src/test/**",
+        "src/index.ts",
+      ],
     },
   },
 });

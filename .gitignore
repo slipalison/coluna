@@ -12,3 +12,6 @@ coverage/
 src/tokens/tokens.css
 src/tokens/gerado.ts
 src/tokens/.gitattributes
+
+# Build do Storybook.
+storybook-static/
