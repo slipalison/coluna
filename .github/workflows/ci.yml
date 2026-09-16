@@ -1,0 +1,65 @@
+name: CI
+
+# A esteira compartilhada faz lint, teste com piso de cobertura, sete
+# varreduras de seguranca e a versao semantica tirada dos commits. O que este
+# arquivo acrescenta e o unico passo que so existe aqui: publicar o pacote.
+#
+# POR QUE A PUBLICACAO E UM JOB DAQUI, E NAO UM GATILHO SEPARADO
+# --------------------------------------------------------------
+# O caminho obvio seria `on: release: published`, reagindo a release que o
+# `lancar` cria. Ele nao funciona: release criada com o GITHUB_TOKEN nao
+# dispara outro workflow. Entao a versao tem de ser consumida no MESMO run em
+# que foi calculada — e por isso o `pipeline.yml` expoe `versao` como saida.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  esteira:
+    # Um workflow reutilizavel nunca recebe mais permissao do que o chamador
+    # concede aqui. `contents: write` e para a tag e a release do `lancar`.
+    permissions:
+      contents: write
+      packages: write
+      security-events: write
+      actions: read
+    uses: slipalison/github-workflows/.github/workflows/pipeline.yml@main
+    with:
+      componentes: '[{"nome":"coluna","linguagem":"node","cobertura":80}]'
+      # 0.x de proposito: um design system em formacao muda contrato de
+      # componente, e semver manda dizer isso com o numero em vez de fingir
+      # estabilidade que ainda nao existe.
+      versao_inicial: "0.1.0"
+      # Sem imagem: isto e um pacote, nao um servico. Sem `app`: nao ha deploy
+      # no GitOps. Os dois jobs sao pulados, e o `portao` aceita pulado.
+      #
+      # Sonar entra quando o projeto existir no SonarCloud. Apontar para um
+      # projectKey inexistente reprova a esteira inteira com um erro que nao
+      # fala de codigo nenhum.
+      sonar_projeto: ""
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  pacote:
+    needs: esteira
+    # `salto == nenhum` significa que o HEAD ja estava tageado — run repetido,
+    # push sem commit novo. Nao ha versao nova para publicar, e pular e o
+    # resultado certo. O `npm.yml` confere de novo contra o registro; esta
+    # condicao so evita gastar um job para descobrir isso.
+    if: >-
+      github.event_name == 'push'
+      && github.ref == 'refs/heads/main'
+      && needs.esteira.outputs.versao != ''
+      && needs.esteira.outputs.salto != 'nenhum'
+    permissions:
+      contents: read
+      packages: write
+    uses: slipalison/github-workflows/.github/workflows/npm.yml@main
+    with:
+      versao: ${{ needs.esteira.outputs.versao }}
