@@ -79,6 +79,13 @@ Componente nenhum lê primitiva, e nenhum escreve cor literal. Um `#a882f5`
 escrito à mão sobrevive ao tema claro sem reclamar — e o defeito só aparece na
 tela de quem ligou o claro.
 
+A fonte é `tokens/*.json`, no formato
+[W3C Design Tokens](https://tr.designtokens.org/format/); o **Style Dictionary**
+gera `src/tokens/tokens.css` e a lista tipada em `src/tokens/gerado.ts`. Os dois
+são **gerados e não versionados** — `npm run tokens` os escreve, e `build`,
+`test` e `prepare` chamam isso. Arquivo gerado dentro do repositório convida a
+editar o gerado em vez da fonte, e a próxima geração apaga a edição sem avisar.
+
 ### Tema é atributo no DOM, não estado de React
 
 Trocar de tema não re-renderiza a árvore por causa de cor: muda um
@@ -170,9 +177,11 @@ quer um tipo carregaria a folha inteira, inclusive em teste e em Node.
 ## Desenvolver
 
 ```bash
-npm install
+npm install       # o `prepare` já gera os tokens
+npm run tokens    # tokens/*.json -> src/tokens/{tokens.css,gerado.ts}
 npm test          # 67 testes, piso de 80% em linha, ramo, função e comando
 npm run build     # dist/coluna.js + dist/index.d.ts + os dois CSS
+npm run referencia # docs/referencia.html, pintada pelo CSS que o pacote publica
 ```
 
 A esteira é a [compartilhada](https://github.com/slipalison/github-workflows):

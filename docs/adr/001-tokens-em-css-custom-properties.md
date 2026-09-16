@@ -65,3 +65,41 @@ não diz nada, e o próximo desenvolvedor escreve `15px` sem saber que errou.
 
 - Publicar tokens também como objeto JS com os valores copiados. Seriam duas
   verdades, e elas divergem no primeiro ajuste que alguém faz só de um lado.
+
+---
+
+## Adendo (2026-09-16) — a duplicação foi aposentada
+
+A consequência aceita acima — *"a lista do tema escuro aparece duas vezes"* — deixou
+de ser custo. A fonte agora é `tokens/*.json` no formato
+[W3C Design Tokens](https://tr.designtokens.org/format/), e o
+**Style Dictionary** gera `src/tokens/tokens.css` e `src/tokens/gerado.ts`.
+
+O bloco escuro continua saindo duas vezes no CSS publicado, porque são dois
+caminhos diferentes até o mesmo resultado — a media query e o seletor de
+atributo. A diferença é que agora **os dois são emitidos da mesma fonte**, e
+não há como um ficar para trás do outro.
+
+Também cai a segunda consequência: a lista de nomes semânticos em
+`src/tokens/tokens.ts` era digitada à mão e podia divergir do CSS. Ela passa a
+sair da mesma passada.
+
+A migração foi conferida do jeito que importa: as declarações do arquivo gerado
+são **idênticas** às do escrito à mão — mesmos nomes, mesmos valores, mesma
+contagem, incluindo as três ocorrências de cada token semântico.
+
+Duas decisões de operação:
+
+- **O gerado não é versionado.** Arquivo gerado dentro do repositório convida a
+  editar o gerado em vez da fonte, e o próximo `npm run tokens` apaga a edição
+  sem avisar. `build`, `test` e `prepare` geram; o `.gitignore` cuida do resto,
+  e drift deixa de ser possível por construção.
+- **O gerador confere o que escreveu.** Ele exige três ocorrências de
+  `--co-canvas` e a presença de `var(--co-amethyst-500)` no resultado. Não é
+  zelo: um glob com caminho absoluto do Windows não casa barra invertida, o
+  Style Dictionary encontrou zero token e escreveu um arquivo com todos os
+  blocos vazios — calado. A conferência foi o que pegou.
+
+O que **não** mudou: a escolha de CSS custom property continua valendo por tudo
+o que está escrito acima. O Style Dictionary gera o arquivo; ele não é o
+runtime, e o pacote publicado não depende dele.

@@ -1,0 +1,92 @@
+{
+  "escuro": {
+    "canvas": {
+      "$type": "color",
+      "$value": "{basalt-900}"
+    },
+    "surface": {
+      "$type": "color",
+      "$value": "{basalt-850}"
+    },
+    "surface-raised": {
+      "$type": "color",
+      "$value": "{basalt-800}"
+    },
+    "surface-sunken": {
+      "$type": "color",
+      "$value": "{basalt-950}"
+    },
+    "border": {
+      "$type": "color",
+      "$value": "{basalt-700}"
+    },
+    "border-strong": {
+      "$type": "color",
+      "$value": "{basalt-500}"
+    },
+    "line": {
+      "$type": "color",
+      "$value": "{basalt-750}"
+    },
+    "track": {
+      "$type": "color",
+      "$value": "{basalt-600}"
+    },
+    "text": {
+      "$type": "color",
+      "$value": "{basalt-50}"
+    },
+    "text-secondary": {
+      "$type": "color",
+      "$value": "{basalt-200}"
+    },
+    "text-muted": {
+      "$type": "color",
+      "$value": "{basalt-300}"
+    },
+    "icon-muted": {
+      "$type": "color",
+      "$value": "{basalt-400}"
+    },
+    "accent": {
+      "$type": "color",
+      "$value": "{amethyst-500}"
+    },
+    "accent-hover": {
+      "$type": "color",
+      "$value": "{amethyst-400}"
+    },
+    "accent-contrast": {
+      "$type": "color",
+      "$value": "{basalt-900}"
+    },
+    "accent-soft": {
+      "$type": "color",
+      "$value": "{amethyst-950}"
+    },
+    "status": {
+      "$type": "color",
+      "$value": "{jade-500}"
+    },
+    "status-border": {
+      "$type": "color",
+      "$value": "{jade-900}"
+    },
+    "danger": {
+      "$type": "color",
+      "$value": "{rust-500}"
+    },
+    "danger-soft": {
+      "$type": "color",
+      "$value": "{rust-950}"
+    },
+    "shadow-overlay": {
+      "$type": "other",
+      "$value": "0 -24px 48px rgba(6, 4, 10, 0.72)"
+    },
+    "grain-opacity": {
+      "$type": "other",
+      "$value": "0.06"
+    }
+  }
+}

@@ -5,32 +5,18 @@
  * verdades que divergem no primeiro ajuste. Existe para o punhado de casos em
  * que algo fora do CSS precisa da cor resolvida — a série de um gráfico em
  * canvas, o `<meta name="theme-color">` do manifest, um PNG exportado.
+ *
+ * A LISTA não mora aqui: ela é gerada em `gerado.ts` a partir de
+ * `tokens/semantico.claro.json`, pela mesma passada que escreve o CSS. Antes
+ * ela era digitada à mão, e um token novo entrava no CSS sem entrar aqui — uma
+ * divergência que só aparecia quando alguém chamasse `readToken` com um nome
+ * que o TypeScript recusava e o CSS tinha.
  */
 
-export const semanticTokens = [
-  "canvas",
-  "surface",
-  "surface-raised",
-  "surface-sunken",
-  "border",
-  "border-strong",
-  "line",
-  "track",
-  "text",
-  "text-secondary",
-  "text-muted",
-  "icon-muted",
-  "accent",
-  "accent-hover",
-  "accent-contrast",
-  "accent-soft",
-  "status",
-  "status-border",
-  "danger",
-  "danger-soft",
-] as const;
+export { semanticTokens } from "./gerado";
+export type { SemanticToken } from "./gerado";
 
-export type SemanticToken = (typeof semanticTokens)[number];
+import type { SemanticToken } from "./gerado";
 
 /**
  * Lê um token resolvido, já com o tema que estiver valendo no elemento.

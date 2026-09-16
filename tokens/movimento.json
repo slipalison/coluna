@@ -1,0 +1,14 @@
+{
+  "duration-fast": {
+    "$type": "duration",
+    "$value": "120ms"
+  },
+  "duration-normal": {
+    "$type": "duration",
+    "$value": "180ms"
+  },
+  "ease": {
+    "$type": "other",
+    "$value": "cubic-bezier(0.2, 0, 0, 1)"
+  }
+}

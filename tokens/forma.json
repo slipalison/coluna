@@ -1,0 +1,34 @@
+{
+  "radius-0": {
+    "$type": "other",
+    "$value": "0"
+  },
+  "radius-2": {
+    "$type": "dimension",
+    "$value": "2px"
+  },
+  "radius-4": {
+    "$type": "dimension",
+    "$value": "4px"
+  },
+  "border-width": {
+    "$type": "dimension",
+    "$value": "1px"
+  },
+  "marker-width": {
+    "$type": "dimension",
+    "$value": "3px"
+  },
+  "target-min": {
+    "$type": "dimension",
+    "$value": "44px"
+  },
+  "slat-width": {
+    "$type": "dimension",
+    "$value": "3px"
+  },
+  "slat-gap": {
+    "$type": "dimension",
+    "$value": "6px"
+  }
+}

@@ -4,3 +4,11 @@ coverage/
 *.tsbuildinfo
 .DS_Store
 .vite/
+
+# Gerados por `npm run tokens` a partir de tokens/*.json.
+# Nao versionados de proposito: arquivo gerado no repositorio convida a
+# editar o gerado em vez da fonte, e o proximo `npm run tokens` apaga a
+# edicao sem avisar.
+src/tokens/tokens.css
+src/tokens/gerado.ts
+src/tokens/.gitattributes

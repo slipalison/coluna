@@ -1,0 +1,92 @@
+{
+  "claro": {
+    "canvas": {
+      "$type": "color",
+      "$value": "{stone-50}"
+    },
+    "surface": {
+      "$type": "color",
+      "$value": "{white}"
+    },
+    "surface-raised": {
+      "$type": "color",
+      "$value": "{stone-100}"
+    },
+    "surface-sunken": {
+      "$type": "color",
+      "$value": "{stone-100}"
+    },
+    "border": {
+      "$type": "color",
+      "$value": "{stone-300}"
+    },
+    "border-strong": {
+      "$type": "color",
+      "$value": "{stone-400}"
+    },
+    "line": {
+      "$type": "color",
+      "$value": "{stone-200}"
+    },
+    "track": {
+      "$type": "color",
+      "$value": "{stone-400}"
+    },
+    "text": {
+      "$type": "color",
+      "$value": "{stone-900}"
+    },
+    "text-secondary": {
+      "$type": "color",
+      "$value": "{stone-700}"
+    },
+    "text-muted": {
+      "$type": "color",
+      "$value": "{stone-600}"
+    },
+    "icon-muted": {
+      "$type": "color",
+      "$value": "{stone-500}"
+    },
+    "accent": {
+      "$type": "color",
+      "$value": "{amethyst-600}"
+    },
+    "accent-hover": {
+      "$type": "color",
+      "$value": "{amethyst-700}"
+    },
+    "accent-contrast": {
+      "$type": "color",
+      "$value": "{white}"
+    },
+    "accent-soft": {
+      "$type": "color",
+      "$value": "{amethyst-050}"
+    },
+    "status": {
+      "$type": "color",
+      "$value": "{jade-700}"
+    },
+    "status-border": {
+      "$type": "color",
+      "$value": "{jade-200}"
+    },
+    "danger": {
+      "$type": "color",
+      "$value": "{rust-600}"
+    },
+    "danger-soft": {
+      "$type": "color",
+      "$value": "{rust-050}"
+    },
+    "shadow-overlay": {
+      "$type": "other",
+      "$value": "0 -24px 48px rgba(26, 21, 32, 0.12)"
+    },
+    "grain-opacity": {
+      "$type": "other",
+      "$value": "0.03"
+    }
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "stone-50": {
+    "$type": "color",
+    "$value": "#faf8fc"
+  },
+  "stone-100": {
+    "$type": "color",
+    "$value": "#f4f1f8"
+  },
+  "stone-200": {
+    "$type": "color",
+    "$value": "#ece7f3"
+  },
+  "stone-300": {
+    "$type": "color",
+    "$value": "#e5dfee"
+  },
+  "stone-400": {
+    "$type": "color",
+    "$value": "#cbc2da"
+  },
+  "stone-500": {
+    "$type": "color",
+    "$value": "#9c94a8"
+  },
+  "stone-600": {
+    "$type": "color",
+    "$value": "#7d7489"
+  },
+  "stone-700": {
+    "$type": "color",
+    "$value": "#554c63"
+  },
+  "stone-900": {
+    "$type": "color",
+    "$value": "#1a1520"
+  },
+  "basalt-950": {
+    "$type": "color",
+    "$value": "#0f0d13"
+  },
+  "basalt-900": {
+    "$type": "color",
+    "$value": "#131017"
+  },
+  "basalt-850": {
+    "$type": "color",
+    "$value": "#1c1823"
+  },
+  "basalt-800": {
+    "$type": "color",
+    "$value": "#241f2d"
+  },
+  "basalt-750": {
+    "$type": "color",
+    "$value": "#272130"
+  },
+  "basalt-700": {
+    "$type": "color",
+    "$value": "#302a3c"
+  },
+  "basalt-600": {
+    "$type": "color",
+    "$value": "#3a3346"
+  },
+  "basalt-500": {
+    "$type": "color",
+    "$value": "#453d54"
+  },
+  "basalt-400": {
+    "$type": "color",
+    "$value": "#564d69"
+  },
+  "basalt-300": {
+    "$type": "color",
+    "$value": "#9a91ab"
+  },
+  "basalt-200": {
+    "$type": "color",
+    "$value": "#b9b1c8"
+  },
+  "basalt-100": {
+    "$type": "color",
+    "$value": "#ddd7e8"
+  },
+  "basalt-50": {
+    "$type": "color",
+    "$value": "#f3f0f7"
+  },
+  "amethyst-700": {
+    "$type": "color",
+    "$value": "#5a30bb"
+  },
+  "amethyst-600": {
+    "$type": "color",
+    "$value": "#6d3fd4"
+  },
+  "amethyst-500": {
+    "$type": "color",
+    "$value": "#a882f5"
+  },
+  "amethyst-400": {
+    "$type": "color",
+    "$value": "#c3a6f8"
+  },
+  "amethyst-050": {
+    "$type": "color",
+    "$value": "#efe8fd"
+  },
+  "amethyst-950": {
+    "$type": "color",
+    "$value": "#241b33"
+  },
+  "jade-700": {
+    "$type": "color",
+    "$value": "#0f766e"
+  },
+  "jade-500": {
+    "$type": "color",
+    "$value": "#63b8ac"
+  },
+  "jade-200": {
+    "$type": "color",
+    "$value": "#99e0d8"
+  },
+  "jade-900": {
+    "$type": "color",
+    "$value": "#2e5a58"
+  },
+  "rust-600": {
+    "$type": "color",
+    "$value": "#b4332e"
+  },
+  "rust-500": {
+    "$type": "color",
+    "$value": "#d4635c"
+  },
+  "rust-050": {
+    "$type": "color",
+    "$value": "#fdeceb"
+  },
+  "rust-950": {
+    "$type": "color",
+    "$value": "#33161a"
+  },
+  "white": {
+    "$type": "color",
+    "$value": "#ffffff"
+  }
+}
