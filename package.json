@@ -46,7 +46,8 @@
     "build": "tsc --noEmit && vite build && node scripts/construir-css.mjs",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "referencia": "node scripts/gerar-referencia.mjs"
   },
   "peerDependencies": {
     "react": "^19.0.0",

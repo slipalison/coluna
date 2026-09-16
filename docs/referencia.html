@@ -1,0 +1,1471 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coluna</title>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&amp;family=Instrument+Serif&amp;display=swap">
+<style>
+/*
+ * Folha única do Coluna.
+ *
+ * Regra que vale para tudo aqui embaixo: NENHUMA cor literal. Todo valor sai
+ * de um token semântico (`var(--co-...)`), porque é a semântica que o tema
+ * troca. Um `#1c1823` escrito à mão sobrevive ao tema claro sem reclamar, e o
+ * defeito só aparece na tela de quem ligou o claro.
+ *
+ * Variante é atributo (`data-variant`, `data-tone`, `data-size`), e não classe
+ * composta: o atributo aparece no DOM inspecionado, é o que o teste consulta
+ * (`getByRole('button')` + `toHaveAttribute`), e não multiplica nome de classe
+ * a cada combinação nova.
+ */
+
+/*
+ * Tokens do Coluna.
+ *
+ * Duas camadas, e a separação entre elas é o que faz o tema funcionar:
+ *
+ *   PRIMITIVA  o valor cru (`--co-amethyst-500: #a882f5`). Não muda com o tema.
+ *   SEMÂNTICA  o papel (`--co-accent`). Aponta para uma primitiva, e é
+ *              APENAS a semântica que o tema troca.
+ *
+ * Componente nenhum lê primitiva. Se um componente escreve `#a882f5`, ou lê
+ * `--co-amethyst-500`, ele deixa de responder ao tema e o defeito só aparece
+ * quando alguém liga o claro.
+ *
+ * Por que CSS custom property, e não CSS-in-JS: trocar de tema vira um atributo
+ * no DOM, sem re-render de React e sem runtime no bundle do consumidor. E os
+ * tokens continuam legíveis de fora do React — do `<meta name="theme-color">`
+ * ao CSS de uma página que nem monta a biblioteca. Ver
+ * `docs/adr/001-tokens-em-css-custom-properties.md`.
+ */
+
+:root {
+  /* ---------------------------------------------------- primitivas: cor ---
+   * Basalto é magma resfriado; ametista se forma na cavidade que a bolha de
+   * gás deixou nele. Daí a paleta: pedra quase preta com desvio para o
+   * violeta, e um roxo de cristal como acento.
+   */
+  --co-stone-50: #faf8fc;
+  --co-stone-100: #f4f1f8;
+  --co-stone-200: #ece7f3;
+  --co-stone-300: #e5dfee;
+  --co-stone-400: #cbc2da;
+  --co-stone-500: #9c94a8;
+  --co-stone-600: #7d7489;
+  --co-stone-700: #554c63;
+  --co-stone-900: #1a1520;
+
+  --co-basalt-950: #0f0d13;
+  --co-basalt-900: #131017;
+  --co-basalt-850: #1c1823;
+  --co-basalt-800: #241f2d;
+  --co-basalt-750: #272130;
+  --co-basalt-700: #302a3c;
+  --co-basalt-600: #3a3346;
+  --co-basalt-500: #453d54;
+  --co-basalt-400: #564d69;
+  --co-basalt-300: #9a91ab;
+  --co-basalt-200: #b9b1c8;
+  --co-basalt-100: #ddd7e8;
+  --co-basalt-50: #f3f0f7;
+
+  --co-amethyst-700: #5a30bb;
+  --co-amethyst-600: #6d3fd4;
+  --co-amethyst-500: #a882f5;
+  --co-amethyst-400: #c3a6f8;
+  --co-amethyst-050: #efe8fd;
+  --co-amethyst-950: #241b33;
+
+  --co-jade-700: #0f766e;
+  --co-jade-500: #63b8ac;
+  --co-jade-200: #99e0d8;
+  --co-jade-900: #2e5a58;
+
+  /* Ferrugem: o único vermelho do sistema, e ele existe por uma razão
+   * concreta — apagar a conta apaga os dados de verdade. Fora disso o
+   * produto não repreende ninguém, e vermelho não decora erro de entrada. */
+  --co-rust-600: #b4332e;
+  --co-rust-500: #d4635c;
+  --co-rust-050: #fdeceb;
+  --co-rust-950: #33161a;
+
+  --co-white: #ffffff;
+
+  /* ------------------------------------------------- primitivas: espaço ---
+   * Escala de 2 em 2 até 8, depois de 4 em 4. Os nomes são o número de
+   * pixels, e não `sm`/`md`/`lg`: um `--co-space-6` diz onde encaixa; um
+   * `--co-space-md` exige decorar a tabela.
+   */
+  --co-space-2: 2px;
+  --co-space-4: 4px;
+  --co-space-6: 6px;
+  --co-space-8: 8px;
+  --co-space-10: 10px;
+  --co-space-12: 12px;
+  --co-space-14: 14px;
+  --co-space-16: 16px;
+  --co-space-20: 20px;
+  --co-space-24: 24px;
+  --co-space-28: 28px;
+  --co-space-32: 32px;
+  --co-space-40: 40px;
+
+  /* -------------------------------------------- primitivas: tipografia ---
+   * Duas famílias. A serifa entra só onde o número é a mensagem; o resto é
+   * a grotesca. A pilha de fallback importa: a exportação em PNG e PDF não
+   * embute webfont, e o que aparece é o segundo nome da lista.
+   */
+  --co-font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --co-font-body: Archivo, "Helvetica Neue", system-ui, sans-serif;
+
+  --co-text-10: 10px;
+  --co-text-11: 11px;
+  --co-text-12: 12px;
+  --co-text-13: 13px;
+  --co-text-14: 14px;
+  --co-text-15: 15px;
+  --co-text-17: 17px;
+  --co-text-20: 20px;
+  --co-text-24: 24px;
+  --co-text-34: 34px;
+  --co-text-46: 46px;
+  --co-text-64: 64px;
+  --co-text-78: 78px;
+
+  --co-leading-tight: 1.05;
+  --co-leading-snug: 1.3;
+  --co-leading-normal: 1.5;
+  --co-leading-numeral: 0.88;
+
+  --co-tracking-tight: -0.02em;
+  --co-tracking-normal: 0;
+  --co-tracking-label: 0.16em;
+
+  --co-weight-regular: 400;
+  --co-weight-medium: 500;
+  --co-weight-semibold: 600;
+
+  /* ----------------------------------------------- primitivas: formato ---
+   * Basalto lasca em coluna hexagonal, não em pílula: o raio máximo do
+   * sistema é 4px, e a maior parte dos componentes usa 0. É decisão de
+   * marca, não economia.
+   */
+  --co-radius-0: 0;
+  --co-radius-2: 2px;
+  --co-radius-4: 4px;
+
+  --co-border-width: 1px;
+  --co-marker-width: 3px;
+
+  /* Alvo de toque. 44px é o piso, e ele não é sugestão: componente que não
+   * alcança isso é reprovado no teste de acessibilidade da biblioteca. */
+  --co-target-min: 44px;
+
+  /* A ripa: o motivo visual que vira barra de progresso. Uma coluna de 3px
+   * a cada 6px, que é a seção de uma colunata basáltica vista de cima. */
+  --co-slat-width: 3px;
+  --co-slat-gap: 6px;
+
+  --co-duration-fast: 120ms;
+  --co-duration-normal: 180ms;
+  --co-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/*
+ * Semântica — tema claro.
+ *
+ * O claro é o padrão porque é o que aparece quando ninguém disse nada e o
+ * sistema também não: um consumidor que esqueça de montar o ThemeProvider
+ * ainda recebe uma tela legível, e não texto branco em fundo branco.
+ */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  --co-canvas: var(--co-stone-50);
+  --co-surface: var(--co-white);
+  --co-surface-raised: var(--co-stone-100);
+  --co-surface-sunken: var(--co-stone-100);
+
+  --co-border: var(--co-stone-300);
+  --co-border-strong: var(--co-stone-400);
+  --co-line: var(--co-stone-200);
+  --co-track: var(--co-stone-400);
+
+  --co-text: var(--co-stone-900);
+  --co-text-secondary: var(--co-stone-700);
+  --co-text-muted: var(--co-stone-600);
+  --co-icon-muted: var(--co-stone-500);
+
+  --co-accent: var(--co-amethyst-600);
+  --co-accent-hover: var(--co-amethyst-700);
+  --co-accent-contrast: var(--co-white);
+  --co-accent-soft: var(--co-amethyst-050);
+
+  --co-status: var(--co-jade-700);
+  --co-status-border: var(--co-jade-200);
+
+  --co-danger: var(--co-rust-600);
+  --co-danger-soft: var(--co-rust-050);
+
+  --co-shadow-overlay: 0 -24px 48px rgba(26, 21, 32, 0.12);
+  --co-grain-opacity: 0.03;
+}
+
+/*
+ * Semântica — tema escuro.
+ *
+ * Aparece de duas formas, e as duas listas são idênticas de propósito:
+ *
+ *   1. o sistema pede escuro e ninguém pediu claro explicitamente;
+ *   2. alguém escreveu `data-theme="dark"` — na raiz ou em qualquer subárvore.
+ *
+ * O `:not([data-theme="light"])` do primeiro caso é o que impede o sistema de
+ * atropelar uma escolha do usuário. Sem ele, quem escolheu claro num aparelho
+ * em modo escuro recebe escuro assim mesmo.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --co-canvas: var(--co-basalt-900);
+    --co-surface: var(--co-basalt-850);
+    --co-surface-raised: var(--co-basalt-800);
+    --co-surface-sunken: var(--co-basalt-950);
+
+    --co-border: var(--co-basalt-700);
+    --co-border-strong: var(--co-basalt-500);
+    --co-line: var(--co-basalt-750);
+    --co-track: var(--co-basalt-600);
+
+    --co-text: var(--co-basalt-50);
+    --co-text-secondary: var(--co-basalt-200);
+    --co-text-muted: var(--co-basalt-300);
+    --co-icon-muted: var(--co-basalt-400);
+
+    --co-accent: var(--co-amethyst-500);
+    --co-accent-hover: var(--co-amethyst-400);
+    --co-accent-contrast: var(--co-basalt-900);
+    --co-accent-soft: var(--co-amethyst-950);
+
+    --co-status: var(--co-jade-500);
+    --co-status-border: var(--co-jade-900);
+
+    --co-danger: var(--co-rust-500);
+    --co-danger-soft: var(--co-rust-950);
+
+    --co-shadow-overlay: 0 -24px 48px rgba(6, 4, 10, 0.72);
+    --co-grain-opacity: 0.06;
+  }
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --co-canvas: var(--co-basalt-900);
+  --co-surface: var(--co-basalt-850);
+  --co-surface-raised: var(--co-basalt-800);
+  --co-surface-sunken: var(--co-basalt-950);
+
+  --co-border: var(--co-basalt-700);
+  --co-border-strong: var(--co-basalt-500);
+  --co-line: var(--co-basalt-750);
+  --co-track: var(--co-basalt-600);
+
+  --co-text: var(--co-basalt-50);
+  --co-text-secondary: var(--co-basalt-200);
+  --co-text-muted: var(--co-basalt-300);
+  --co-icon-muted: var(--co-basalt-400);
+
+  --co-accent: var(--co-amethyst-500);
+  --co-accent-hover: var(--co-amethyst-400);
+  --co-accent-contrast: var(--co-basalt-900);
+  --co-accent-soft: var(--co-amethyst-950);
+
+  --co-status: var(--co-jade-500);
+  --co-status-border: var(--co-jade-900);
+
+  --co-danger: var(--co-rust-500);
+  --co-danger-soft: var(--co-rust-950);
+
+  --co-shadow-overlay: 0 -24px 48px rgba(6, 4, 10, 0.72);
+  --co-grain-opacity: 0.06;
+}
+
+/* ------------------------------------------------------------------ base -- */
+
+.co-root {
+  background: var(--co-canvas);
+  color: var(--co-text);
+  font-family: var(--co-font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.co-root *,
+.co-root *::before,
+.co-root *::after {
+  box-sizing: border-box;
+}
+
+/* O foco é do teclado, e ele precisa aparecer nos dois temas. `outline` e não
+ * `box-shadow`: outline não é cortado por `overflow: hidden` do pai. */
+.co-root :focus-visible {
+  outline: 2px solid var(--co-accent);
+  outline-offset: 2px;
+}
+
+.co-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------- texto ---- */
+
+.co-text {
+  margin: 0;
+  font-family: var(--co-font-body);
+  color: var(--co-text);
+  line-height: var(--co-leading-normal);
+}
+
+.co-text[data-variant="display"] {
+  font-family: var(--co-font-display);
+  font-size: var(--co-text-34);
+  line-height: var(--co-leading-tight);
+  letter-spacing: var(--co-tracking-tight);
+}
+
+.co-text[data-variant="title"] {
+  font-size: var(--co-text-17);
+  font-weight: var(--co-weight-semibold);
+  line-height: var(--co-leading-snug);
+}
+
+.co-text[data-variant="body"] {
+  font-size: var(--co-text-14);
+}
+
+.co-text[data-variant="caption"] {
+  font-size: var(--co-text-12);
+}
+
+/* O rótulo de seção: versalete espaçado, sempre discreto. É o que separa um
+ * bloco do outro sem precisar de linha nem de caixa. */
+.co-text[data-variant="label"] {
+  font-size: var(--co-text-10);
+  font-weight: var(--co-weight-semibold);
+  letter-spacing: var(--co-tracking-label);
+  text-transform: uppercase;
+  color: var(--co-text-muted);
+}
+
+/* `tabular-nums` não é preciosismo: sem ele uma coluna de kcal dança a cada
+ * dígito que muda, e uma tabela de números vira ruído. */
+.co-text[data-variant="numeral"] {
+  font-family: var(--co-font-display);
+  font-size: var(--co-text-46);
+  line-height: var(--co-leading-numeral);
+  letter-spacing: var(--co-tracking-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.co-text[data-numeric="true"] {
+  font-variant-numeric: tabular-nums;
+}
+
+.co-text[data-tone="secondary"] { color: var(--co-text-secondary); }
+.co-text[data-tone="muted"] { color: var(--co-text-muted); }
+.co-text[data-tone="accent"] { color: var(--co-accent); }
+.co-text[data-tone="status"] { color: var(--co-status); }
+
+/* ------------------------------------------------------------- superfície -- */
+
+.co-surface {
+  background: var(--co-surface);
+  border-radius: var(--co-radius-0);
+}
+
+.co-surface[data-elevation="raised"] { background: var(--co-surface-raised); }
+.co-surface[data-elevation="sunken"] { background: var(--co-surface-sunken); }
+.co-surface[data-bordered="true"] { border: var(--co-border-width) solid var(--co-border); }
+
+.co-divider {
+  height: var(--co-border-width);
+  border: 0;
+  margin: 0;
+  background: var(--co-line);
+}
+
+/* ------------------------------------------------------------------ botão -- */
+
+.co-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--co-space-8);
+  /* O piso de 44px é do sistema, não do componente: não existe tamanho menor
+   * na API. Um alvo de 32px passa no desenho e falha no polegar. */
+  min-height: var(--co-target-min);
+  padding: 0 var(--co-space-16);
+  border: var(--co-border-width) solid transparent;
+  border-radius: var(--co-radius-0);
+  font-family: inherit;
+  font-size: var(--co-text-14);
+  font-weight: var(--co-weight-semibold);
+  line-height: 1;
+  text-align: center;
+  cursor: pointer;
+  transition: background var(--co-duration-fast) var(--co-ease),
+    color var(--co-duration-fast) var(--co-ease),
+    border-color var(--co-duration-fast) var(--co-ease);
+}
+
+.co-button[data-size="lg"] {
+  min-height: 52px;
+  padding: 0 var(--co-space-20);
+  font-size: var(--co-text-15);
+}
+
+.co-button[data-full="true"] {
+  display: flex;
+  width: 100%;
+}
+
+.co-button[data-variant="primary"] {
+  background: var(--co-accent);
+  color: var(--co-accent-contrast);
+}
+.co-button[data-variant="primary"]:hover:not(:disabled) { background: var(--co-accent-hover); }
+
+.co-button[data-variant="secondary"] {
+  background: var(--co-surface);
+  border-color: var(--co-border);
+  color: var(--co-text);
+  font-weight: var(--co-weight-medium);
+}
+.co-button[data-variant="secondary"]:hover:not(:disabled) { border-color: var(--co-border-strong); }
+
+.co-button[data-variant="ghost"] {
+  background: transparent;
+  color: var(--co-text-secondary);
+  font-weight: var(--co-weight-regular);
+}
+.co-button[data-variant="ghost"]:hover:not(:disabled) { color: var(--co-text); }
+
+/* `danger` existe por uma razão concreta: apagar a conta apaga os dados de
+ * verdade. A cor sobe o custo de errar o alvo; ela não substitui a confirmação. */
+.co-button[data-variant="danger"] {
+  background: transparent;
+  border-color: var(--co-danger);
+  color: var(--co-danger);
+}
+.co-button[data-variant="danger"]:hover:not(:disabled) {
+  background: var(--co-danger-soft);
+}
+
+.co-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.co-button__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+/* ------------------------------------------------------------------ selo ---- */
+
+.co-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--co-space-2) var(--co-space-6);
+  border: var(--co-border-width) solid var(--co-border-strong);
+  border-radius: var(--co-radius-0);
+  font-size: var(--co-text-10);
+  letter-spacing: 0.04em;
+  color: var(--co-text-muted);
+  white-space: nowrap;
+}
+
+.co-badge[data-tone="accent"] {
+  border-color: var(--co-accent);
+  color: var(--co-accent);
+}
+
+.co-badge[data-tone="status"] {
+  border-color: var(--co-status-border);
+  color: var(--co-status);
+}
+
+.co-badge[data-solid="true"] {
+  background: var(--co-accent);
+  border-color: var(--co-accent);
+  color: var(--co-accent-contrast);
+  font-weight: var(--co-weight-semibold);
+  font-size: var(--co-text-11);
+}
+
+/* ------------------------------------------------------------------ ripa ---- */
+
+/*
+ * A ripa é a barra de progresso do sistema, e o motivo de ela existir em vez
+ * de um retângulo liso: a colunata hexagonal do basalto vista de cima. O
+ * gradiente repetido desenha as colunas sem um nó de DOM por ripa — 24 divs
+ * por barra seria o mesmo desenho e trinta vezes o custo.
+ */
+.co-slat {
+  position: relative;
+  height: 10px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--co-track) 0 var(--co-slat-width),
+    transparent var(--co-slat-width) var(--co-slat-gap)
+  );
+}
+
+.co-slat[data-size="sm"] { height: 8px; }
+
+.co-slat__fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--co-slat-value, 0%);
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--co-accent) 0 var(--co-slat-width),
+    transparent var(--co-slat-width) var(--co-slat-gap)
+  );
+  transition: width var(--co-duration-normal) var(--co-ease);
+}
+
+.co-slat__marker {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: var(--co-slat-value, 0%);
+  width: var(--co-marker-width);
+  background: var(--co-accent);
+}
+
+/* ------------------------------------------------------- controle segmentado -- */
+
+.co-segmented {
+  display: inline-flex;
+  gap: var(--co-space-2);
+  padding: var(--co-space-2);
+  background: var(--co-surface-raised);
+  border: var(--co-border-width) solid var(--co-border);
+}
+
+.co-segmented[data-full="true"] { display: flex; width: 100%; }
+
+.co-segmented__option {
+  flex-grow: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--co-target-min);
+  padding: 0 var(--co-space-14);
+  border: 0;
+  background: transparent;
+  color: var(--co-text-muted);
+  font-family: inherit;
+  font-size: var(--co-text-13);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.co-segmented__option[aria-checked="true"] {
+  background: var(--co-accent);
+  color: var(--co-accent-contrast);
+  font-weight: var(--co-weight-semibold);
+}
+
+/* ------------------------------------------------------------------ número -- */
+
+.co-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-6);
+}
+
+.co-stat__value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--co-space-8);
+}
+
+/* ------------------------------------------------------------------ aviso --- */
+
+/*
+ * Aviso INFORMA, nunca bloqueia (ADR-006 do Basalto). Por isso ele não tem
+ * variante "erro" com fundo vermelho e não tem botão de fechar obrigatório:
+ * é um bloco de texto com a conta aberta, marcado por um fio na lateral.
+ */
+.co-notice {
+  display: flex;
+  gap: var(--co-space-10);
+  padding: var(--co-space-14) var(--co-space-16);
+  background: var(--co-surface);
+  border-left: var(--co-marker-width) solid var(--co-accent);
+}
+
+.co-notice[data-tone="status"] { border-left-color: var(--co-status); }
+
+.co-notice__icon {
+  flex-shrink: 0;
+  padding-top: 1px;
+  color: var(--co-accent);
+  display: flex;
+}
+
+.co-notice[data-tone="status"] .co-notice__icon { color: var(--co-status); }
+
+.co-notice__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-4);
+}
+
+/* ------------------------------------------------------------------ linha --- */
+
+.co-list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-12);
+  width: 100%;
+  min-height: 64px;
+  padding: var(--co-space-12) var(--co-space-16);
+  background: transparent;
+  border: 0;
+  border-bottom: var(--co-border-width) solid var(--co-line);
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+}
+
+.co-list-row[data-interactive="true"] { cursor: pointer; }
+.co-list-row[data-selected="true"] { background: var(--co-surface-raised); }
+
+.co-list-row__marker {
+  width: var(--co-marker-width);
+  height: 30px;
+  flex-shrink: 0;
+  background: var(--co-track);
+}
+
+.co-list-row[data-selected="true"] .co-list-row__marker { background: var(--co-accent); }
+
+.co-list-row__body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-2);
+  min-width: 0;
+}
+
+.co-list-row__trailing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--co-space-2);
+  flex-shrink: 0;
+}
+
+.co-list-row__chevron {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--co-icon-muted);
+  transition: transform var(--co-duration-fast) var(--co-ease);
+}
+
+.co-list-row[data-expanded="true"] .co-list-row__chevron { transform: rotate(180deg); }
+
+/* ------------------------------------------------------------- incremento --- */
+
+.co-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--co-space-2);
+  background: var(--co-surface-sunken);
+  border: var(--co-border-width) solid var(--co-border);
+}
+
+.co-stepper__button {
+  width: 46px;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--co-text-secondary);
+  cursor: pointer;
+}
+
+.co-stepper__button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.co-stepper__value {
+  min-width: 52px;
+  text-align: center;
+  font-size: var(--co-text-17);
+  font-weight: var(--co-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------ grão ---- */
+
+/*
+ * Textura vulcânica. Fica num pseudo-elemento para não ocupar um nó e para
+ * nunca receber evento de ponteiro. A opacidade é token porque o grão precisa
+ * ser mais forte no escuro do que no claro para render o mesmo efeito.
+ */
+.co-grain {
+  position: relative;
+  isolation: isolate;
+}
+
+.co-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--co-grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+}
+
+/* Quem pede menos movimento não recebe transição nenhuma. */
+@media (prefers-reduced-motion: reduce) {
+  .co-root *,
+  .co-root *::before,
+  .co-root *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/*
+ * O CSS acima é o publicado no pacote, sem uma linha de diferença. O que vem
+ * abaixo é só a página: o esqueleto que segura os espécimes. Ele também não
+ * escreve cor literal nenhuma — se algum token quebrar, esta página quebra
+ * junto, e é para isso que ela serve.
+ */
+
+html, body { margin: 0; }
+body {
+  background: var(--co-canvas);
+  color: var(--co-text);
+  font-family: var(--co-font-body);
+  font-size: var(--co-text-14);
+  line-height: var(--co-leading-normal);
+}
+
+.pagina {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-block: 0 72px;
+}
+
+.topo {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--co-space-16);
+  padding-block: var(--co-space-16);
+  background: var(--co-canvas);
+  border-bottom: var(--co-border-width) solid var(--co-line);
+}
+
+.marca { display: flex; align-items: baseline; gap: var(--co-space-10); }
+.marca__nome {
+  font-family: var(--co-font-display);
+  font-size: var(--co-text-34);
+  line-height: 1;
+  letter-spacing: var(--co-tracking-tight);
+}
+
+.capa { display: flex; flex-direction: column; gap: var(--co-space-16); padding-block: var(--co-space-32) var(--co-space-20); }
+.capa__frase {
+  font-family: var(--co-font-display);
+  font-size: clamp(26px, 4.5vw, 40px);
+  line-height: 1.12;
+  letter-spacing: var(--co-tracking-tight);
+  text-wrap: balance;
+  max-width: 22ch;
+}
+.capa__texto { max-width: 62ch; color: var(--co-text-secondary); text-wrap: pretty; }
+
+.secao { padding-block: var(--co-space-40) 0; }
+.secao__cabeca {
+  display: flex;
+  align-items: baseline;
+  gap: var(--co-space-12);
+  padding-bottom: var(--co-space-16);
+  border-bottom: var(--co-border-width) solid var(--co-line);
+  margin-bottom: var(--co-space-20);
+}
+.secao__titulo { font-size: var(--co-text-20); font-weight: var(--co-weight-semibold); letter-spacing: -0.01em; }
+.secao__nota { color: var(--co-text-muted); font-size: var(--co-text-12); }
+.prosa { max-width: 62ch; color: var(--co-text-secondary); text-wrap: pretty; margin-bottom: var(--co-space-20); }
+.prosa strong { color: var(--co-text); font-weight: var(--co-weight-semibold); }
+
+.malha { display: grid; gap: var(--co-space-12); grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.tira { display: flex; flex-wrap: wrap; align-items: center; gap: var(--co-space-12); }
+.coluna { display: flex; flex-direction: column; gap: var(--co-space-16); }
+
+.amostra {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-8);
+  padding: var(--co-space-12);
+  background: var(--co-surface);
+  border: var(--co-border-width) solid var(--co-border);
+}
+.amostra__cor { height: 52px; border: var(--co-border-width) solid var(--co-border); }
+.amostra__nome { font-size: var(--co-text-12); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.amostra__valor { font-size: var(--co-text-11); color: var(--co-text-muted); font-variant-numeric: tabular-nums; }
+
+.caixa {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-16);
+  padding: var(--co-space-20);
+  background: var(--co-surface);
+  border: var(--co-border-width) solid var(--co-border);
+}
+
+.pares { display: grid; gap: var(--co-space-12); grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+
+.regua { display: flex; align-items: flex-end; gap: var(--co-space-8); flex-wrap: wrap; }
+.regua__item { display: flex; flex-direction: column; align-items: center; gap: var(--co-space-6); }
+.regua__barra { background: var(--co-accent); height: 16px; }
+.regua__rotulo { font-size: var(--co-text-10); color: var(--co-text-muted); font-variant-numeric: tabular-nums; }
+
+.icones { display: grid; gap: var(--co-space-8); grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+.icones__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--co-space-8);
+  padding: var(--co-space-12) var(--co-space-6);
+  background: var(--co-surface);
+  border: var(--co-border-width) solid var(--co-border);
+  color: var(--co-text-secondary);
+}
+.icones__nome { font-size: 10px; color: var(--co-text-muted); text-align: center; word-break: break-word; }
+
+.recusa { display: flex; gap: var(--co-space-14); padding-block: var(--co-space-14); border-top: var(--co-border-width) solid var(--co-line); }
+.recusa:first-child { border-top: 0; }
+.recusa__marca { width: var(--co-marker-width); flex-shrink: 0; background: var(--co-accent); }
+.recusa__corpo { display: flex; flex-direction: column; gap: var(--co-space-4); }
+.recusa__titulo { font-weight: var(--co-weight-semibold); }
+.recusa__texto { color: var(--co-text-secondary); font-size: var(--co-text-13); text-wrap: pretty; }
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.92em;
+  background: var(--co-surface-raised);
+  border: var(--co-border-width) solid var(--co-border);
+  padding: 1px 5px;
+}
+pre {
+  margin: 0;
+  padding: var(--co-space-16);
+  background: var(--co-surface-sunken);
+  border: var(--co-border-width) solid var(--co-border);
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--co-text-12);
+  line-height: 1.6;
+  color: var(--co-text-secondary);
+}
+pre code { background: none; border: 0; padding: 0; }
+
+.lado-a-lado { display: grid; gap: var(--co-space-16); grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.painel { padding: var(--co-space-20); background: var(--co-canvas); border: var(--co-border-width) solid var(--co-border); }
+
+.rodape { padding-block: var(--co-space-40) 0; border-top: var(--co-border-width) solid var(--co-line); margin-top: var(--co-space-40); color: var(--co-text-muted); font-size: var(--co-text-12); }
+.rodape a { color: var(--co-accent); }
+
+@media (max-width: 520px) {
+  .topo { position: static; }
+  .secao__cabeca { flex-direction: column; align-items: flex-start; gap: var(--co-space-4); }
+}
+</style>
+
+<div class="co-root pagina">
+
+  <header class="topo">
+    <div class="marca">
+      <span class="marca__nome">Coluna</span>
+      <span class="co-badge" data-tone="accent">v0.1.0</span>
+    </div>
+    <div class="co-segmented" role="radiogroup" aria-label="Tema" id="tema">
+      <button type="button" role="radio" class="co-segmented__option" aria-checked="false" data-tema="light">Claro</button>
+      <button type="button" role="radio" class="co-segmented__option" aria-checked="false" data-tema="dark">Escuro</button>
+      <button type="button" role="radio" class="co-segmented__option" aria-checked="true" data-tema="system">Sistema</button>
+    </div>
+  </header>
+
+  <section class="capa">
+    <h1 class="capa__frase">Coluna basáltica é o prisma que a lava deixa ao esfriar devagar.</h1>
+    <p class="capa__texto">É de onde vem o grid, as ripas das barras e a recusa a cantos arredondados. Esta página é pintada pelo <strong>CSS que o pacote publica</strong>, sem uma linha de diferença — se um token quebrar, ela quebra junto.</p>
+    <pre><code>npm install @slipalison/coluna
+import "@slipalison/coluna/styles.css";</code></pre>
+  </section>
+
+  <section class="secao">
+    <div class="secao__cabeca">
+      <h2 class="secao__titulo">Tema</h2>
+      <span class="secao__nota">três estados, dois temas</span>
+    </div>
+    <p class="prosa"><code>light</code> e <code>dark</code> escrevem <code>data-theme</code> no elemento. <strong><code>system</code> remove o atributo</strong> — é isso que deixa a media query voltar a mandar, e o que faz a tela acompanhar se você mudar o tema do sistema operacional com a página aberta. Experimente: escolha Sistema aqui e troque o tema do seu aparelho.</p>
+    <div class="caixa">
+      <div class="tira" style="justify-content: space-between;">
+        <div class="co-stat">
+          <div class="co-text" data-variant="label">Atributo no html</div>
+          <div class="co-text" data-variant="body" id="leitura-atributo">—</div>
+        </div>
+        <div class="co-stat">
+          <div class="co-text" data-variant="label">Tema resolvido</div>
+          <div class="co-text" data-variant="body" id="leitura-resolvido">—</div>
+        </div>
+        <div class="co-stat">
+          <div class="co-text" data-variant="label">Preferência do sistema</div>
+          <div class="co-text" data-variant="body" id="leitura-sistema">—</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao">
+    <div class="secao__cabeca">
+      <h2 class="secao__titulo">Cor</h2>
+      <span class="secao__nota">só o papel, nunca o valor</span>
+    </div>
+    <p class="prosa">Duas camadas: a primitiva guarda o valor (<code>--co-amethyst-500</code>) e a semântica guarda o papel (<code>--co-accent</code>). <strong>Só a semântica muda com o tema</strong>, e componente nenhum lê primitiva. Os valores abaixo são lidos do navegador agora — trocando o tema acima, eles mudam.</p>
+    <div class="coluna" id="cores"></div>
+  </section>
+
+  <section class="secao">
+    <div class="secao__cabeca">
+      <h2 class="secao__titulo">Tipografia</h2>
+      <span class="secao__nota">Instrument Serif + Archivo</span>
+    </div>
+    <p class="prosa">A rampa é fechada de propósito: não existe "tamanho 17 em negrito". Se um desenho pede isso, ou vira uma variante aqui, ou é um desenho fora do sistema. A serifa entra só onde o número carrega a mensagem.</p>
+    <div class="caixa">
+      <div class="co-text" data-variant="display">Sua taxa basal, em rocha sólida</div>
+      <div class="co-text" data-variant="numeral">1.917</div>
+      <div class="co-text" data-variant="title">Restante hoje</div>
+      <div class="co-text" data-variant="body">Corpo do texto, que é onde mora quase tudo o que a pessoa lê na tela.</div>
+      <div class="co-text" data-variant="caption" data-tone="secondary">Legenda: a linha que explica de onde o número veio.</div>
+      <div class="co-text" data-variant="label">Rótulo de seção</div>
+    </div>
+  </section>
+
+  <section class="secao">
+    <div class="secao__cabeca">
+      <h2 class="secao__titulo">Espaço e forma</h2>
+      <span class="secao__nota">o nome do token é o número de pixels</span>
+    </div>
+    <p class="prosa">Um <code>--co-space-6</code> diz onde encaixa; um <code>--co-space-md</code> exigiria decorar a tabela. O raio máximo do sistema é 4px e a maior parte dos componentes usa 0 — basalto lasca em coluna hexagonal, não em pílula.</p>
+    <div class="caixa">
+      <div class="regua" id="espacos"></div>
+      <hr class="co-divider">
+      <div class="tira">
+        <div class="co-text" data-variant="caption" data-tone="muted">Alvo mínimo de toque</div>
+        <div style="width: 44px; height: 44px; background: var(--co-accent-soft); border: var(--co-border-width) solid var(--co-accent); display: flex; align-items: center; justify-content: center;">
+          <span class="co-text" data-variant="caption" data-tone="accent" data-numeric="true">44</span>
+        </div>
+        <div class="co-text" data-variant="caption" data-tone="secondary" style="max-width: 44ch;">É piso da API, não recomendação: não existe <code>size="sm"</code> no botão.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao">
+    <div class="secao__cabeca">
+      <h2 class="secao__titulo">Átomos</h2>
+      <span class="secao__nota">dez</span>
+    </div>
+
+    <div class="coluna">
+      <div class="caixa">
+        <div class="co-text" data-variant="label">Button</div>
+        <div class="tira">
+          <button type="button" class="co-button" data-variant="primary" data-size="lg">Registrar</button>
+          <button type="button" class="co-button" data-variant="primary">Copiar para o diário</button>
+          <button type="button" class="co-button" data-variant="secondary">Usar no cardápio</button>
+          <button type="button" class="co-button" data-variant="ghost">Nova refeição</button>
+          <button type="button" class="co-button" data-variant="danger">Apagar a conta</button>
+          <button type="button" class="co-button" data-variant="primary" disabled="">Indisponível</button>
+        </div>
+      </div>
+
+      <div class="pares">
+        <div class="caixa">
+          <div class="co-text" data-variant="label">Badge</div>
+          <div class="tira">
+            <span class="co-badge">TACO</span>
+            <span class="co-badge" data-tone="accent">cru</span>
+            <span class="co-badge" data-tone="status">cozido</span>
+            <span class="co-badge" data-solid="true">62% medido</span>
+          </div>
+        </div>
+        <div class="caixa">
+          <div class="co-text" data-variant="label">Slat</div>
+          <div class="co-slat" style="--co-slat-value: 62%;"><div class="co-slat__fill"></div></div>
+          <div class="co-slat" data-size="sm" style="--co-slat-value: 34%;"><div class="co-slat__fill"></div></div>
+          <div class="co-slat" data-size="sm" style="--co-slat-value: 62%;"><div class="co-slat__marker"></div></div>
+          <div class="co-text" data-variant="caption" data-tone="muted">Preenchimento, tamanho menor, e o marcador — que mostra um ponto na régua entre dois extremos, e não progresso.</div>
+        </div>
+      </div>
+
+      <div class="caixa">
+        <div class="co-text" data-variant="label">Icon</div>
+        <div class="co-text" data-variant="caption" data-tone="secondary">Todos de traço, na mesma grade de 24 e com a mesma espessura. Emoji não entra: não escala, não recolore, e muda de desenho por sistema operacional.</div>
+        <div class="icones" id="icones"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao">
+    <div class="secao__cabeca">
+      <h2 class="secao__titulo">Moléculas</h2>
+      <span class="secao__nota">seis</span>
+    </div>
+
+    <div class="coluna">
+      <div class="pares">
+        <div class="caixa">
+          <div class="co-text" data-variant="label">SegmentedControl</div>
+          <div class="co-segmented" data-full="true" role="radiogroup" aria-label="Estratégia de macros" id="estrategia">
+            <button type="button" role="radio" class="co-segmented__option" aria-checked="true" tabindex="0">Padrão</button>
+            <button type="button" role="radio" class="co-segmented__option" aria-checked="false" tabindex="-1">Baixa em carbo</button>
+            <button type="button" role="radio" class="co-segmented__option" aria-checked="false" tabindex="-1">Cetogênica</button>
+          </div>
+          <div class="co-text" data-variant="caption" data-tone="muted">É um <code>radiogroup</code>: navega por seta, custa um Tab e não N, e o leitor de tela anuncia "2 de 3, marcado".</div>
+        </div>
+
+        <div class="caixa">
+          <div class="co-text" data-variant="label">Stepper</div>
+          <div class="co-stepper" role="group" aria-label="porções" id="porcoes">
+            <button type="button" class="co-stepper__button" aria-label="Diminuir porções" data-passo="-1">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"></path></svg>
+            </button>
+            <output class="co-stepper__value" aria-live="polite">4</output>
+            <button type="button" class="co-stepper__button" aria-label="Aumentar porções" data-passo="1">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+            </button>
+          </div>
+          <div class="co-text" data-variant="caption" data-tone="muted">46px e não 44: eles andam colados, e o dedo que erra por dois pixels aperta o botão que faz o contrário.</div>
+        </div>
+      </div>
+
+      <div class="pares">
+        <div class="caixa">
+          <div class="co-text" data-variant="label">Stat</div>
+          <div class="co-stat">
+            <div class="co-text" data-variant="label">Restante hoje</div>
+            <div class="co-stat__value">
+              <div class="co-text" data-variant="numeral" data-numeric="true" style="font-size: var(--co-text-64);">995</div>
+              <div class="co-text" data-variant="body" data-tone="secondary">kcal</div>
+            </div>
+            <div class="co-text" data-variant="caption" data-tone="secondary">de 1.917 kcal · a meta de hoje</div>
+          </div>
+        </div>
+
+        <div class="caixa">
+          <div class="co-text" data-variant="label">MacroBar</div>
+          <div class="coluna" style="gap: var(--co-space-12);">
+            <div style="display: flex; flex-direction: column; gap: var(--co-space-6);">
+              <div class="tira" style="justify-content: space-between;">
+                <span class="co-text" data-variant="caption" data-tone="secondary">Proteína</span>
+                <span class="co-text" data-variant="caption" data-tone="muted" data-numeric="true">68 / 135 g</span>
+              </div>
+              <div class="co-slat" data-size="sm" style="--co-slat-value: 50%;"><div class="co-slat__fill"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: var(--co-space-6);">
+              <div class="tira" style="justify-content: space-between;">
+                <span class="co-text" data-variant="caption" data-tone="secondary">Carboidrato</span>
+                <span class="co-text" data-variant="caption" data-tone="muted" data-numeric="true">95 / 225 g</span>
+              </div>
+              <div class="co-slat" data-size="sm" style="--co-slat-value: 42%;"><div class="co-slat__fill"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: var(--co-space-6);">
+              <div class="tira" style="justify-content: space-between;">
+                <span class="co-text" data-variant="caption" data-tone="secondary">Gordura</span>
+                <span class="co-text" data-variant="caption" data-tone="muted" data-numeric="true">30 / 53 g</span>
+              </div>
+              <div class="co-slat" data-size="sm" style="--co-slat-value: 57%;"><div class="co-slat__fill"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="caixa" style="padding: 0;">
+        <div style="padding: var(--co-space-20) var(--co-space-20) 0;">
+          <div class="co-text" data-variant="label">ListRow</div>
+        </div>
+        <div style="padding-top: var(--co-space-12);">
+          <button type="button" class="co-list-row" data-interactive="true" data-selected="true" data-expanded="false" aria-expanded="false" id="linha-almoco">
+            <span class="co-list-row__marker"></span>
+            <span class="co-list-row__body">
+              <span class="co-text" data-variant="body" style="font-weight: var(--co-weight-medium);">Almoço</span>
+              <span class="co-text" data-variant="caption" data-tone="muted">12:40 · 5 itens</span>
+            </span>
+            <span class="co-list-row__trailing">
+              <span class="co-text" data-variant="body" data-numeric="true">671</span>
+              <span class="co-text" data-variant="caption" data-tone="muted">kcal</span>
+            </span>
+            <span class="co-list-row__chevron">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+            </span>
+          </button>
+          <div hidden="" id="itens-almoco" style="padding: var(--co-space-12) var(--co-space-20) var(--co-space-16) 52px; display: flex; flex-direction: column; gap: var(--co-space-10);">
+            <div class="tira" style="justify-content: space-between;"><span class="co-text" data-variant="caption">Arroz, branco, cozido · 6 colheres de sopa</span><span class="co-text" data-variant="caption" data-tone="muted" data-numeric="true">192</span></div>
+            <div class="tira" style="justify-content: space-between;"><span class="co-text" data-variant="caption">Feijão carioca, cozido · 1 concha média</span><span class="co-text" data-variant="caption" data-tone="muted" data-numeric="true">108</span></div>
+            <div class="tira" style="justify-content: space-between;"><span class="co-text" data-variant="caption">Filé de frango grelhado · 120 g</span><span class="co-text" data-variant="caption" data-tone="muted" data-numeric="true">190</span></div>
+            <div class="tira" style="justify-content: space-between;"><span class="co-text" data-variant="caption">Salada de folhas · 2 colheres de azeite</span><span class="co-text" data-variant="caption" data-tone="muted" data-numeric="true">181</span></div>
+          </div>
+          <div class="co-list-row">
+            <span class="co-list-row__marker"></span>
+            <span class="co-list-row__body">
+              <span class="co-text" data-variant="body" style="font-weight: var(--co-weight-medium);">Café da manhã</span>
+              <span class="co-text" data-variant="caption" data-tone="muted">07:30 · 4 itens</span>
+            </span>
+            <span class="co-list-row__trailing">
+              <span class="co-text" data-variant="body" data-numeric="true">479</span>
+              <span class="co-text" data-variant="caption" data-tone="muted">kcal</span>
+            </span>
+          </div>
+        </div>
+        <div style="padding: var(--co-space-12) var(--co-space-20) var(--co-space-20);">
+          <div class="co-text" data-variant="caption" data-tone="muted">A primeira tem <code>onClick</code> e sai <code>&lt;button&gt;</code>; a segunda não tem e sai <code>&lt;div&gt;</code>. Nunca um div clicável: não pega foco, não responde a Enter, não aparece como acionável.</div>
+        </div>
+      </div>
+
+      <div class="caixa">
+        <div class="co-text" data-variant="label">Notice</div>
+        <div class="co-notice" role="status" aria-live="polite">
+          <span class="co-notice__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+          </span>
+          <span class="co-notice__body">
+            <span class="co-text" data-variant="caption" style="font-weight: var(--co-weight-semibold);">Ritmo ajustado</span>
+            <span class="co-text" data-variant="caption" data-tone="secondary">O ritmo pedido (1,20 kg/semana) excede 1% do peso corporal. A conta usou 0,85 kg/semana. Você continua livre para registrar o que quiser.</span>
+          </span>
+        </div>
+        <div class="co-notice" data-tone="status" role="status" aria-live="off">
+          <span class="co-notice__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5a12 12 0 0 1 16 0"></path><path d="M7.5 12a7.5 7.5 0 0 1 9 0"></path><path d="M12 16h.01"></path></svg>
+          </span>
+          <span class="co-notice__body">
+            <span class="co-text" data-variant="caption" style="font-weight: var(--co-weight-semibold);">Sem rede</span>
+            <span class="co-text" data-variant="caption" data-tone="secondary">Este registro entra na fila e sobe sozinho quando você voltar.</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao">
+    <div class="secao__cabeca">
+      <h2 class="secao__titulo">Os dois temas ao mesmo tempo</h2>
+      <span class="secao__nota">data-theme vale em qualquer subárvore</span>
+    </div>
+    <p class="prosa">O atributo não precisa estar na raiz. Os dois painéis abaixo estão na mesma página, um com <code>data-theme="light"</code> e o outro com <code>data-theme="dark"</code> — é o que o <code>ThemeProvider</code> faz com <code>attachTo="element"</code>, e o que permite uma pré-visualização de tema ao lado do resto da tela.</p>
+    <div class="lado-a-lado">
+      <div class="co-root painel" data-theme="light">
+        <div class="co-stat">
+          <div class="co-text" data-variant="label">Claro</div>
+          <div class="co-stat__value">
+            <div class="co-text" data-variant="numeral" data-numeric="true" style="font-size: var(--co-text-46);">2.467</div>
+            <div class="co-text" data-variant="body" data-tone="secondary">kcal</div>
+          </div>
+          <div class="co-text" data-variant="caption" data-tone="secondary">gasto pela fórmula</div>
+        </div>
+        <div class="co-slat" style="--co-slat-value: 62%; margin-top: 16px;"><div class="co-slat__fill"></div></div>
+        <div class="tira" style="margin-top: 16px;">
+          <button type="button" class="co-button" data-variant="primary">Registrar</button>
+          <span class="co-badge" data-tone="status">TACO</span>
+        </div>
+      </div>
+      <div class="co-root painel" data-theme="dark">
+        <div class="co-stat">
+          <div class="co-text" data-variant="label">Escuro</div>
+          <div class="co-stat__value">
+            <div class="co-text" data-variant="numeral" data-numeric="true" style="font-size: var(--co-text-46);">2.371</div>
+            <div class="co-text" data-variant="body" data-tone="secondary">kcal</div>
+          </div>
+          <div class="co-text" data-variant="caption" data-tone="secondary">gasto adaptativo, 62% medido</div>
+        </div>
+        <div class="co-slat" style="--co-slat-value: 62%; margin-top: 16px;"><div class="co-slat__fill"></div></div>
+        <div class="tira" style="margin-top: 16px;">
+          <button type="button" class="co-button" data-variant="primary">Registrar</button>
+          <span class="co-badge" data-tone="status">TACO</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao">
+    <div class="secao__cabeca">
+      <h2 class="secao__titulo">As recusas</h2>
+      <span class="secao__nota">o que não entra, e por quê</span>
+    </div>
+    <p class="prosa">Design system morre de duas formas opostas: virando uma coleção de <code>&lt;div&gt;</code> com props de estilo, ou virando um catálogo que tenta prever toda tela do produto. A fronteira precisa estar escrita, senão é decidida caso a caso, por quem estiver com pressa.</p>
+    <div class="caixa">
+      <div class="recusa">
+        <span class="recusa__marca"></span>
+        <span class="recusa__corpo">
+          <span class="recusa__titulo">Não existe <code>Button size="sm"</code></span>
+          <span class="recusa__texto">44px é o alvo mínimo que um polegar acerta. Se isso fosse um aviso na documentação, o <code>sm</code> apareceria em produção na primeira sexta-feira.</span>
+        </span>
+      </div>
+      <div class="recusa">
+        <span class="recusa__marca"></span>
+        <span class="recusa__corpo">
+          <span class="recusa__titulo">O aviso não tem variante de erro</span>
+          <span class="recusa__texto">Aviso informa, nunca bloqueia. Erro de verdade — entrada sem significado — não é um aviso: é uma mensagem junto do campo que a produziu, e isso é do aplicativo.</span>
+        </span>
+      </div>
+      <div class="recusa">
+        <span class="recusa__marca"></span>
+        <span class="recusa__corpo">
+          <span class="recusa__titulo">Um vermelho só, e ele tem dono</span>
+          <span class="recusa__texto">Apagar a conta apaga os dados de verdade. Vermelho não decora erro de digitação nem repreende quem comeu mais do que planejou.</span>
+        </span>
+      </div>
+      <div class="recusa">
+        <span class="recusa__marca"></span>
+        <span class="recusa__corpo">
+          <span class="recusa__titulo">Nada aqui sabe o que é uma refeição</span>
+          <span class="recusa__texto"><code>MacroBar</code> recebe nome, valor e alvo. O teste prático: se a prop for um objeto do domínio, o componente está do lado errado da linha — e todo ajuste na API do Basalto viraria uma versão nova do design system.</span>
+        </span>
+      </div>
+      <div class="recusa">
+        <span class="recusa__marca"></span>
+        <span class="recusa__corpo">
+          <span class="recusa__titulo">A barra não grampeia o excedente por baixo dos panos</span>
+          <span class="recusa__texto">Passar do alvo é informação. O desenho satura em 100%; o número ao lado continua contando a verdade, e nada muda de cor.</span>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="rodape">
+    Esta página é gerada por <code>scripts/gerar-referencia.mjs</code> a partir de <code>dist/styles.css</code> e do mapa de ícones em <code>src/atoms/Icon.tsx</code>. Ela usa a mesma marcação que os componentes React emitem, mas não executa o React — o contrato aqui é o CSS. Código em <a href="https://github.com/slipalison/coluna">github.com/slipalison/coluna</a>.
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var ICONES = {
+  "chevron-down": "M6 9l6 6 6-6",
+  "chevron-left": "M15 5l-7 7 7 7",
+  "chevron-right": "M9 5l7 7-7 7",
+  "plus": "M12 5v14M5 12h14",
+  "minus": "M5 12h14",
+  "check": "M5 12l5 5L19 7",
+  "close": "M6 6l12 12M18 6L6 18",
+  "search": "M17.5 11a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0M16 16l4 4",
+  "refresh": "M4 11a7 7 0 0 1 12-4.5L19 9M19 4v5h-5M20 13a7 7 0 0 1-12 4.5L5 15M5 20v-5h5",
+  "info": "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M12 8v5M12 16h.01",
+  "bell": "M6 10a6 6 0 0 1 12 0c0 4 1.5 5 1.5 5h-15S6 14 6 10M10.5 19a1.8 1.8 0 0 0 3 0",
+  "gear": "M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1",
+  "user": "M15.2 9a3.2 3.2 0 1 1-6.4 0 3.2 3.2 0 0 1 6.4 0M5.5 19.5a6.8 6.8 0 0 1 13 0",
+  "book": "M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2zM9 9h6M9 13h6",
+  "chart": "M4 16l4.5-5 3.5 3.5L19 7M15 7h4v4",
+  "scale": "M6 20h12l-1.4-11H7.4zM9.5 9a2.5 2.5 0 1 1 5 0",
+  "utensils": "M6 3v8a3 3 0 0 0 6 0V3M9 11v10M18 3c-1.5 2-2 4-2 6s.5 3 2 3v9",
+  "offline": "M4 8.5a12 12 0 0 1 16 0M7.5 12a7.5 7.5 0 0 1 9 0M12 16h.01",
+  "more": "M6 12h.01M12 12h.01M18 12h.01"
+};
+
+  var raiz = document.documentElement;
+  var consultaEscuro = window.matchMedia("(prefers-color-scheme: dark)");
+
+  // ---------------------------------------------------------------- tema --
+  // Mesma regra do ThemeProvider: `system` REMOVE o atributo em vez de
+  // escrever o valor resolvido. É o que deixa a media query voltar a mandar.
+  var escolha = "system";
+
+  function aplicarTema(novo) {
+    escolha = novo;
+    if (novo === "system") raiz.removeAttribute("data-theme");
+    else raiz.setAttribute("data-theme", novo);
+
+    var botoes = document.querySelectorAll("#tema [data-tema]");
+    for (var i = 0; i < botoes.length; i++) {
+      var marcado = botoes[i].getAttribute("data-tema") === novo;
+      botoes[i].setAttribute("aria-checked", marcado ? "true" : "false");
+      botoes[i].setAttribute("tabindex", marcado ? "0" : "-1");
+    }
+    atualizarLeituras();
+    pintarCores();
+  }
+
+  document.getElementById("tema").addEventListener("click", function (evento) {
+    var alvo = evento.target.closest("[data-tema]");
+    if (alvo) aplicarTema(alvo.getAttribute("data-tema"));
+  });
+
+  function atualizarLeituras() {
+    var atributo = raiz.getAttribute("data-theme");
+    var doSistema = consultaEscuro.matches ? "escuro" : "claro";
+    var resolvido = atributo ? (atributo === "dark" ? "escuro" : "claro") : doSistema;
+    document.getElementById("leitura-atributo").textContent = atributo ? 'data-theme="' + atributo + '"' : "ausente (system)";
+    document.getElementById("leitura-resolvido").textContent = resolvido;
+    document.getElementById("leitura-sistema").textContent = doSistema;
+  }
+
+  consultaEscuro.addEventListener("change", function () {
+    atualizarLeituras();
+    pintarCores();
+  });
+
+  // ---------------------------------------------------------------- cores --
+  var GRUPOS = [
+    ["Superfície", ["canvas", "surface", "surface-raised", "surface-sunken"]],
+    ["Traço", ["border", "border-strong", "line", "track"]],
+    ["Texto", ["text", "text-secondary", "text-muted", "icon-muted"]],
+    ["Acento", ["accent", "accent-hover", "accent-contrast", "accent-soft"]],
+    ["Estado", ["status", "status-border", "danger", "danger-soft"]]
+  ];
+
+  var alvoCores = document.getElementById("cores");
+  for (var g = 0; g < GRUPOS.length; g++) {
+    var titulo = document.createElement("div");
+    titulo.className = "co-text";
+    titulo.setAttribute("data-variant", "label");
+    titulo.textContent = GRUPOS[g][0];
+    alvoCores.appendChild(titulo);
+
+    var malha = document.createElement("div");
+    malha.className = "malha";
+    for (var t = 0; t < GRUPOS[g][1].length; t++) {
+      var token = GRUPOS[g][1][t];
+      var amostra = document.createElement("div");
+      amostra.className = "amostra";
+      amostra.innerHTML =
+        '<div class="amostra__cor" style="background: var(--co-' + token + ');"></div>' +
+        '<div class="amostra__nome">--co-' + token + "</div>" +
+        '<div class="amostra__valor" data-token="' + token + '">—</div>';
+      malha.appendChild(amostra);
+    }
+    alvoCores.appendChild(malha);
+  }
+
+  function pintarCores() {
+    var estilo = getComputedStyle(raiz);
+    var celulas = document.querySelectorAll("[data-token]");
+    for (var i = 0; i < celulas.length; i++) {
+      var valor = estilo.getPropertyValue("--co-" + celulas[i].getAttribute("data-token")).trim();
+      celulas[i].textContent = valor || "—";
+    }
+  }
+
+  // --------------------------------------------------------------- espaço --
+  var ESPACOS = [2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 40];
+  var regua = document.getElementById("espacos");
+  for (var e = 0; e < ESPACOS.length; e++) {
+    var item = document.createElement("div");
+    item.className = "regua__item";
+    item.innerHTML =
+      '<div class="regua__barra" style="width: ' + ESPACOS[e] + 'px;"></div>' +
+      '<div class="regua__rotulo">' + ESPACOS[e] + "</div>";
+    regua.appendChild(item);
+  }
+
+  // --------------------------------------------------------------- ícones --
+  var alvoIcones = document.getElementById("icones");
+  var nomes = Object.keys(ICONES);
+  for (var n = 0; n < nomes.length; n++) {
+    var caixa = document.createElement("div");
+    caixa.className = "icones__item";
+    caixa.innerHTML =
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' +
+      ICONES[nomes[n]] + '"></path></svg>' +
+      '<span class="icones__nome">' + nomes[n] + "</span>";
+    alvoIcones.appendChild(caixa);
+  }
+
+  // ------------------------------------------------- demonstrações vivas --
+  var estrategia = document.getElementById("estrategia");
+  var opcoes = estrategia.querySelectorAll('[role="radio"]');
+
+  function marcar(indice) {
+    for (var i = 0; i < opcoes.length; i++) {
+      var marcado = i === indice;
+      opcoes[i].setAttribute("aria-checked", marcado ? "true" : "false");
+      opcoes[i].setAttribute("tabindex", marcado ? "0" : "-1");
+    }
+    opcoes[indice].focus();
+  }
+
+  estrategia.addEventListener("click", function (evento) {
+    var alvo = evento.target.closest('[role="radio"]');
+    if (alvo) marcar(Array.prototype.indexOf.call(opcoes, alvo));
+  });
+
+  estrategia.addEventListener("keydown", function (evento) {
+    var atual = Array.prototype.indexOf.call(opcoes, evento.target);
+    if (atual < 0) return;
+    var passo = 0;
+    if (evento.key === "ArrowRight" || evento.key === "ArrowDown") passo = 1;
+    else if (evento.key === "ArrowLeft" || evento.key === "ArrowUp") passo = -1;
+    else return;
+    evento.preventDefault();
+    // Circular: parar na ponta obriga a atravessar o grupo de volta.
+    marcar((atual + passo + opcoes.length) % opcoes.length);
+  });
+
+  var porcoes = document.getElementById("porcoes");
+  var saida = porcoes.querySelector("output");
+  porcoes.addEventListener("click", function (evento) {
+    var alvo = evento.target.closest("[data-passo]");
+    if (!alvo) return;
+    var proximo = parseInt(saida.textContent, 10) + parseInt(alvo.getAttribute("data-passo"), 10);
+    saida.textContent = String(Math.min(6, Math.max(1, proximo)));
+  });
+
+  var linha = document.getElementById("linha-almoco");
+  var itens = document.getElementById("itens-almoco");
+  linha.addEventListener("click", function () {
+    var aberta = linha.getAttribute("aria-expanded") === "true";
+    linha.setAttribute("aria-expanded", aberta ? "false" : "true");
+    linha.setAttribute("data-expanded", aberta ? "false" : "true");
+    itens.hidden = aberta;
+  });
+
+  aplicarTema("system");
+  linha.click();
+})();
+</script>
+
+</body>
+</html>
