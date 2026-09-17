@@ -57,7 +57,7 @@ const CASOS: [nome: string, elemento: React.ReactElement, classeDoSistema: strin
     />,
     "co-segmented",
   ],
-  ["MacroBar", <MacroBar className="x" key="m" name="Proteína" value={1} target={2} />, "co-stack"],
+  ["MacroBar", <MacroBar className="x" key="m" name="Proteína" value={1} target={2} />, "co-macro"],
 ];
 
 describe("classe externa", () => {

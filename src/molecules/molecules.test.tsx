@@ -2,12 +2,15 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
+import { Group } from "./Group";
 import { ListRow } from "./ListRow";
 import { MacroBar } from "./MacroBar";
 import { Notice } from "./Notice";
+import { Reckoning } from "./Reckoning";
 import { SegmentedControl } from "./SegmentedControl";
 import { Stat } from "./Stat";
 import { Stepper } from "./Stepper";
+import { TabBar } from "./TabBar";
 
 const ESTRATEGIAS = [
   { value: "padrao", label: "Padrão" },
@@ -128,14 +131,14 @@ describe("ListRow", () => {
 
   it("anuncia aberto e fechado", () => {
     const { rerender } = render(
-      <ListRow expanded={false} onClick={vi.fn()} marker selected>
+      <ListRow expanded={false} onClick={vi.fn()} selected>
         Almoço
       </ListRow>,
     );
     expect(screen.getByRole("button", { name: "Almoço" })).toHaveAttribute("aria-expanded", "false");
 
     rerender(
-      <ListRow expanded onClick={vi.fn()} marker selected trailing={<span>612</span>}>
+      <ListRow expanded onClick={vi.fn()} selected trailing={<span>612</span>}>
         Almoço
       </ListRow>,
     );
@@ -173,7 +176,7 @@ describe("Notice, Stat e MacroBar", () => {
     const barra = screen.getByRole("progressbar", { name: /Proteína/ });
     // A ripa satura em 100% no desenho; o número ao lado continua contando a verdade.
     expect(barra).toHaveAttribute("aria-valuenow", "100");
-    expect(screen.getByText("150 / 135 g")).toBeInTheDocument();
+    expect(screen.getByText("150 de 135 g")).toBeInTheDocument();
   });
 
   it("MacroBar com alvo zero não divide por zero", () => {
@@ -182,5 +185,121 @@ describe("Notice, Stat e MacroBar", () => {
       "aria-valuenow",
       "0",
     );
+  });
+});
+
+describe("Group", () => {
+  it("nao intercala elemento nenhum entre os filhos", () => {
+    // O fio sai de `::before` no proprio filho. Se o grupo inserisse um `<div>`
+    // separador, uma lista de 5 linhas viraria 9 nos — e a ultima ganharia um
+    // fio que ninguem pediu.
+    const { container } = render(
+      <Group>
+        <ListRow>Primeira</ListRow>
+        <ListRow>Segunda</ListRow>
+        <ListRow>Terceira</ListRow>
+      </Group>,
+    );
+    expect(container.querySelector(".co-group")?.children).toHaveLength(3);
+  });
+
+  it("o recuo do fio vai para o DOM, que e onde o CSS le", () => {
+    const { container } = render(
+      <Group inset="dot">
+        <ListRow>Proteina</ListRow>
+      </Group>,
+    );
+    expect(container.querySelector(".co-group")).toHaveAttribute("data-inset", "dot");
+  });
+
+  it("rotulo e nota ficam FORA da caixa", () => {
+    const { container } = render(
+      <Group label="Macros" note="A soma encosta na meta.">
+        <ListRow>Proteina</ListRow>
+      </Group>,
+    );
+    const caixa = container.querySelector(".co-group");
+    expect(caixa).not.toHaveTextContent("Macros");
+    expect(caixa).not.toHaveTextContent("A soma encosta na meta.");
+    expect(screen.getByText("Macros")).toBeInTheDocument();
+    expect(screen.getByText("A soma encosta na meta.")).toBeInTheDocument();
+  });
+});
+
+describe("ListRow com marca de escolha", () => {
+  it("vira radio de verdade, e nao um botao que parece marcado", () => {
+    render(
+      <Group inset="mark" role="radiogroup" aria-label="Formula">
+        <ListRow mark selected onClick={vi.fn()}>
+          Katch-McArdle
+        </ListRow>
+        <ListRow mark onClick={vi.fn()}>
+          Mifflin-St Jeor
+        </ListRow>
+      </Group>,
+    );
+    expect(screen.getByRole("radio", { name: "Katch-McArdle" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "Mifflin-St Jeor" })).not.toBeChecked();
+  });
+});
+
+describe("Reckoning", () => {
+  it("separa a linha do resultado das parcelas", () => {
+    const { container } = render(
+      <Reckoning
+        lines={[
+          { label: "Meta do dia", value: "1.917" },
+          { label: "Alimentos registrados", value: "− 922" },
+          { label: "Restante", value: "995", total: true },
+        ]}
+      />,
+    );
+    const linhas = container.querySelectorAll(".co-reckoning__line");
+    expect(linhas).toHaveLength(3);
+    expect(linhas[0]).not.toHaveAttribute("data-total");
+    expect(linhas[2]).toHaveAttribute("data-total", "true");
+  });
+
+  it("mostra a expressao junto do resultado", () => {
+    // O arredondamento aparece porque ele existe: 1.433,4 + 937,5 = 2.370,9,
+    // e esconder a casa decimal daria uma soma que nao fecha para quem confere.
+    render(
+      <Reckoning
+        lines={[
+          { label: "Formula", expression: "2.312 × 62%", value: "1.433,4" },
+          { label: "Gasto de hoje", expression: "2.370,9 arredondado", value: "2.371", total: true },
+        ]}
+      />,
+    );
+    expect(screen.getByText("2.312 × 62%")).toBeInTheDocument();
+    expect(screen.getByText("2.370,9 arredondado")).toBeInTheDocument();
+  });
+});
+
+describe("TabBar", () => {
+  const ABAS = [
+    { value: "diario", label: "Diário", icon: "book" },
+    { value: "gasto", label: "Gasto", icon: "chart" },
+  ] as const;
+
+  it("a aba atual nao depende so da cor", () => {
+    // Cor, peso e `aria-current`. Aqui da para conferir o terceiro, que e o
+    // unico que o teste alcanca — e o que o leitor de tela usa.
+    render(<TabBar label="Seções" items={ABAS} value="gasto" onChange={vi.fn()} position="static" />);
+    expect(screen.getByRole("button", { name: "Gasto" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "Diário" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("e uma navegacao com nome", () => {
+    render(<TabBar label="Seções do Basalto" items={ABAS} value="diario" onChange={vi.fn()} position="static" />);
+    expect(screen.getByRole("navigation", { name: "Seções do Basalto" })).toBeInTheDocument();
+  });
+
+  it("troca de aba pelo clique", async () => {
+    const usuario = userEvent.setup();
+    const aoTrocar = vi.fn();
+    render(<TabBar label="Seções" items={ABAS} value="diario" onChange={aoTrocar} position="static" />);
+    await usuario.click(screen.getByRole("button", { name: "Gasto" }));
+    expect(aoTrocar).toHaveBeenCalledWith("gasto");
   });
 });

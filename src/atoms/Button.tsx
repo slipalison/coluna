@@ -16,6 +16,13 @@ export type ButtonSize = "md" | "lg";
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  /**
+   * Só vale em `ghost`. A ação inline de uma lista — "Adicionar a esta
+   * refeição" — nasce no acento, porque ela é uma oferta; `neutral` é para
+   * quando duas ações inline dividem a mesma linha e só uma delas é a
+   * principal.
+   */
+  tone?: "accent" | "neutral";
   /** Ocupa a largura do contêiner. */
   full?: boolean;
   /** Ícone antes do rótulo. */
@@ -28,6 +35,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export function Button({
   variant = "primary",
   size = "md",
+  tone = "accent",
   full = false,
   icon,
   iconEnd,
@@ -45,6 +53,7 @@ export function Button({
       type={type}
       data-variant={variant}
       data-size={size}
+      data-tone={tone === "accent" ? undefined : tone}
       data-full={full ? "true" : undefined}
       {...resto}
     >

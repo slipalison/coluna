@@ -23,6 +23,7 @@ export type IconName =
   | "gear"
   | "user"
   | "book"
+  | "calendar"
   | "chart"
   | "scale"
   | "utensils"
@@ -45,6 +46,7 @@ const CAMINHOS: Record<IconName, string> = {
     "M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1",
   user: "M15.2 9a3.2 3.2 0 1 1-6.4 0 3.2 3.2 0 0 1 6.4 0M5.5 19.5a6.8 6.8 0 0 1 13 0",
   book: "M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2zM9 9h6M9 13h6",
+  calendar: "M7 4h10a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2M5 9.5h14M9 2.5v4M15 2.5v4",
   chart: "M4 16l4.5-5 3.5 3.5L19 7M15 7h4v4",
   scale: "M6 20h12l-1.4-11H7.4zM9.5 9a2.5 2.5 0 1 1 5 0",
   utensils: "M6 3v8a3 3 0 0 0 6 0V3M9 11v10M18 3c-1.5 2-2 4-2 6s.5 3 2 3v9",

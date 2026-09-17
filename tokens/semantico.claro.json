@@ -2,7 +2,7 @@
   "claro": {
     "canvas": {
       "$type": "color",
-      "$value": "{stone-50}"
+      "$value": "{stone-075}"
     },
     "surface": {
       "$type": "color",
@@ -14,15 +14,23 @@
     },
     "surface-sunken": {
       "$type": "color",
-      "$value": "{stone-100}"
+      "$value": "{stone-200}"
+    },
+    "overlay": {
+      "$type": "color",
+      "$value": "{overlay-claro}"
+    },
+    "overlay-line": {
+      "$type": "color",
+      "$value": "{fio-claro}"
     },
     "border": {
       "$type": "color",
-      "$value": "{stone-300}"
+      "$value": "{stone-400}"
     },
     "border-strong": {
       "$type": "color",
-      "$value": "{stone-400}"
+      "$value": "{stone-500}"
     },
     "line": {
       "$type": "color",
@@ -30,23 +38,31 @@
     },
     "track": {
       "$type": "color",
-      "$value": "{stone-400}"
+      "$value": "{stone-300}"
     },
     "text": {
       "$type": "color",
       "$value": "{stone-900}"
     },
+    "text-body": {
+      "$type": "color",
+      "$value": "{stone-850}"
+    },
     "text-secondary": {
       "$type": "color",
-      "$value": "{stone-700}"
+      "$value": "{stone-800}"
     },
     "text-muted": {
       "$type": "color",
-      "$value": "{stone-600}"
+      "$value": "{stone-700}"
+    },
+    "text-subtle": {
+      "$type": "color",
+      "$value": "{stone-650}"
     },
     "icon-muted": {
       "$type": "color",
-      "$value": "{stone-500}"
+      "$value": "{stone-600}"
     },
     "accent": {
       "$type": "color",
@@ -80,9 +96,21 @@
       "$type": "color",
       "$value": "{rust-050}"
     },
+    "macro-protein": {
+      "$type": "color",
+      "$value": "{amethyst-600}"
+    },
+    "macro-carb": {
+      "$type": "color",
+      "$value": "{jade-700}"
+    },
+    "macro-fat": {
+      "$type": "color",
+      "$value": "{orchid-600}"
+    },
     "shadow-overlay": {
       "$type": "other",
-      "$value": "0 -24px 48px rgba(26, 21, 32, 0.12)"
+      "$value": "0 -24px 48px rgba(26, 21, 32, 0.10)"
     },
     "grain-opacity": {
       "$type": "other",

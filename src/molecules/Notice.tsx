@@ -32,13 +32,13 @@ export function Notice({ title, children, tone = "accent", live = "polite", clas
   return (
     <div className={classe} data-tone={tone} role="status" aria-live={live}>
       <span className="co-notice__icon">
-        <Icon name="info" size={16} />
+        <Icon name="info" size={17} />
       </span>
       <div className="co-notice__body">
-        <Text variant="caption" style={{ fontWeight: "var(--co-weight-semibold)" }}>
+        <Text variant="callout" weight="semibold">
           {title}
         </Text>
-        <Text variant="caption" tone="secondary" style={{ textWrap: "pretty" }}>
+        <Text variant="footnote" tone="secondary" style={{ textWrap: "pretty" }}>
           {children}
         </Text>
       </div>

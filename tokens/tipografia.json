@@ -7,6 +7,7 @@
     "$type": "fontFamily",
     "$value": "Archivo, \"Helvetica Neue\", system-ui, sans-serif"
   },
+
   "text-10": {
     "$type": "dimension",
     "$value": "10px"
@@ -31,9 +32,9 @@
     "$type": "dimension",
     "$value": "15px"
   },
-  "text-17": {
+  "text-16": {
     "$type": "dimension",
-    "$value": "17px"
+    "$value": "16px"
   },
   "text-20": {
     "$type": "dimension",
@@ -43,23 +44,20 @@
     "$type": "dimension",
     "$value": "24px"
   },
-  "text-34": {
+  "text-36": {
     "$type": "dimension",
-    "$value": "34px"
+    "$value": "36px"
   },
   "text-46": {
     "$type": "dimension",
     "$value": "46px"
   },
-  "text-64": {
+  "text-68": {
     "$type": "dimension",
-    "$value": "64px"
+    "$value": "68px"
   },
-  "text-78": {
-    "$type": "dimension",
-    "$value": "78px"
-  },
-  "leading-tight": {
+
+  "leading-title": {
     "$type": "other",
     "$value": "1.05"
   },
@@ -71,9 +69,18 @@
     "$type": "other",
     "$value": "1.5"
   },
+  "leading-note": {
+    "$type": "other",
+    "$value": "1.45"
+  },
   "leading-numeral": {
     "$type": "other",
     "$value": "0.88"
+  },
+
+  "tracking-title": {
+    "$type": "other",
+    "$value": "-0.01em"
   },
   "tracking-tight": {
     "$type": "other",
@@ -83,10 +90,15 @@
     "$type": "other",
     "$value": "0"
   },
+  "tracking-micro": {
+    "$type": "other",
+    "$value": "0.1em"
+  },
   "tracking-label": {
     "$type": "other",
-    "$value": "0.16em"
+    "$value": "0.14em"
   },
+
   "weight-regular": {
     "$type": "fontWeight",
     "$value": "400"

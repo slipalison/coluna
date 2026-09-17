@@ -2,7 +2,13 @@ import type { HTMLAttributes, ReactNode } from "react";
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   tone?: "neutral" | "accent" | "status";
-  /** Preenchido em vez de contornado. Use com parcimônia: um por bloco. */
+  /**
+   * `pill` é o selo que flutua sobre o cartão — ele é contêiner, então
+   * arredonda. `square` é o selo que vira conteúdo DENTRO de uma linha, e
+   * conteúdo é reto (ADR-004).
+   */
+  shape?: "pill" | "square";
+  /** Preenchido em vez de tingido. Use com parcimônia: um por bloco. */
   solid?: boolean;
   children?: ReactNode;
 }
@@ -14,12 +20,20 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
  * Não é contador de notificação nem botão. Se o usuário pode clicar, é um
  * `Button`; o selo não recebe evento.
  */
-export function Badge({ tone = "neutral", solid = false, className, children, ...resto }: BadgeProps) {
+export function Badge({
+  tone = "neutral",
+  shape = "pill",
+  solid = false,
+  className,
+  children,
+  ...resto
+}: BadgeProps) {
   const classe = className ? `co-badge ${className}` : "co-badge";
   return (
     <span
       className={classe}
       data-tone={tone}
+      data-shape={shape === "pill" ? undefined : shape}
       data-solid={solid ? "true" : undefined}
       {...resto}
     >

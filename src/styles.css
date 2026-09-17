@@ -1,10 +1,19 @@
 /*
  * Folha única do Coluna.
  *
- * Regra que vale para tudo aqui embaixo: NENHUMA cor literal. Todo valor sai
- * de um token semântico (`var(--co-...)`), porque é a semântica que o tema
- * troca. Um `#1c1823` escrito à mão sobrevive ao tema claro sem reclamar, e o
- * defeito só aparece na tela de quem ligou o claro.
+ * DUAS REGRAS VALEM PARA TUDO AQUI EMBAIXO.
+ *
+ * 1. NENHUMA cor literal. Todo valor sai de um token semântico
+ *    (`var(--co-...)`), porque é a semântica que o tema troca. Um `#1a1622`
+ *    escrito à mão sobrevive ao tema claro sem reclamar, e o defeito só
+ *    aparece na tela de quem ligou o claro.
+ *
+ * 2. O CONTÊINER arredonda, o CONTEÚDO é reto. `--co-radius-container` é a
+ *    vitrine — grupo, cartão, botão, trilho de controle. `--co-radius-content`
+ *    é zero e fica no que está DENTRO dela: ponto de macro, ripa, barra,
+ *    marcador, fio. Não é meio-termo entre duas direções de desenho, é uma
+ *    regra — e ela é o que faz a tela ficar calma sem ficar sem graça.
+ *    (ADR-004.)
  *
  * Variante é atributo (`data-variant`, `data-tone`, `data-size`), e não classe
  * composta: o atributo aparece no DOM inspecionado, é o que o teste consulta
@@ -30,7 +39,8 @@
 }
 
 /* O foco é do teclado, e ele precisa aparecer nos dois temas. `outline` e não
- * `box-shadow`: outline não é cortado por `overflow: hidden` do pai. */
+ * `box-shadow`: outline não entra no cálculo de layout, então o anel não
+ * empurra o vizinho meio pixel quando aparece. */
 .co-root :focus-visible {
   outline: 2px solid var(--co-accent);
   outline-offset: 2px;
@@ -48,6 +58,31 @@
   border: 0;
 }
 
+/* ----------------------------------------------------------------- tela --- */
+
+/*
+ * A moldura de uma tela inteira: fundo, grão e a calha lateral de 16px.
+ *
+ * `--co-screen-bottom` reserva o espaço da barra de abas flutuante. Sem ela a
+ * última linha da lista fica embaixo do vidro e ninguém alcança — o defeito
+ * clássico de barra translúcida, e ele não aparece no desenho, só no polegar.
+ */
+.co-screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--co-canvas);
+  color: var(--co-text);
+  font-family: var(--co-font-body);
+  padding-inline: var(--co-space-16);
+  padding-block: var(--co-space-28) var(--co-screen-bottom, var(--co-space-40));
+}
+
+.co-screen[data-tabbar="true"] {
+  --co-screen-bottom: 104px;
+}
+
 /* --------------------------------------------------------------- texto ---- */
 
 .co-text {
@@ -57,53 +92,84 @@
   line-height: var(--co-leading-normal);
 }
 
-.co-text[data-variant="display"] {
+/* A serifa dos títulos de tela. Um por tela, e ele é o nome do lugar. */
+.co-text[data-variant="title-lg"] {
   font-family: var(--co-font-display);
-  font-size: var(--co-text-34);
-  line-height: var(--co-leading-tight);
-  letter-spacing: var(--co-tracking-tight);
+  font-size: var(--co-text-36);
+  line-height: var(--co-leading-title);
+  letter-spacing: var(--co-tracking-title);
 }
 
-.co-text[data-variant="title"] {
-  font-size: var(--co-text-17);
-  font-weight: var(--co-weight-semibold);
+/* A serifa dos números que carregam a mensagem: restante da meta, gasto do
+ * dia. `tabular-nums` não é preciosismo — sem ele o algarismo dança a cada
+ * dígito que muda. */
+.co-text[data-variant="numeral"] {
+  font-family: var(--co-font-display);
+  font-size: var(--co-text-68);
+  line-height: var(--co-leading-numeral);
+  letter-spacing: var(--co-tracking-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.co-text[data-variant="headline"] {
+  font-size: var(--co-text-16);
+  font-weight: var(--co-weight-medium);
   line-height: var(--co-leading-snug);
 }
 
 .co-text[data-variant="body"] {
+  font-size: var(--co-text-15);
+}
+
+.co-text[data-variant="callout"] {
   font-size: var(--co-text-14);
 }
 
-.co-text[data-variant="caption"] {
+.co-text[data-variant="subhead"] {
+  font-size: var(--co-text-13);
+}
+
+.co-text[data-variant="footnote"] {
   font-size: var(--co-text-12);
 }
 
+.co-text[data-variant="caption"] {
+  font-size: var(--co-text-11);
+  line-height: var(--co-leading-note);
+}
+
 /* O rótulo de seção: versalete espaçado, sempre discreto. É o que separa um
- * bloco do outro sem precisar de linha nem de caixa. */
+ * bloco do outro sem precisar de linha nem de caixa — e é por isso que este
+ * sistema tem tão pouca borda. */
 .co-text[data-variant="label"] {
-  font-size: var(--co-text-10);
+  font-size: var(--co-text-11);
   font-weight: var(--co-weight-semibold);
   letter-spacing: var(--co-tracking-label);
   text-transform: uppercase;
-  color: var(--co-text-muted);
+  color: var(--co-text-subtle);
 }
 
-/* `tabular-nums` não é preciosismo: sem ele uma coluna de kcal dança a cada
- * dígito que muda, e uma tabela de números vira ruído. */
-.co-text[data-variant="numeral"] {
-  font-family: var(--co-font-display);
-  font-size: var(--co-text-46);
-  line-height: var(--co-leading-numeral);
-  letter-spacing: var(--co-tracking-tight);
-  font-variant-numeric: tabular-nums;
+/* O mesmo papel, um degrau abaixo: nomeia o grupo alimentar dentro da linha,
+ * não a seção da tela. */
+.co-text[data-variant="micro"] {
+  font-size: var(--co-text-10);
+  font-weight: var(--co-weight-semibold);
+  letter-spacing: var(--co-tracking-micro);
+  text-transform: uppercase;
+  color: var(--co-text-subtle);
 }
 
 .co-text[data-numeric="true"] {
   font-variant-numeric: tabular-nums;
 }
 
+.co-text[data-weight="medium"] { font-weight: var(--co-weight-medium); }
+.co-text[data-weight="semibold"] { font-weight: var(--co-weight-semibold); }
+
+.co-text[data-tone="body"] { color: var(--co-text-body); }
 .co-text[data-tone="secondary"] { color: var(--co-text-secondary); }
 .co-text[data-tone="muted"] { color: var(--co-text-muted); }
+.co-text[data-tone="subtle"] { color: var(--co-text-subtle); }
 .co-text[data-tone="accent"] { color: var(--co-accent); }
 .co-text[data-tone="status"] { color: var(--co-status); }
 
@@ -111,12 +177,18 @@
 
 .co-surface {
   background: var(--co-surface);
-  border-radius: var(--co-radius-0);
+  border-radius: var(--co-radius-container);
 }
 
 .co-surface[data-elevation="raised"] { background: var(--co-surface-raised); }
 .co-surface[data-elevation="sunken"] { background: var(--co-surface-sunken); }
+.co-surface[data-elevation="none"] { background: transparent; }
 .co-surface[data-bordered="true"] { border: var(--co-border-width) solid var(--co-border); }
+
+.co-surface[data-radius="content"] { border-radius: var(--co-radius-content); }
+.co-surface[data-radius="inset"] { border-radius: var(--co-radius-inset); }
+.co-surface[data-radius="control"] { border-radius: var(--co-radius-control); }
+.co-surface[data-radius="pill"] { border-radius: var(--co-radius-pill); }
 
 .co-divider {
   height: var(--co-border-width);
@@ -124,6 +196,193 @@
   margin: 0;
   background: var(--co-line);
 }
+
+/* O fio começa DEPOIS do recuo do conteúdo, e não na borda do cartão. É a
+ * diferença entre uma lista agrupada e uma pilha de caixas: o olho lê a
+ * continuidade do grupo e o corte entre os itens ao mesmo tempo. */
+.co-divider[data-inset="text"] { margin-left: var(--co-inset-text); }
+.co-divider[data-inset="dot"] { margin-left: var(--co-inset-dot); }
+.co-divider[data-inset="mark"] { margin-left: var(--co-inset-mark); }
+
+/* ------------------------------------------------------------------ grupo -- */
+
+/*
+ * O grupo é a estrutura central deste sistema: um contêiner arredondado que
+ * junta linhas irmãs e as separa por um fio recuado, em vez de dar borda,
+ * sombra e raio a cada uma.
+ *
+ * O fio sai de `::before` no filho, e não de um `<div>` entre eles: assim uma
+ * lista que vem de `.map()` não precisa intercalar elemento nenhum, e nenhum
+ * fio sobra na última linha.
+ */
+.co-group {
+  display: flex;
+  flex-direction: column;
+  background: var(--co-surface);
+  border-radius: var(--co-radius-container);
+  /* Corta o que os cantos encostam: fundo de linha selecionada, painel de
+   * troca aberto embaixo da linha, o que for. */
+  overflow: hidden;
+}
+
+.co-group[data-elevation="sunken"] { background: var(--co-surface-sunken); }
+.co-group[data-elevation="none"] { background: transparent; }
+
+/* Onde o fio começa. O valor acompanha o que existe à esquerda dentro da
+ * linha: nada (`text`, 20px), um ponto de macro (`dot`, 42px) ou uma marca de
+ * escolha (`mark`, 52px). */
+.co-group { --co-group-inset: var(--co-inset-text); }
+.co-group[data-inset="none"] { --co-group-inset: var(--co-inset-none); }
+.co-group[data-inset="dot"] { --co-group-inset: var(--co-inset-dot); }
+.co-group[data-inset="mark"] { --co-group-inset: var(--co-inset-mark); }
+
+.co-group > * + * {
+  position: relative;
+}
+
+.co-group > * + *::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--co-group-inset);
+  right: 0;
+  height: var(--co-border-width);
+  background: var(--co-line);
+  pointer-events: none;
+}
+
+/*
+ * Dentro do grupo o anel de foco vira para DENTRO da linha.
+ *
+ * `overflow: hidden` no grupo recorta o que passa da borda — e o anel com
+ * `outline-offset` positivo passa. Ficaria um foco pela metade na primeira e
+ * na última linha, que é exatamente onde alguém chega com Tab.
+ */
+.co-group :focus-visible {
+  outline-offset: -3px;
+}
+
+/* O versalete que nomeia o grupo mora FORA da caixa, alinhado pela calha —
+ * dentro dele viraria mais uma linha da lista. */
+.co-group__label {
+  padding: 0 var(--co-space-4) var(--co-space-10);
+}
+
+.co-group__footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-6);
+  padding: var(--co-space-14) var(--co-inset-text);
+}
+
+.co-group__note {
+  padding: var(--co-space-10) var(--co-space-4) 0;
+}
+
+/* ------------------------------------------------------------------ linha -- */
+
+/*
+ * A linha repetida do sistema: refeição no diário, alimento na busca, fórmula
+ * na calculadora.
+ *
+ * Ela NÃO desenha a própria separação — quem separa é o grupo. Uma linha que
+ * carrega `border-bottom` sobra com um fio solto na última posição e obriga
+ * todo consumidor a apagá-lo com `:last-child`.
+ */
+.co-list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-12);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--co-space-12) var(--co-inset-text);
+  background: transparent;
+  border: 0;
+  border-radius: var(--co-radius-content);
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+}
+
+.co-list-row[data-size="sm"] { min-height: 48px; }
+.co-list-row[data-size="lg"] { min-height: 64px; }
+.co-list-row[data-align="start"] { align-items: flex-start; }
+
+.co-list-row[data-interactive="true"] { cursor: pointer; }
+.co-list-row[data-selected="true"] { background: var(--co-surface-raised); }
+
+.co-list-row__leading {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.co-list-row__body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-2);
+  min-width: 0;
+}
+
+.co-list-row__trailing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--co-space-2);
+  flex-shrink: 0;
+}
+
+.co-list-row__chevron {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--co-icon-muted);
+  transition: transform var(--co-duration-fast) var(--co-ease);
+}
+
+.co-list-row[data-expanded="true"] .co-list-row__chevron { transform: rotate(180deg); }
+
+/* A marca de escolha da linha: quadrada quando é escolha única dentro de um
+ * grupo com conta visível, porque ela é conteúdo, não contêiner. */
+.co-list-row__mark {
+  width: var(--co-mark-size);
+  height: var(--co-mark-size);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--co-border-width) solid var(--co-border-strong);
+  border-radius: var(--co-radius-content);
+  color: var(--co-accent-contrast);
+}
+
+.co-list-row[data-selected="true"] .co-list-row__mark {
+  background: var(--co-accent);
+  border-color: var(--co-accent);
+}
+
+/* ------------------------------------------------------------------ ponto -- */
+
+/*
+ * O ponto colorido do macro. Quadrado: é conteúdo dentro da vitrine.
+ *
+ * Ele nunca aparece sozinho — o componente que o usa é obrigado a mostrar nome
+ * E número ao lado (ADR-005). Quem não distingue ametista de jade lê a mesma
+ * informação pelo texto, e a cor vira o atalho que ela deve ser.
+ */
+.co-dot {
+  width: var(--co-dot-size);
+  height: var(--co-dot-size);
+  flex-shrink: 0;
+  border-radius: var(--co-radius-content);
+  background: var(--co-track);
+}
+
+.co-dot[data-tone="protein"] { background: var(--co-macro-protein); }
+.co-dot[data-tone="carb"] { background: var(--co-macro-carb); }
+.co-dot[data-tone="fat"] { background: var(--co-macro-fat); }
+.co-dot[data-tone="accent"] { background: var(--co-accent); }
+.co-dot[data-tone="status"] { background: var(--co-status); }
 
 /* ------------------------------------------------------------------ botão -- */
 
@@ -135,9 +394,9 @@
   /* O piso de 44px é do sistema, não do componente: não existe tamanho menor
    * na API. Um alvo de 32px passa no desenho e falha no polegar. */
   min-height: var(--co-target-min);
-  padding: 0 var(--co-space-16);
+  padding: 0 var(--co-space-14);
   border: var(--co-border-width) solid transparent;
-  border-radius: var(--co-radius-0);
+  border-radius: var(--co-radius-control);
   font-family: inherit;
   font-size: var(--co-text-14);
   font-weight: var(--co-weight-semibold);
@@ -166,20 +425,28 @@
 }
 .co-button[data-variant="primary"]:hover:not(:disabled) { background: var(--co-accent-hover); }
 
+/* Sem borda: a separação vem do fundo, que é o degrau que este sistema usa em
+ * todo lugar. Contorno num botão dentro de um cartão desenha duas caixas onde
+ * há um objeto só. */
 .co-button[data-variant="secondary"] {
   background: var(--co-surface);
-  border-color: var(--co-border);
-  color: var(--co-text);
+  color: var(--co-text-body);
   font-weight: var(--co-weight-medium);
 }
-.co-button[data-variant="secondary"]:hover:not(:disabled) { border-color: var(--co-border-strong); }
+.co-button[data-variant="secondary"]:hover:not(:disabled) { background: var(--co-surface-raised); }
 
+/* A ação inline de uma lista: "Adicionar a esta refeição", "Nova refeição".
+ * Sem caixa nenhuma, porque ela pertence ao grupo e não flutua sobre ele. */
 .co-button[data-variant="ghost"] {
   background: transparent;
-  color: var(--co-text-secondary);
+  color: var(--co-accent);
   font-weight: var(--co-weight-regular);
+  padding: 0;
 }
-.co-button[data-variant="ghost"]:hover:not(:disabled) { color: var(--co-text); }
+.co-button[data-variant="ghost"]:hover:not(:disabled) { color: var(--co-accent-hover); }
+
+.co-button[data-variant="ghost"][data-tone="neutral"] { color: var(--co-text-secondary); }
+.co-button[data-variant="ghost"][data-tone="neutral"]:hover:not(:disabled) { color: var(--co-text); }
 
 /* `danger` existe por uma razão concreta: apagar a conta apaga os dados de
  * verdade. A cor sobe o custo de errar o alvo; ela não substitui a confirmação. */
@@ -207,22 +474,23 @@
 .co-badge {
   display: inline-flex;
   align-items: center;
-  padding: var(--co-space-2) var(--co-space-6);
-  border: var(--co-border-width) solid var(--co-border-strong);
-  border-radius: var(--co-radius-0);
-  font-size: var(--co-text-10);
-  letter-spacing: 0.04em;
-  color: var(--co-text-muted);
+  padding: var(--co-space-4) var(--co-space-10);
+  border: var(--co-border-width) solid transparent;
+  border-radius: var(--co-radius-pill);
+  background: var(--co-surface-raised);
+  font-size: var(--co-text-11);
+  font-weight: var(--co-weight-semibold);
+  color: var(--co-text-secondary);
   white-space: nowrap;
 }
 
 .co-badge[data-tone="accent"] {
-  border-color: var(--co-accent);
+  background: var(--co-accent-soft);
   color: var(--co-accent);
 }
 
 .co-badge[data-tone="status"] {
-  border-color: var(--co-status-border);
+  background: var(--co-status-border);
   color: var(--co-status);
 }
 
@@ -230,8 +498,16 @@
   background: var(--co-accent);
   border-color: var(--co-accent);
   color: var(--co-accent-contrast);
-  font-weight: var(--co-weight-semibold);
-  font-size: var(--co-text-11);
+}
+
+/* O selo também sabe ficar reto, para quando ele for conteúdo de uma linha em
+ * vez de um objeto solto sobre o cartão. */
+.co-badge[data-shape="square"] {
+  border-radius: var(--co-radius-content);
+  background: transparent;
+  border-color: var(--co-border-strong);
+  font-weight: var(--co-weight-regular);
+  color: var(--co-text-muted);
 }
 
 /* ------------------------------------------------------------------ ripa ---- */
@@ -241,10 +517,13 @@
  * de um retângulo liso: a colunata hexagonal do basalto vista de cima. O
  * gradiente repetido desenha as colunas sem um nó de DOM por ripa — 24 divs
  * por barra seria o mesmo desenho e trinta vezes o custo.
+ *
+ * Reta, sempre: ela é conteúdo dentro do cartão.
  */
 .co-slat {
   position: relative;
-  height: 10px;
+  height: var(--co-slat-height);
+  border-radius: var(--co-radius-content);
   background-image: repeating-linear-gradient(
     90deg,
     var(--co-track) 0 var(--co-slat-width),
@@ -252,7 +531,22 @@
   );
 }
 
-.co-slat[data-size="sm"] { height: 8px; }
+.co-slat[data-size="sm"] { height: var(--co-bar-height); }
+
+/* A barra lisa: para a medida miúda que acompanha uma linha de lista, onde a
+ * ripa de 3px vira ruído em vez de textura. */
+.co-slat[data-pattern="solid"] {
+  background-image: none;
+  background-color: var(--co-line);
+}
+
+/* O tom acompanha o macro que a barra ilustra, e sai do MESMO token do ponto
+ * colorido ao lado — duas cores diferentes para a mesma proteína seria o tipo
+ * de divergência que só aparece quando alguém troca o tema. */
+.co-slat[data-tone="protein"] { --co-slat-color: var(--co-macro-protein); }
+.co-slat[data-tone="carb"] { --co-slat-color: var(--co-macro-carb); }
+.co-slat[data-tone="fat"] { --co-slat-color: var(--co-macro-fat); }
+.co-slat[data-tone="status"] { --co-slat-color: var(--co-status); }
 
 .co-slat__fill {
   position: absolute;
@@ -262,10 +556,15 @@
   width: var(--co-slat-value, 0%);
   background-image: repeating-linear-gradient(
     90deg,
-    var(--co-accent) 0 var(--co-slat-width),
+    var(--co-slat-color, var(--co-accent)) 0 var(--co-slat-width),
     transparent var(--co-slat-width) var(--co-slat-gap)
   );
   transition: width var(--co-duration-normal) var(--co-ease);
+}
+
+.co-slat[data-pattern="solid"] .co-slat__fill {
+  background-image: none;
+  background-color: var(--co-slat-color, var(--co-accent));
 }
 
 .co-slat__marker {
@@ -274,17 +573,23 @@
   bottom: -4px;
   left: var(--co-slat-value, 0%);
   width: var(--co-marker-width);
-  background: var(--co-accent);
+  background: var(--co-slat-color, var(--co-accent));
 }
 
 /* ------------------------------------------------------- controle segmentado -- */
 
+/*
+ * Trilho de 12px com 3px de folga, opção de 9px dentro. O 9 não é escolha
+ * solta: raio interno = raio externo − folga, senão o canto da opção corre
+ * paralelo ao canto do trilho com espessura variável e o olho vê a diferença
+ * sem saber nomear.
+ */
 .co-segmented {
   display: inline-flex;
   gap: var(--co-space-2);
   padding: var(--co-space-2);
-  background: var(--co-surface-raised);
-  border: var(--co-border-width) solid var(--co-border);
+  background: var(--co-surface);
+  border-radius: var(--co-radius-control);
 }
 
 .co-segmented[data-full="true"] { display: flex; width: 100%; }
@@ -295,8 +600,9 @@
   align-items: center;
   justify-content: center;
   min-height: var(--co-target-min);
-  padding: 0 var(--co-space-14);
+  padding: 0 var(--co-space-12);
   border: 0;
+  border-radius: var(--co-radius-inset);
   background: transparent;
   color: var(--co-text-muted);
   font-family: inherit;
@@ -325,18 +631,91 @@
   gap: var(--co-space-8);
 }
 
+/* ------------------------------------------------------------------ conta --- */
+
+/*
+ * A conta aberta.
+ *
+ * É o componente que carrega a premissa do produto — a pessoa informa, o app
+ * calcula — e a carrega como desenho, não como frase. Cada parcela numa
+ * linha, a expressão embaixo do rótulo quando existe, e o resultado separado
+ * por um fio, do jeito que uma conta no papel termina.
+ *
+ * Um número grande sozinho é um veredito. A mesma conta aberta é um argumento
+ * que a pessoa pode conferir na calculadora do celular — e é para conferir
+ * que ela existe.
+ */
+.co-reckoning {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-8);
+}
+
+.co-reckoning__line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--co-space-12);
+}
+
+.co-reckoning__line[data-total="true"] {
+  padding-top: var(--co-space-8);
+  border-top: var(--co-border-width) solid var(--co-line);
+}
+
+.co-reckoning__label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-2);
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ macro --- */
+
+/*
+ * Ponto, nome e número — nesta ordem, e os três sempre. A barra é opcional; o
+ * texto não é.
+ */
+.co-macro {
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-12);
+  min-height: 56px;
+  padding: var(--co-space-12) var(--co-inset-text);
+}
+
+.co-macro__body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-6);
+  min-width: 0;
+}
+
+.co-macro__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--co-space-12);
+}
+
 /* ------------------------------------------------------------------ aviso --- */
 
 /*
  * Aviso INFORMA, nunca bloqueia (ADR-006 do Basalto). Por isso ele não tem
  * variante "erro" com fundo vermelho e não tem botão de fechar obrigatório:
  * é um bloco de texto com a conta aberta, marcado por um fio na lateral.
+ *
+ * A marca é `border-left`, e não um pseudo-elemento: assim ela acompanha a
+ * curva do cartão nas duas pontas em vez de cortar o canto arredondado com um
+ * retângulo.
  */
 .co-notice {
   display: flex;
-  gap: var(--co-space-10);
-  padding: var(--co-space-14) var(--co-space-16);
+  gap: var(--co-space-12);
+  padding: var(--co-space-16) var(--co-space-16) var(--co-space-16) var(--co-space-14);
   background: var(--co-surface);
+  border-radius: var(--co-radius-container);
   border-left: var(--co-marker-width) solid var(--co-accent);
 }
 
@@ -357,68 +736,15 @@
   gap: var(--co-space-4);
 }
 
-/* ------------------------------------------------------------------ linha --- */
-
-.co-list-row {
-  display: flex;
-  align-items: center;
-  gap: var(--co-space-12);
-  width: 100%;
-  min-height: 64px;
-  padding: var(--co-space-12) var(--co-space-16);
-  background: transparent;
-  border: 0;
-  border-bottom: var(--co-border-width) solid var(--co-line);
-  color: inherit;
-  font-family: inherit;
-  text-align: left;
-}
-
-.co-list-row[data-interactive="true"] { cursor: pointer; }
-.co-list-row[data-selected="true"] { background: var(--co-surface-raised); }
-
-.co-list-row__marker {
-  width: var(--co-marker-width);
-  height: 30px;
-  flex-shrink: 0;
-  background: var(--co-track);
-}
-
-.co-list-row[data-selected="true"] .co-list-row__marker { background: var(--co-accent); }
-
-.co-list-row__body {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--co-space-2);
-  min-width: 0;
-}
-
-.co-list-row__trailing {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--co-space-2);
-  flex-shrink: 0;
-}
-
-.co-list-row__chevron {
-  display: flex;
-  flex-shrink: 0;
-  color: var(--co-icon-muted);
-  transition: transform var(--co-duration-fast) var(--co-ease);
-}
-
-.co-list-row[data-expanded="true"] .co-list-row__chevron { transform: rotate(180deg); }
-
 /* ------------------------------------------------------------- incremento --- */
 
 .co-stepper {
   display: inline-flex;
   align-items: center;
   gap: var(--co-space-2);
-  background: var(--co-surface-sunken);
-  border: var(--co-border-width) solid var(--co-border);
+  padding: var(--co-space-2);
+  background: var(--co-surface);
+  border-radius: var(--co-radius-control);
 }
 
 .co-stepper__button {
@@ -428,10 +754,13 @@
   align-items: center;
   justify-content: center;
   border: 0;
+  border-radius: var(--co-radius-inset);
   background: transparent;
   color: var(--co-text-secondary);
   cursor: pointer;
 }
+
+.co-stepper__button:hover:not(:disabled) { background: var(--co-surface-raised); }
 
 .co-stepper__button:disabled {
   opacity: 0.4;
@@ -441,9 +770,113 @@
 .co-stepper__value {
   min-width: 52px;
   text-align: center;
-  font-size: var(--co-text-17);
+  font-size: var(--co-text-16);
   font-weight: var(--co-weight-medium);
   font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------ cabeçalho ---- */
+
+.co-screen-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--co-space-12);
+  padding: 0 var(--co-space-4) var(--co-space-20);
+}
+
+.co-screen-header__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-2);
+  min-width: 0;
+}
+
+.co-screen-header__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--co-target-min);
+  height: var(--co-target-min);
+  /* Estoura a calha para a direita: o alvo continua com 44px e o ícone alinha
+   * com o texto da coluna, em vez de ficar 10px para dentro dela. */
+  margin-right: -10px;
+  border: 0;
+  background: transparent;
+  color: var(--co-text-muted);
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------- barra de abas -- */
+
+/*
+ * A barra flutua sobre o conteúdo, e o conteúdo rola por baixo dela.
+ *
+ * `backdrop-filter` é o efeito, mas o token `--co-overlay` já é uma cor COM
+ * alfa que sozinha dá contraste suficiente: onde o filtro não existe — Firefox
+ * com a flag desligada, WebView antiga — a barra continua legível, só deixa de
+ * ser translúcida. Efeito que degrada para "opaco", nunca para "ilegível".
+ */
+.co-tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--co-space-4);
+  padding: var(--co-space-10) var(--co-space-10);
+  padding-bottom: calc(var(--co-space-10) + env(safe-area-inset-bottom, 0px));
+  background: var(--co-overlay);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-top: var(--co-border-width) solid var(--co-overlay-line);
+}
+
+.co-tabbar[data-position="absolute"] {
+  position: absolute;
+}
+
+.co-tabbar[data-position="static"] {
+  position: static;
+}
+
+.co-tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--co-space-4);
+  min-height: 52px;
+  border: 0;
+  border-radius: var(--co-radius-control);
+  background: transparent;
+  color: var(--co-text-muted);
+  font-family: inherit;
+  font-size: var(--co-text-10);
+  cursor: pointer;
+}
+
+/*
+ * A aba atual muda de COR, de PESO e ganha `aria-current`. Três sinais, e não
+ * um: quem não separa ametista de cinza ainda vê o rótulo mais pesado, e quem
+ * usa leitor de tela ouve "página atual" (ADR-005).
+ */
+.co-tabbar__item[aria-current="page"] {
+  color: var(--co-text);
+  font-weight: var(--co-weight-semibold);
+}
+
+.co-tabbar__icon {
+  display: flex;
+  color: var(--co-text-muted);
+}
+
+.co-tabbar__item[aria-current="page"] .co-tabbar__icon {
+  color: var(--co-accent);
 }
 
 /* ------------------------------------------------------------------ grão ---- */

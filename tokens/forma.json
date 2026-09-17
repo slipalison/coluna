@@ -1,16 +1,25 @@
 {
-  "radius-0": {
+  "radius-content": {
     "$type": "other",
     "$value": "0"
   },
-  "radius-2": {
+  "radius-inset": {
     "$type": "dimension",
-    "$value": "2px"
+    "$value": "9px"
   },
-  "radius-4": {
+  "radius-control": {
     "$type": "dimension",
-    "$value": "4px"
+    "$value": "12px"
   },
+  "radius-container": {
+    "$type": "dimension",
+    "$value": "16px"
+  },
+  "radius-pill": {
+    "$type": "dimension",
+    "$value": "999px"
+  },
+
   "border-width": {
     "$type": "dimension",
     "$value": "1px"
@@ -22,6 +31,40 @@
   "target-min": {
     "$type": "dimension",
     "$value": "44px"
+  },
+
+  "inset-none": {
+    "$type": "other",
+    "$value": "0"
+  },
+  "inset-text": {
+    "$type": "dimension",
+    "$value": "20px"
+  },
+  "inset-dot": {
+    "$type": "dimension",
+    "$value": "42px"
+  },
+  "inset-mark": {
+    "$type": "dimension",
+    "$value": "52px"
+  },
+
+  "dot-size": {
+    "$type": "dimension",
+    "$value": "10px"
+  },
+  "mark-size": {
+    "$type": "dimension",
+    "$value": "20px"
+  },
+  "bar-height": {
+    "$type": "dimension",
+    "$value": "6px"
+  },
+  "slat-height": {
+    "$type": "dimension",
+    "$value": "10px"
   },
   "slat-width": {
     "$type": "dimension",

@@ -1,6 +1,8 @@
+import { Dot } from "../atoms/Dot";
 import { Slat } from "../atoms/Slat";
-import { Stack } from "../atoms/Stack";
 import { Text } from "../atoms/Text";
+
+export type MacroKind = "protein" | "carb" | "fat";
 
 export interface MacroBarProps {
   /** "Proteína", "Carboidrato", "Gordura" — ou qualquer par nome/quantidade. */
@@ -8,31 +10,62 @@ export interface MacroBarProps {
   value: number;
   target: number;
   unit?: string;
-  size?: "md" | "sm";
+  /**
+   * Qual macro é, e daí sai a cor do ponto E do preenchimento da barra. É um
+   * enum, e não uma cor: o consumidor não escolhe o tom, porque proteína tem
+   * que ser da mesma cor em todas as telas do aplicativo.
+   */
+  kind?: MacroKind;
+  /** Esconde a barra e deixa só ponto, nome e número. */
+  bar?: boolean;
   className?: string | undefined;
 }
 
 /**
- * Nome, quanto de quanto, e a ripa.
+ * Ponto, nome e número — os três, sempre. A barra é opcional; o texto não é.
  *
- * A barra NAO e grampeada em 100% por acidente: passar do alvo e informacao,
- * nao falha. O componente mostra o excedente pela largura cheia e pelo numero
- * ao lado, e nao muda de cor para vermelho — este sistema nao repreende quem
- * comeu mais do que planejou.
+ * É aqui que a regra "cor nunca sozinha" aparece em código (ADR-005). O ponto
+ * colorido é um atalho para quem lê a tela de relance, e ele nunca carrega a
+ * informação sozinho: o nome do macro e a quantidade estão do lado, em texto,
+ * e o `Dot` sai `aria-hidden` justamente porque não tem nada a acrescentar.
+ *
+ * A barra NÃO é grampeada em 100% por acidente: passar do alvo é informação,
+ * não falha. O componente satura o desenho, mantém o número verdadeiro ao lado
+ * e não muda de cor para vermelho — este sistema não repreende quem comeu mais
+ * do que planejou.
  */
-export function MacroBar({ name, value, target, unit = "g", size = "md", className }: MacroBarProps) {
+export function MacroBar({
+  name,
+  value,
+  target,
+  unit = "g",
+  kind = "protein",
+  bar = true,
+  className,
+}: MacroBarProps) {
   const fracao = target > 0 ? value / target : 0;
+  const classe = className ? `co-macro ${className}` : "co-macro";
+
   return (
-    <Stack gap={6} className={className}>
-      <Stack direction="row" gap={12} justify="space-between" align="baseline">
-        <Text variant="caption" tone="secondary">
-          {name}
-        </Text>
-        <Text variant="caption" tone="muted" numeric>
-          {value} / {target} {unit}
-        </Text>
-      </Stack>
-      <Slat value={fracao} size={size} label={`${name}: ${value} de ${target} ${unit}`} />
-    </Stack>
+    <div className={classe}>
+      <Dot tone={kind} />
+      <div className="co-macro__body">
+        <div className="co-macro__head">
+          <Text variant="body">{name}</Text>
+          <Text variant="callout" tone="secondary" numeric>
+            {value} de {target} {unit}
+          </Text>
+        </div>
+        {bar ? (
+          <Slat
+            value={fracao}
+            size="sm"
+            pattern="solid"
+            tone={kind}
+            label={`${name}: ${value} de ${target} ${unit}`}
+          />
+        ) : null}
+      </div>
+    </div>
   );
 }

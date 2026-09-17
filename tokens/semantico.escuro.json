@@ -2,23 +2,31 @@
   "escuro": {
     "canvas": {
       "$type": "color",
-      "$value": "{basalt-900}"
+      "$value": "{basalt-975}"
     },
     "surface": {
       "$type": "color",
-      "$value": "{basalt-850}"
+      "$value": "{basalt-900}"
     },
     "surface-raised": {
       "$type": "color",
-      "$value": "{basalt-800}"
+      "$value": "{basalt-850}"
     },
     "surface-sunken": {
       "$type": "color",
       "$value": "{basalt-950}"
     },
+    "overlay": {
+      "$type": "color",
+      "$value": "{overlay-escuro}"
+    },
+    "overlay-line": {
+      "$type": "color",
+      "$value": "{fio-escuro}"
+    },
     "border": {
       "$type": "color",
-      "$value": "{basalt-700}"
+      "$value": "{basalt-600}"
     },
     "border-strong": {
       "$type": "color",
@@ -26,21 +34,29 @@
     },
     "line": {
       "$type": "color",
-      "$value": "{basalt-750}"
+      "$value": "{basalt-800}"
     },
     "track": {
       "$type": "color",
-      "$value": "{basalt-600}"
+      "$value": "{basalt-700}"
     },
     "text": {
       "$type": "color",
-      "$value": "{basalt-50}"
+      "$value": "{basalt-050}"
+    },
+    "text-body": {
+      "$type": "color",
+      "$value": "{basalt-100}"
     },
     "text-secondary": {
       "$type": "color",
       "$value": "{basalt-200}"
     },
     "text-muted": {
+      "$type": "color",
+      "$value": "{basalt-250}"
+    },
+    "text-subtle": {
       "$type": "color",
       "$value": "{basalt-300}"
     },
@@ -58,7 +74,7 @@
     },
     "accent-contrast": {
       "$type": "color",
-      "$value": "{basalt-900}"
+      "$value": "{basalt-975}"
     },
     "accent-soft": {
       "$type": "color",
@@ -80,13 +96,25 @@
       "$type": "color",
       "$value": "{rust-950}"
     },
+    "macro-protein": {
+      "$type": "color",
+      "$value": "{amethyst-500}"
+    },
+    "macro-carb": {
+      "$type": "color",
+      "$value": "{jade-500}"
+    },
+    "macro-fat": {
+      "$type": "color",
+      "$value": "{orchid-500}"
+    },
     "shadow-overlay": {
       "$type": "other",
       "$value": "0 -24px 48px rgba(6, 4, 10, 0.72)"
     },
     "grain-opacity": {
       "$type": "other",
-      "$value": "0.06"
+      "$value": "0.05"
     }
   }
 }

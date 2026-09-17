@@ -1,63 +1,85 @@
 {
-  "stone-50": {
+  "white": {
+    "$type": "color",
+    "$value": "#ffffff"
+  },
+
+  "stone-050": {
     "$type": "color",
     "$value": "#faf8fc"
   },
-  "stone-100": {
+  "stone-075": {
     "$type": "color",
-    "$value": "#f4f1f8"
+    "$value": "#f2eef8"
   },
-  "stone-200": {
+  "stone-100": {
     "$type": "color",
     "$value": "#ece7f3"
   },
+  "stone-200": {
+    "$type": "color",
+    "$value": "#e2dced"
+  },
   "stone-300": {
     "$type": "color",
-    "$value": "#e5dfee"
+    "$value": "#d3cbe1"
   },
   "stone-400": {
     "$type": "color",
-    "$value": "#cbc2da"
+    "$value": "#b9afc9"
   },
   "stone-500": {
     "$type": "color",
-    "$value": "#9c94a8"
+    "$value": "#9289a3"
   },
   "stone-600": {
     "$type": "color",
-    "$value": "#7d7489"
+    "$value": "#756c85"
+  },
+  "stone-650": {
+    "$type": "color",
+    "$value": "#655c75"
   },
   "stone-700": {
     "$type": "color",
-    "$value": "#554c63"
+    "$value": "#574e67"
+  },
+  "stone-800": {
+    "$type": "color",
+    "$value": "#453c54"
+  },
+  "stone-850": {
+    "$type": "color",
+    "$value": "#2e2739"
   },
   "stone-900": {
     "$type": "color",
     "$value": "#1a1520"
   },
+
+  "basalt-975": {
+    "$type": "color",
+    "$value": "#0d0b11"
+  },
   "basalt-950": {
     "$type": "color",
-    "$value": "#0f0d13"
+    "$value": "#14111c"
   },
   "basalt-900": {
     "$type": "color",
-    "$value": "#131017"
+    "$value": "#1a1622"
   },
   "basalt-850": {
     "$type": "color",
-    "$value": "#1c1823"
+    "$value": "#221d2d"
   },
   "basalt-800": {
     "$type": "color",
-    "$value": "#241f2d"
-  },
-  "basalt-750": {
-    "$type": "color",
-    "$value": "#272130"
+    "$value": "#2b2537"
   },
   "basalt-700": {
     "$type": "color",
-    "$value": "#302a3c"
+    "$value": "#332c42"
   },
   "basalt-600": {
     "$type": "color",
@@ -65,28 +87,33 @@
   },
   "basalt-500": {
     "$type": "color",
-    "$value": "#453d54"
+    "$value": "#4b4360"
   },
   "basalt-400": {
     "$type": "color",
-    "$value": "#564d69"
+    "$value": "#6f6780"
   },
   "basalt-300": {
+    "$type": "color",
+    "$value": "#8a8199"
+  },
+  "basalt-250": {
     "$type": "color",
     "$value": "#9a91ab"
   },
   "basalt-200": {
     "$type": "color",
-    "$value": "#b9b1c8"
+    "$value": "#b5adc6"
   },
   "basalt-100": {
     "$type": "color",
     "$value": "#ddd7e8"
   },
-  "basalt-50": {
+  "basalt-050": {
     "$type": "color",
-    "$value": "#f3f0f7"
+    "$value": "#f4f1f8"
   },
+
   "amethyst-700": {
     "$type": "color",
     "$value": "#5a30bb"
@@ -111,6 +138,7 @@
     "$type": "color",
     "$value": "#241b33"
   },
+
   "jade-700": {
     "$type": "color",
     "$value": "#0f766e"
@@ -127,6 +155,24 @@
     "$type": "color",
     "$value": "#2e5a58"
   },
+
+  "orchid-600": {
+    "$type": "color",
+    "$value": "#8f3bad"
+  },
+  "orchid-500": {
+    "$type": "color",
+    "$value": "#c47ae0"
+  },
+  "orchid-200": {
+    "$type": "color",
+    "$value": "#e7c2f2"
+  },
+  "orchid-950": {
+    "$type": "color",
+    "$value": "#33203c"
+  },
+
   "rust-600": {
     "$type": "color",
     "$value": "#b4332e"
@@ -143,8 +189,21 @@
     "$type": "color",
     "$value": "#33161a"
   },
-  "white": {
+
+  "overlay-escuro": {
     "$type": "color",
-    "$value": "#ffffff"
+    "$value": "rgba(13, 11, 17, 0.74)"
+  },
+  "overlay-claro": {
+    "$type": "color",
+    "$value": "rgba(242, 238, 248, 0.80)"
+  },
+  "fio-escuro": {
+    "$type": "color",
+    "$value": "rgba(244, 241, 248, 0.07)"
+  },
+  "fio-claro": {
+    "$type": "color",
+    "$value": "rgba(26, 21, 32, 0.09)"
   }
 }

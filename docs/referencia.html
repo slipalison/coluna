@@ -12,10 +12,19 @@
 /*
  * Folha única do Coluna.
  *
- * Regra que vale para tudo aqui embaixo: NENHUMA cor literal. Todo valor sai
- * de um token semântico (`var(--co-...)`), porque é a semântica que o tema
- * troca. Um `#1c1823` escrito à mão sobrevive ao tema claro sem reclamar, e o
- * defeito só aparece na tela de quem ligou o claro.
+ * DUAS REGRAS VALEM PARA TUDO AQUI EMBAIXO.
+ *
+ * 1. NENHUMA cor literal. Todo valor sai de um token semântico
+ *    (`var(--co-...)`), porque é a semântica que o tema troca. Um `#1a1622`
+ *    escrito à mão sobrevive ao tema claro sem reclamar, e o defeito só
+ *    aparece na tela de quem ligou o claro.
+ *
+ * 2. O CONTÊINER arredonda, o CONTEÚDO é reto. `--co-radius-container` é a
+ *    vitrine — grupo, cartão, botão, trilho de controle. `--co-radius-content`
+ *    é zero e fica no que está DENTRO dela: ponto de macro, ripa, barra,
+ *    marcador, fio. Não é meio-termo entre duas direções de desenho, é uma
+ *    regra — e ela é o que faz a tela ficar calma sem ficar sem graça.
+ *    (ADR-004.)
  *
  * Variante é atributo (`data-variant`, `data-tone`, `data-size`), e não classe
  * composta: o atributo aparece no DOM inspecionado, é o que o teste consulta
@@ -52,28 +61,34 @@
 
 :root {
   /* --------------------------------------------------------------- cor --- */
-  --co-stone-50: #faf8fc;
-  --co-stone-100: #f4f1f8;
-  --co-stone-200: #ece7f3;
-  --co-stone-300: #e5dfee;
-  --co-stone-400: #cbc2da;
-  --co-stone-500: #9c94a8;
-  --co-stone-600: #7d7489;
-  --co-stone-700: #554c63;
+  --co-white: #ffffff;
+  --co-stone-050: #faf8fc;
+  --co-stone-075: #f2eef8;
+  --co-stone-100: #ece7f3;
+  --co-stone-200: #e2dced;
+  --co-stone-300: #d3cbe1;
+  --co-stone-400: #b9afc9;
+  --co-stone-500: #9289a3;
+  --co-stone-600: #756c85;
+  --co-stone-650: #655c75;
+  --co-stone-700: #574e67;
+  --co-stone-800: #453c54;
+  --co-stone-850: #2e2739;
   --co-stone-900: #1a1520;
-  --co-basalt-950: #0f0d13;
-  --co-basalt-900: #131017;
-  --co-basalt-850: #1c1823;
-  --co-basalt-800: #241f2d;
-  --co-basalt-750: #272130;
-  --co-basalt-700: #302a3c;
+  --co-basalt-975: #0d0b11;
+  --co-basalt-950: #14111c;
+  --co-basalt-900: #1a1622;
+  --co-basalt-850: #221d2d;
+  --co-basalt-800: #2b2537;
+  --co-basalt-700: #332c42;
   --co-basalt-600: #3a3346;
-  --co-basalt-500: #453d54;
-  --co-basalt-400: #564d69;
-  --co-basalt-300: #9a91ab;
-  --co-basalt-200: #b9b1c8;
+  --co-basalt-500: #4b4360;
+  --co-basalt-400: #6f6780;
+  --co-basalt-300: #8a8199;
+  --co-basalt-250: #9a91ab;
+  --co-basalt-200: #b5adc6;
   --co-basalt-100: #ddd7e8;
-  --co-basalt-50: #f3f0f7;
+  --co-basalt-050: #f4f1f8;
   --co-amethyst-700: #5a30bb;
   --co-amethyst-600: #6d3fd4;
   --co-amethyst-500: #a882f5;
@@ -84,11 +99,18 @@
   --co-jade-500: #63b8ac;
   --co-jade-200: #99e0d8;
   --co-jade-900: #2e5a58;
+  --co-orchid-600: #8f3bad;
+  --co-orchid-500: #c47ae0;
+  --co-orchid-200: #e7c2f2;
+  --co-orchid-950: #33203c;
   --co-rust-600: #b4332e;
   --co-rust-500: #d4635c;
   --co-rust-050: #fdeceb;
   --co-rust-950: #33161a;
-  --co-white: #ffffff;
+  --co-overlay-escuro: rgba(13, 11, 17, 0.74);
+  --co-overlay-claro: rgba(242, 238, 248, 0.8);
+  --co-fio-escuro: rgba(244, 241, 248, 0.07);
+  --co-fio-claro: rgba(26, 21, 32, 0.09);
 
   /* ------------------------------------------------------------ espaco --- */
   --co-space-2: 2px;
@@ -114,31 +136,43 @@
   --co-text-13: 13px;
   --co-text-14: 14px;
   --co-text-15: 15px;
-  --co-text-17: 17px;
+  --co-text-16: 16px;
   --co-text-20: 20px;
   --co-text-24: 24px;
-  --co-text-34: 34px;
+  --co-text-36: 36px;
   --co-text-46: 46px;
-  --co-text-64: 64px;
-  --co-text-78: 78px;
-  --co-leading-tight: 1.05;
+  --co-text-68: 68px;
+  --co-leading-title: 1.05;
   --co-leading-snug: 1.3;
   --co-leading-normal: 1.5;
+  --co-leading-note: 1.45;
   --co-leading-numeral: 0.88;
+  --co-tracking-title: -0.01em;
   --co-tracking-tight: -0.02em;
   --co-tracking-normal: 0;
-  --co-tracking-label: 0.16em;
+  --co-tracking-micro: 0.1em;
+  --co-tracking-label: 0.14em;
   --co-weight-regular: 400;
   --co-weight-medium: 500;
   --co-weight-semibold: 600;
 
   /* ------------------------------------------------------------- forma --- */
-  --co-radius-0: 0;
-  --co-radius-2: 2px;
-  --co-radius-4: 4px;
+  --co-radius-content: 0;
+  --co-radius-inset: 9px;
+  --co-radius-control: 12px;
+  --co-radius-container: 16px;
+  --co-radius-pill: 999px;
   --co-border-width: 1px;
   --co-marker-width: 3px;
   --co-target-min: 44px;
+  --co-inset-none: 0;
+  --co-inset-text: 20px;
+  --co-inset-dot: 42px;
+  --co-inset-mark: 52px;
+  --co-dot-size: 10px;
+  --co-mark-size: 20px;
+  --co-bar-height: 6px;
+  --co-slat-height: 10px;
   --co-slat-width: 3px;
   --co-slat-gap: 6px;
 
@@ -152,18 +186,22 @@
 [data-theme="light"] {
   color-scheme: light;
 
-  --co-canvas: var(--co-stone-50);
+  --co-canvas: var(--co-stone-075);
   --co-surface: var(--co-white);
   --co-surface-raised: var(--co-stone-100);
-  --co-surface-sunken: var(--co-stone-100);
-  --co-border: var(--co-stone-300);
-  --co-border-strong: var(--co-stone-400);
+  --co-surface-sunken: var(--co-stone-200);
+  --co-overlay: var(--co-overlay-claro);
+  --co-overlay-line: var(--co-fio-claro);
+  --co-border: var(--co-stone-400);
+  --co-border-strong: var(--co-stone-500);
   --co-line: var(--co-stone-200);
-  --co-track: var(--co-stone-400);
+  --co-track: var(--co-stone-300);
   --co-text: var(--co-stone-900);
-  --co-text-secondary: var(--co-stone-700);
-  --co-text-muted: var(--co-stone-600);
-  --co-icon-muted: var(--co-stone-500);
+  --co-text-body: var(--co-stone-850);
+  --co-text-secondary: var(--co-stone-800);
+  --co-text-muted: var(--co-stone-700);
+  --co-text-subtle: var(--co-stone-650);
+  --co-icon-muted: var(--co-stone-600);
   --co-accent: var(--co-amethyst-600);
   --co-accent-hover: var(--co-amethyst-700);
   --co-accent-contrast: var(--co-white);
@@ -172,7 +210,10 @@
   --co-status-border: var(--co-jade-200);
   --co-danger: var(--co-rust-600);
   --co-danger-soft: var(--co-rust-050);
-  --co-shadow-overlay: 0 -24px 48px rgba(26, 21, 32, 0.12);
+  --co-macro-protein: var(--co-amethyst-600);
+  --co-macro-carb: var(--co-jade-700);
+  --co-macro-fat: var(--co-orchid-600);
+  --co-shadow-overlay: 0 -24px 48px rgba(26, 21, 32, 0.10);
   --co-grain-opacity: 0.03;
 }
 
@@ -180,56 +221,70 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --co-canvas: var(--co-basalt-900);
-    --co-surface: var(--co-basalt-850);
-    --co-surface-raised: var(--co-basalt-800);
+    --co-canvas: var(--co-basalt-975);
+    --co-surface: var(--co-basalt-900);
+    --co-surface-raised: var(--co-basalt-850);
     --co-surface-sunken: var(--co-basalt-950);
-    --co-border: var(--co-basalt-700);
+    --co-overlay: var(--co-overlay-escuro);
+    --co-overlay-line: var(--co-fio-escuro);
+    --co-border: var(--co-basalt-600);
     --co-border-strong: var(--co-basalt-500);
-    --co-line: var(--co-basalt-750);
-    --co-track: var(--co-basalt-600);
-    --co-text: var(--co-basalt-50);
+    --co-line: var(--co-basalt-800);
+    --co-track: var(--co-basalt-700);
+    --co-text: var(--co-basalt-050);
+    --co-text-body: var(--co-basalt-100);
     --co-text-secondary: var(--co-basalt-200);
-    --co-text-muted: var(--co-basalt-300);
+    --co-text-muted: var(--co-basalt-250);
+    --co-text-subtle: var(--co-basalt-300);
     --co-icon-muted: var(--co-basalt-400);
     --co-accent: var(--co-amethyst-500);
     --co-accent-hover: var(--co-amethyst-400);
-    --co-accent-contrast: var(--co-basalt-900);
+    --co-accent-contrast: var(--co-basalt-975);
     --co-accent-soft: var(--co-amethyst-950);
     --co-status: var(--co-jade-500);
     --co-status-border: var(--co-jade-900);
     --co-danger: var(--co-rust-500);
     --co-danger-soft: var(--co-rust-950);
+    --co-macro-protein: var(--co-amethyst-500);
+    --co-macro-carb: var(--co-jade-500);
+    --co-macro-fat: var(--co-orchid-500);
     --co-shadow-overlay: 0 -24px 48px rgba(6, 4, 10, 0.72);
-    --co-grain-opacity: 0.06;
+    --co-grain-opacity: 0.05;
   }
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --co-canvas: var(--co-basalt-900);
-  --co-surface: var(--co-basalt-850);
-  --co-surface-raised: var(--co-basalt-800);
+  --co-canvas: var(--co-basalt-975);
+  --co-surface: var(--co-basalt-900);
+  --co-surface-raised: var(--co-basalt-850);
   --co-surface-sunken: var(--co-basalt-950);
-  --co-border: var(--co-basalt-700);
+  --co-overlay: var(--co-overlay-escuro);
+  --co-overlay-line: var(--co-fio-escuro);
+  --co-border: var(--co-basalt-600);
   --co-border-strong: var(--co-basalt-500);
-  --co-line: var(--co-basalt-750);
-  --co-track: var(--co-basalt-600);
-  --co-text: var(--co-basalt-50);
+  --co-line: var(--co-basalt-800);
+  --co-track: var(--co-basalt-700);
+  --co-text: var(--co-basalt-050);
+  --co-text-body: var(--co-basalt-100);
   --co-text-secondary: var(--co-basalt-200);
-  --co-text-muted: var(--co-basalt-300);
+  --co-text-muted: var(--co-basalt-250);
+  --co-text-subtle: var(--co-basalt-300);
   --co-icon-muted: var(--co-basalt-400);
   --co-accent: var(--co-amethyst-500);
   --co-accent-hover: var(--co-amethyst-400);
-  --co-accent-contrast: var(--co-basalt-900);
+  --co-accent-contrast: var(--co-basalt-975);
   --co-accent-soft: var(--co-amethyst-950);
   --co-status: var(--co-jade-500);
   --co-status-border: var(--co-jade-900);
   --co-danger: var(--co-rust-500);
   --co-danger-soft: var(--co-rust-950);
+  --co-macro-protein: var(--co-amethyst-500);
+  --co-macro-carb: var(--co-jade-500);
+  --co-macro-fat: var(--co-orchid-500);
   --co-shadow-overlay: 0 -24px 48px rgba(6, 4, 10, 0.72);
-  --co-grain-opacity: 0.06;
+  --co-grain-opacity: 0.05;
 }
 
 /* ------------------------------------------------------------------ base -- */
@@ -248,7 +303,8 @@
 }
 
 /* O foco é do teclado, e ele precisa aparecer nos dois temas. `outline` e não
- * `box-shadow`: outline não é cortado por `overflow: hidden` do pai. */
+ * `box-shadow`: outline não entra no cálculo de layout, então o anel não
+ * empurra o vizinho meio pixel quando aparece. */
 .co-root :focus-visible {
   outline: 2px solid var(--co-accent);
   outline-offset: 2px;
@@ -266,6 +322,31 @@
   border: 0;
 }
 
+/* ----------------------------------------------------------------- tela --- */
+
+/*
+ * A moldura de uma tela inteira: fundo, grão e a calha lateral de 16px.
+ *
+ * `--co-screen-bottom` reserva o espaço da barra de abas flutuante. Sem ela a
+ * última linha da lista fica embaixo do vidro e ninguém alcança — o defeito
+ * clássico de barra translúcida, e ele não aparece no desenho, só no polegar.
+ */
+.co-screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--co-canvas);
+  color: var(--co-text);
+  font-family: var(--co-font-body);
+  padding-inline: var(--co-space-16);
+  padding-block: var(--co-space-28) var(--co-screen-bottom, var(--co-space-40));
+}
+
+.co-screen[data-tabbar="true"] {
+  --co-screen-bottom: 104px;
+}
+
 /* --------------------------------------------------------------- texto ---- */
 
 .co-text {
@@ -275,53 +356,84 @@
   line-height: var(--co-leading-normal);
 }
 
-.co-text[data-variant="display"] {
+/* A serifa dos títulos de tela. Um por tela, e ele é o nome do lugar. */
+.co-text[data-variant="title-lg"] {
   font-family: var(--co-font-display);
-  font-size: var(--co-text-34);
-  line-height: var(--co-leading-tight);
-  letter-spacing: var(--co-tracking-tight);
+  font-size: var(--co-text-36);
+  line-height: var(--co-leading-title);
+  letter-spacing: var(--co-tracking-title);
 }
 
-.co-text[data-variant="title"] {
-  font-size: var(--co-text-17);
-  font-weight: var(--co-weight-semibold);
+/* A serifa dos números que carregam a mensagem: restante da meta, gasto do
+ * dia. `tabular-nums` não é preciosismo — sem ele o algarismo dança a cada
+ * dígito que muda. */
+.co-text[data-variant="numeral"] {
+  font-family: var(--co-font-display);
+  font-size: var(--co-text-68);
+  line-height: var(--co-leading-numeral);
+  letter-spacing: var(--co-tracking-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.co-text[data-variant="headline"] {
+  font-size: var(--co-text-16);
+  font-weight: var(--co-weight-medium);
   line-height: var(--co-leading-snug);
 }
 
 .co-text[data-variant="body"] {
+  font-size: var(--co-text-15);
+}
+
+.co-text[data-variant="callout"] {
   font-size: var(--co-text-14);
 }
 
-.co-text[data-variant="caption"] {
+.co-text[data-variant="subhead"] {
+  font-size: var(--co-text-13);
+}
+
+.co-text[data-variant="footnote"] {
   font-size: var(--co-text-12);
 }
 
+.co-text[data-variant="caption"] {
+  font-size: var(--co-text-11);
+  line-height: var(--co-leading-note);
+}
+
 /* O rótulo de seção: versalete espaçado, sempre discreto. É o que separa um
- * bloco do outro sem precisar de linha nem de caixa. */
+ * bloco do outro sem precisar de linha nem de caixa — e é por isso que este
+ * sistema tem tão pouca borda. */
 .co-text[data-variant="label"] {
-  font-size: var(--co-text-10);
+  font-size: var(--co-text-11);
   font-weight: var(--co-weight-semibold);
   letter-spacing: var(--co-tracking-label);
   text-transform: uppercase;
-  color: var(--co-text-muted);
+  color: var(--co-text-subtle);
 }
 
-/* `tabular-nums` não é preciosismo: sem ele uma coluna de kcal dança a cada
- * dígito que muda, e uma tabela de números vira ruído. */
-.co-text[data-variant="numeral"] {
-  font-family: var(--co-font-display);
-  font-size: var(--co-text-46);
-  line-height: var(--co-leading-numeral);
-  letter-spacing: var(--co-tracking-tight);
-  font-variant-numeric: tabular-nums;
+/* O mesmo papel, um degrau abaixo: nomeia o grupo alimentar dentro da linha,
+ * não a seção da tela. */
+.co-text[data-variant="micro"] {
+  font-size: var(--co-text-10);
+  font-weight: var(--co-weight-semibold);
+  letter-spacing: var(--co-tracking-micro);
+  text-transform: uppercase;
+  color: var(--co-text-subtle);
 }
 
 .co-text[data-numeric="true"] {
   font-variant-numeric: tabular-nums;
 }
 
+.co-text[data-weight="medium"] { font-weight: var(--co-weight-medium); }
+.co-text[data-weight="semibold"] { font-weight: var(--co-weight-semibold); }
+
+.co-text[data-tone="body"] { color: var(--co-text-body); }
 .co-text[data-tone="secondary"] { color: var(--co-text-secondary); }
 .co-text[data-tone="muted"] { color: var(--co-text-muted); }
+.co-text[data-tone="subtle"] { color: var(--co-text-subtle); }
 .co-text[data-tone="accent"] { color: var(--co-accent); }
 .co-text[data-tone="status"] { color: var(--co-status); }
 
@@ -329,12 +441,18 @@
 
 .co-surface {
   background: var(--co-surface);
-  border-radius: var(--co-radius-0);
+  border-radius: var(--co-radius-container);
 }
 
 .co-surface[data-elevation="raised"] { background: var(--co-surface-raised); }
 .co-surface[data-elevation="sunken"] { background: var(--co-surface-sunken); }
+.co-surface[data-elevation="none"] { background: transparent; }
 .co-surface[data-bordered="true"] { border: var(--co-border-width) solid var(--co-border); }
+
+.co-surface[data-radius="content"] { border-radius: var(--co-radius-content); }
+.co-surface[data-radius="inset"] { border-radius: var(--co-radius-inset); }
+.co-surface[data-radius="control"] { border-radius: var(--co-radius-control); }
+.co-surface[data-radius="pill"] { border-radius: var(--co-radius-pill); }
 
 .co-divider {
   height: var(--co-border-width);
@@ -342,6 +460,193 @@
   margin: 0;
   background: var(--co-line);
 }
+
+/* O fio começa DEPOIS do recuo do conteúdo, e não na borda do cartão. É a
+ * diferença entre uma lista agrupada e uma pilha de caixas: o olho lê a
+ * continuidade do grupo e o corte entre os itens ao mesmo tempo. */
+.co-divider[data-inset="text"] { margin-left: var(--co-inset-text); }
+.co-divider[data-inset="dot"] { margin-left: var(--co-inset-dot); }
+.co-divider[data-inset="mark"] { margin-left: var(--co-inset-mark); }
+
+/* ------------------------------------------------------------------ grupo -- */
+
+/*
+ * O grupo é a estrutura central deste sistema: um contêiner arredondado que
+ * junta linhas irmãs e as separa por um fio recuado, em vez de dar borda,
+ * sombra e raio a cada uma.
+ *
+ * O fio sai de `::before` no filho, e não de um `<div>` entre eles: assim uma
+ * lista que vem de `.map()` não precisa intercalar elemento nenhum, e nenhum
+ * fio sobra na última linha.
+ */
+.co-group {
+  display: flex;
+  flex-direction: column;
+  background: var(--co-surface);
+  border-radius: var(--co-radius-container);
+  /* Corta o que os cantos encostam: fundo de linha selecionada, painel de
+   * troca aberto embaixo da linha, o que for. */
+  overflow: hidden;
+}
+
+.co-group[data-elevation="sunken"] { background: var(--co-surface-sunken); }
+.co-group[data-elevation="none"] { background: transparent; }
+
+/* Onde o fio começa. O valor acompanha o que existe à esquerda dentro da
+ * linha: nada (`text`, 20px), um ponto de macro (`dot`, 42px) ou uma marca de
+ * escolha (`mark`, 52px). */
+.co-group { --co-group-inset: var(--co-inset-text); }
+.co-group[data-inset="none"] { --co-group-inset: var(--co-inset-none); }
+.co-group[data-inset="dot"] { --co-group-inset: var(--co-inset-dot); }
+.co-group[data-inset="mark"] { --co-group-inset: var(--co-inset-mark); }
+
+.co-group > * + * {
+  position: relative;
+}
+
+.co-group > * + *::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--co-group-inset);
+  right: 0;
+  height: var(--co-border-width);
+  background: var(--co-line);
+  pointer-events: none;
+}
+
+/*
+ * Dentro do grupo o anel de foco vira para DENTRO da linha.
+ *
+ * `overflow: hidden` no grupo recorta o que passa da borda — e o anel com
+ * `outline-offset` positivo passa. Ficaria um foco pela metade na primeira e
+ * na última linha, que é exatamente onde alguém chega com Tab.
+ */
+.co-group :focus-visible {
+  outline-offset: -3px;
+}
+
+/* O versalete que nomeia o grupo mora FORA da caixa, alinhado pela calha —
+ * dentro dele viraria mais uma linha da lista. */
+.co-group__label {
+  padding: 0 var(--co-space-4) var(--co-space-10);
+}
+
+.co-group__footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-6);
+  padding: var(--co-space-14) var(--co-inset-text);
+}
+
+.co-group__note {
+  padding: var(--co-space-10) var(--co-space-4) 0;
+}
+
+/* ------------------------------------------------------------------ linha -- */
+
+/*
+ * A linha repetida do sistema: refeição no diário, alimento na busca, fórmula
+ * na calculadora.
+ *
+ * Ela NÃO desenha a própria separação — quem separa é o grupo. Uma linha que
+ * carrega `border-bottom` sobra com um fio solto na última posição e obriga
+ * todo consumidor a apagá-lo com `:last-child`.
+ */
+.co-list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-12);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--co-space-12) var(--co-inset-text);
+  background: transparent;
+  border: 0;
+  border-radius: var(--co-radius-content);
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+}
+
+.co-list-row[data-size="sm"] { min-height: 48px; }
+.co-list-row[data-size="lg"] { min-height: 64px; }
+.co-list-row[data-align="start"] { align-items: flex-start; }
+
+.co-list-row[data-interactive="true"] { cursor: pointer; }
+.co-list-row[data-selected="true"] { background: var(--co-surface-raised); }
+
+.co-list-row__leading {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.co-list-row__body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-2);
+  min-width: 0;
+}
+
+.co-list-row__trailing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--co-space-2);
+  flex-shrink: 0;
+}
+
+.co-list-row__chevron {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--co-icon-muted);
+  transition: transform var(--co-duration-fast) var(--co-ease);
+}
+
+.co-list-row[data-expanded="true"] .co-list-row__chevron { transform: rotate(180deg); }
+
+/* A marca de escolha da linha: quadrada quando é escolha única dentro de um
+ * grupo com conta visível, porque ela é conteúdo, não contêiner. */
+.co-list-row__mark {
+  width: var(--co-mark-size);
+  height: var(--co-mark-size);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--co-border-width) solid var(--co-border-strong);
+  border-radius: var(--co-radius-content);
+  color: var(--co-accent-contrast);
+}
+
+.co-list-row[data-selected="true"] .co-list-row__mark {
+  background: var(--co-accent);
+  border-color: var(--co-accent);
+}
+
+/* ------------------------------------------------------------------ ponto -- */
+
+/*
+ * O ponto colorido do macro. Quadrado: é conteúdo dentro da vitrine.
+ *
+ * Ele nunca aparece sozinho — o componente que o usa é obrigado a mostrar nome
+ * E número ao lado (ADR-005). Quem não distingue ametista de jade lê a mesma
+ * informação pelo texto, e a cor vira o atalho que ela deve ser.
+ */
+.co-dot {
+  width: var(--co-dot-size);
+  height: var(--co-dot-size);
+  flex-shrink: 0;
+  border-radius: var(--co-radius-content);
+  background: var(--co-track);
+}
+
+.co-dot[data-tone="protein"] { background: var(--co-macro-protein); }
+.co-dot[data-tone="carb"] { background: var(--co-macro-carb); }
+.co-dot[data-tone="fat"] { background: var(--co-macro-fat); }
+.co-dot[data-tone="accent"] { background: var(--co-accent); }
+.co-dot[data-tone="status"] { background: var(--co-status); }
 
 /* ------------------------------------------------------------------ botão -- */
 
@@ -353,9 +658,9 @@
   /* O piso de 44px é do sistema, não do componente: não existe tamanho menor
    * na API. Um alvo de 32px passa no desenho e falha no polegar. */
   min-height: var(--co-target-min);
-  padding: 0 var(--co-space-16);
+  padding: 0 var(--co-space-14);
   border: var(--co-border-width) solid transparent;
-  border-radius: var(--co-radius-0);
+  border-radius: var(--co-radius-control);
   font-family: inherit;
   font-size: var(--co-text-14);
   font-weight: var(--co-weight-semibold);
@@ -384,20 +689,28 @@
 }
 .co-button[data-variant="primary"]:hover:not(:disabled) { background: var(--co-accent-hover); }
 
+/* Sem borda: a separação vem do fundo, que é o degrau que este sistema usa em
+ * todo lugar. Contorno num botão dentro de um cartão desenha duas caixas onde
+ * há um objeto só. */
 .co-button[data-variant="secondary"] {
   background: var(--co-surface);
-  border-color: var(--co-border);
-  color: var(--co-text);
+  color: var(--co-text-body);
   font-weight: var(--co-weight-medium);
 }
-.co-button[data-variant="secondary"]:hover:not(:disabled) { border-color: var(--co-border-strong); }
+.co-button[data-variant="secondary"]:hover:not(:disabled) { background: var(--co-surface-raised); }
 
+/* A ação inline de uma lista: "Adicionar a esta refeição", "Nova refeição".
+ * Sem caixa nenhuma, porque ela pertence ao grupo e não flutua sobre ele. */
 .co-button[data-variant="ghost"] {
   background: transparent;
-  color: var(--co-text-secondary);
+  color: var(--co-accent);
   font-weight: var(--co-weight-regular);
+  padding: 0;
 }
-.co-button[data-variant="ghost"]:hover:not(:disabled) { color: var(--co-text); }
+.co-button[data-variant="ghost"]:hover:not(:disabled) { color: var(--co-accent-hover); }
+
+.co-button[data-variant="ghost"][data-tone="neutral"] { color: var(--co-text-secondary); }
+.co-button[data-variant="ghost"][data-tone="neutral"]:hover:not(:disabled) { color: var(--co-text); }
 
 /* `danger` existe por uma razão concreta: apagar a conta apaga os dados de
  * verdade. A cor sobe o custo de errar o alvo; ela não substitui a confirmação. */
@@ -425,22 +738,23 @@
 .co-badge {
   display: inline-flex;
   align-items: center;
-  padding: var(--co-space-2) var(--co-space-6);
-  border: var(--co-border-width) solid var(--co-border-strong);
-  border-radius: var(--co-radius-0);
-  font-size: var(--co-text-10);
-  letter-spacing: 0.04em;
-  color: var(--co-text-muted);
+  padding: var(--co-space-4) var(--co-space-10);
+  border: var(--co-border-width) solid transparent;
+  border-radius: var(--co-radius-pill);
+  background: var(--co-surface-raised);
+  font-size: var(--co-text-11);
+  font-weight: var(--co-weight-semibold);
+  color: var(--co-text-secondary);
   white-space: nowrap;
 }
 
 .co-badge[data-tone="accent"] {
-  border-color: var(--co-accent);
+  background: var(--co-accent-soft);
   color: var(--co-accent);
 }
 
 .co-badge[data-tone="status"] {
-  border-color: var(--co-status-border);
+  background: var(--co-status-border);
   color: var(--co-status);
 }
 
@@ -448,8 +762,16 @@
   background: var(--co-accent);
   border-color: var(--co-accent);
   color: var(--co-accent-contrast);
-  font-weight: var(--co-weight-semibold);
-  font-size: var(--co-text-11);
+}
+
+/* O selo também sabe ficar reto, para quando ele for conteúdo de uma linha em
+ * vez de um objeto solto sobre o cartão. */
+.co-badge[data-shape="square"] {
+  border-radius: var(--co-radius-content);
+  background: transparent;
+  border-color: var(--co-border-strong);
+  font-weight: var(--co-weight-regular);
+  color: var(--co-text-muted);
 }
 
 /* ------------------------------------------------------------------ ripa ---- */
@@ -459,10 +781,13 @@
  * de um retângulo liso: a colunata hexagonal do basalto vista de cima. O
  * gradiente repetido desenha as colunas sem um nó de DOM por ripa — 24 divs
  * por barra seria o mesmo desenho e trinta vezes o custo.
+ *
+ * Reta, sempre: ela é conteúdo dentro do cartão.
  */
 .co-slat {
   position: relative;
-  height: 10px;
+  height: var(--co-slat-height);
+  border-radius: var(--co-radius-content);
   background-image: repeating-linear-gradient(
     90deg,
     var(--co-track) 0 var(--co-slat-width),
@@ -470,7 +795,22 @@
   );
 }
 
-.co-slat[data-size="sm"] { height: 8px; }
+.co-slat[data-size="sm"] { height: var(--co-bar-height); }
+
+/* A barra lisa: para a medida miúda que acompanha uma linha de lista, onde a
+ * ripa de 3px vira ruído em vez de textura. */
+.co-slat[data-pattern="solid"] {
+  background-image: none;
+  background-color: var(--co-line);
+}
+
+/* O tom acompanha o macro que a barra ilustra, e sai do MESMO token do ponto
+ * colorido ao lado — duas cores diferentes para a mesma proteína seria o tipo
+ * de divergência que só aparece quando alguém troca o tema. */
+.co-slat[data-tone="protein"] { --co-slat-color: var(--co-macro-protein); }
+.co-slat[data-tone="carb"] { --co-slat-color: var(--co-macro-carb); }
+.co-slat[data-tone="fat"] { --co-slat-color: var(--co-macro-fat); }
+.co-slat[data-tone="status"] { --co-slat-color: var(--co-status); }
 
 .co-slat__fill {
   position: absolute;
@@ -480,10 +820,15 @@
   width: var(--co-slat-value, 0%);
   background-image: repeating-linear-gradient(
     90deg,
-    var(--co-accent) 0 var(--co-slat-width),
+    var(--co-slat-color, var(--co-accent)) 0 var(--co-slat-width),
     transparent var(--co-slat-width) var(--co-slat-gap)
   );
   transition: width var(--co-duration-normal) var(--co-ease);
+}
+
+.co-slat[data-pattern="solid"] .co-slat__fill {
+  background-image: none;
+  background-color: var(--co-slat-color, var(--co-accent));
 }
 
 .co-slat__marker {
@@ -492,17 +837,23 @@
   bottom: -4px;
   left: var(--co-slat-value, 0%);
   width: var(--co-marker-width);
-  background: var(--co-accent);
+  background: var(--co-slat-color, var(--co-accent));
 }
 
 /* ------------------------------------------------------- controle segmentado -- */
 
+/*
+ * Trilho de 12px com 3px de folga, opção de 9px dentro. O 9 não é escolha
+ * solta: raio interno = raio externo − folga, senão o canto da opção corre
+ * paralelo ao canto do trilho com espessura variável e o olho vê a diferença
+ * sem saber nomear.
+ */
 .co-segmented {
   display: inline-flex;
   gap: var(--co-space-2);
   padding: var(--co-space-2);
-  background: var(--co-surface-raised);
-  border: var(--co-border-width) solid var(--co-border);
+  background: var(--co-surface);
+  border-radius: var(--co-radius-control);
 }
 
 .co-segmented[data-full="true"] { display: flex; width: 100%; }
@@ -513,8 +864,9 @@
   align-items: center;
   justify-content: center;
   min-height: var(--co-target-min);
-  padding: 0 var(--co-space-14);
+  padding: 0 var(--co-space-12);
   border: 0;
+  border-radius: var(--co-radius-inset);
   background: transparent;
   color: var(--co-text-muted);
   font-family: inherit;
@@ -543,18 +895,91 @@
   gap: var(--co-space-8);
 }
 
+/* ------------------------------------------------------------------ conta --- */
+
+/*
+ * A conta aberta.
+ *
+ * É o componente que carrega a premissa do produto — a pessoa informa, o app
+ * calcula — e a carrega como desenho, não como frase. Cada parcela numa
+ * linha, a expressão embaixo do rótulo quando existe, e o resultado separado
+ * por um fio, do jeito que uma conta no papel termina.
+ *
+ * Um número grande sozinho é um veredito. A mesma conta aberta é um argumento
+ * que a pessoa pode conferir na calculadora do celular — e é para conferir
+ * que ela existe.
+ */
+.co-reckoning {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-8);
+}
+
+.co-reckoning__line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--co-space-12);
+}
+
+.co-reckoning__line[data-total="true"] {
+  padding-top: var(--co-space-8);
+  border-top: var(--co-border-width) solid var(--co-line);
+}
+
+.co-reckoning__label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-2);
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ macro --- */
+
+/*
+ * Ponto, nome e número — nesta ordem, e os três sempre. A barra é opcional; o
+ * texto não é.
+ */
+.co-macro {
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-12);
+  min-height: 56px;
+  padding: var(--co-space-12) var(--co-inset-text);
+}
+
+.co-macro__body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-6);
+  min-width: 0;
+}
+
+.co-macro__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--co-space-12);
+}
+
 /* ------------------------------------------------------------------ aviso --- */
 
 /*
  * Aviso INFORMA, nunca bloqueia (ADR-006 do Basalto). Por isso ele não tem
  * variante "erro" com fundo vermelho e não tem botão de fechar obrigatório:
  * é um bloco de texto com a conta aberta, marcado por um fio na lateral.
+ *
+ * A marca é `border-left`, e não um pseudo-elemento: assim ela acompanha a
+ * curva do cartão nas duas pontas em vez de cortar o canto arredondado com um
+ * retângulo.
  */
 .co-notice {
   display: flex;
-  gap: var(--co-space-10);
-  padding: var(--co-space-14) var(--co-space-16);
+  gap: var(--co-space-12);
+  padding: var(--co-space-16) var(--co-space-16) var(--co-space-16) var(--co-space-14);
   background: var(--co-surface);
+  border-radius: var(--co-radius-container);
   border-left: var(--co-marker-width) solid var(--co-accent);
 }
 
@@ -575,68 +1000,15 @@
   gap: var(--co-space-4);
 }
 
-/* ------------------------------------------------------------------ linha --- */
-
-.co-list-row {
-  display: flex;
-  align-items: center;
-  gap: var(--co-space-12);
-  width: 100%;
-  min-height: 64px;
-  padding: var(--co-space-12) var(--co-space-16);
-  background: transparent;
-  border: 0;
-  border-bottom: var(--co-border-width) solid var(--co-line);
-  color: inherit;
-  font-family: inherit;
-  text-align: left;
-}
-
-.co-list-row[data-interactive="true"] { cursor: pointer; }
-.co-list-row[data-selected="true"] { background: var(--co-surface-raised); }
-
-.co-list-row__marker {
-  width: var(--co-marker-width);
-  height: 30px;
-  flex-shrink: 0;
-  background: var(--co-track);
-}
-
-.co-list-row[data-selected="true"] .co-list-row__marker { background: var(--co-accent); }
-
-.co-list-row__body {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--co-space-2);
-  min-width: 0;
-}
-
-.co-list-row__trailing {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--co-space-2);
-  flex-shrink: 0;
-}
-
-.co-list-row__chevron {
-  display: flex;
-  flex-shrink: 0;
-  color: var(--co-icon-muted);
-  transition: transform var(--co-duration-fast) var(--co-ease);
-}
-
-.co-list-row[data-expanded="true"] .co-list-row__chevron { transform: rotate(180deg); }
-
 /* ------------------------------------------------------------- incremento --- */
 
 .co-stepper {
   display: inline-flex;
   align-items: center;
   gap: var(--co-space-2);
-  background: var(--co-surface-sunken);
-  border: var(--co-border-width) solid var(--co-border);
+  padding: var(--co-space-2);
+  background: var(--co-surface);
+  border-radius: var(--co-radius-control);
 }
 
 .co-stepper__button {
@@ -646,10 +1018,13 @@
   align-items: center;
   justify-content: center;
   border: 0;
+  border-radius: var(--co-radius-inset);
   background: transparent;
   color: var(--co-text-secondary);
   cursor: pointer;
 }
+
+.co-stepper__button:hover:not(:disabled) { background: var(--co-surface-raised); }
 
 .co-stepper__button:disabled {
   opacity: 0.4;
@@ -659,9 +1034,113 @@
 .co-stepper__value {
   min-width: 52px;
   text-align: center;
-  font-size: var(--co-text-17);
+  font-size: var(--co-text-16);
   font-weight: var(--co-weight-medium);
   font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------ cabeçalho ---- */
+
+.co-screen-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--co-space-12);
+  padding: 0 var(--co-space-4) var(--co-space-20);
+}
+
+.co-screen-header__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-2);
+  min-width: 0;
+}
+
+.co-screen-header__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--co-target-min);
+  height: var(--co-target-min);
+  /* Estoura a calha para a direita: o alvo continua com 44px e o ícone alinha
+   * com o texto da coluna, em vez de ficar 10px para dentro dela. */
+  margin-right: -10px;
+  border: 0;
+  background: transparent;
+  color: var(--co-text-muted);
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------- barra de abas -- */
+
+/*
+ * A barra flutua sobre o conteúdo, e o conteúdo rola por baixo dela.
+ *
+ * `backdrop-filter` é o efeito, mas o token `--co-overlay` já é uma cor COM
+ * alfa que sozinha dá contraste suficiente: onde o filtro não existe — Firefox
+ * com a flag desligada, WebView antiga — a barra continua legível, só deixa de
+ * ser translúcida. Efeito que degrada para "opaco", nunca para "ilegível".
+ */
+.co-tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--co-space-4);
+  padding: var(--co-space-10) var(--co-space-10);
+  padding-bottom: calc(var(--co-space-10) + env(safe-area-inset-bottom, 0px));
+  background: var(--co-overlay);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-top: var(--co-border-width) solid var(--co-overlay-line);
+}
+
+.co-tabbar[data-position="absolute"] {
+  position: absolute;
+}
+
+.co-tabbar[data-position="static"] {
+  position: static;
+}
+
+.co-tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--co-space-4);
+  min-height: 52px;
+  border: 0;
+  border-radius: var(--co-radius-control);
+  background: transparent;
+  color: var(--co-text-muted);
+  font-family: inherit;
+  font-size: var(--co-text-10);
+  cursor: pointer;
+}
+
+/*
+ * A aba atual muda de COR, de PESO e ganha `aria-current`. Três sinais, e não
+ * um: quem não separa ametista de cinza ainda vê o rótulo mais pesado, e quem
+ * usa leitor de tela ouve "página atual" (ADR-005).
+ */
+.co-tabbar__item[aria-current="page"] {
+  color: var(--co-text);
+  font-weight: var(--co-weight-semibold);
+}
+
+.co-tabbar__icon {
+  display: flex;
+  color: var(--co-text-muted);
+}
+
+.co-tabbar__item[aria-current="page"] .co-tabbar__icon {
+  color: var(--co-accent);
 }
 
 /* ------------------------------------------------------------------ grão ---- */
@@ -737,7 +1216,7 @@ body {
 .marca { display: flex; align-items: baseline; gap: var(--co-space-10); }
 .marca__nome {
   font-family: var(--co-font-display);
-  font-size: var(--co-text-34);
+  font-size: var(--co-text-36);
   line-height: 1;
   letter-spacing: var(--co-tracking-tight);
 }
@@ -856,7 +1335,7 @@ pre code { background: none; border: 0; padding: 0; }
   <header class="topo">
     <div class="marca">
       <span class="marca__nome">Coluna</span>
-      <span class="co-badge" data-tone="accent">v0.1.0</span>
+      <span class="co-badge" data-tone="accent">v0.1.2</span>
     </div>
     <div class="co-segmented" role="radiogroup" aria-label="Tema" id="tema">
       <button type="button" role="radio" class="co-segmented__option" aria-checked="false" data-tema="light">Claro</button>
@@ -867,7 +1346,7 @@ pre code { background: none; border: 0; padding: 0; }
 
   <section class="capa">
     <h1 class="capa__frase">Coluna basáltica é o prisma que a lava deixa ao esfriar devagar.</h1>
-    <p class="capa__texto">É de onde vem o grid, as ripas das barras e a recusa a cantos arredondados. Esta página é pintada pelo <strong>CSS que o pacote publica</strong>, sem uma linha de diferença — se um token quebrar, ela quebra junto.</p>
+    <p class="capa__texto">É de onde vêm o grid, as ripas das barras e a aresta viva do conteúdo — o contêiner arredonda porque é vitrine, o conteúdo continua reto porque é pedra. Esta página é pintada pelo <strong>CSS que o pacote publica</strong>, sem uma linha de diferença — se um token quebrar, ela quebra junto.</p>
     <pre><code>npm install @slipalison/coluna
 import "@slipalison/coluna/styles.css";</code></pre>
   </section>
@@ -912,12 +1391,16 @@ import "@slipalison/coluna/styles.css";</code></pre>
     </div>
     <p class="prosa">A rampa é fechada de propósito: não existe "tamanho 17 em negrito". Se um desenho pede isso, ou vira uma variante aqui, ou é um desenho fora do sistema. A serifa entra só onde o número carrega a mensagem.</p>
     <div class="caixa">
-      <div class="co-text" data-variant="display">Sua taxa basal, em rocha sólida</div>
+      <div class="co-text" data-variant="title-lg">Quanto você gasta em repouso</div>
       <div class="co-text" data-variant="numeral">1.917</div>
-      <div class="co-text" data-variant="title">Restante hoje</div>
-      <div class="co-text" data-variant="body">Corpo do texto, que é onde mora quase tudo o que a pessoa lê na tela.</div>
-      <div class="co-text" data-variant="caption" data-tone="secondary">Legenda: a linha que explica de onde o número veio.</div>
-      <div class="co-text" data-variant="label">Rótulo de seção</div>
+      <div class="co-text" data-variant="headline">Café da manhã</div>
+      <div class="co-text" data-variant="body">Arroz, branco, cozido</div>
+      <div class="co-text" data-variant="callout" data-tone="body">4 colheres de sopa · 100 g</div>
+      <div class="co-text" data-variant="subhead" data-tone="secondary">quarta, 16 de setembro</div>
+      <div class="co-text" data-variant="footnote" data-tone="secondary">Nota: a linha que explica o bloco inteiro, e não uma linha dele.</div>
+      <div class="co-text" data-variant="caption" data-tone="subtle" data-numeric="true">370 + 21,6 × 65,91 = 1.793,7</div>
+      <div class="co-text" data-variant="label">Macros da meta</div>
+      <div class="co-text" data-variant="micro">Cereal</div>
     </div>
   </section>
 
@@ -926,7 +1409,17 @@ import "@slipalison/coluna/styles.css";</code></pre>
       <h2 class="secao__titulo">Espaço e forma</h2>
       <span class="secao__nota">o nome do token é o número de pixels</span>
     </div>
-    <p class="prosa">Um <code>--co-space-6</code> diz onde encaixa; um <code>--co-space-md</code> exigiria decorar a tabela. O raio máximo do sistema é 4px e a maior parte dos componentes usa 0 — basalto lasca em coluna hexagonal, não em pílula.</p>
+    <p class="prosa">Um <code>--co-space-6</code> diz onde encaixa; um <code>--co-space-md</code> exigiria decorar a tabela. O raio depende do <strong>papel</strong>: o contêiner arredonda porque é vitrine, o conteúdo continua reto porque é pedra. <code>inset</code> não é número solto — raio interno = raio externo − folga, então 12 por fora com 3 de folga dá 9.</p>
+    <div class="caixa">
+      <div class="co-text" data-variant="label">Raio</div>
+      <div class="tira">
+        <div style="width: 84px; height: 56px; background: var(--co-surface-raised); border-radius: var(--co-radius-container); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px;"><span class="co-text" data-variant="caption" data-tone="muted">container</span></div>
+        <div style="width: 84px; height: 56px; background: var(--co-surface-raised); border-radius: var(--co-radius-control); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px;"><span class="co-text" data-variant="caption" data-tone="muted">control</span></div>
+        <div style="width: 84px; height: 56px; background: var(--co-surface-raised); border-radius: var(--co-radius-inset); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px;"><span class="co-text" data-variant="caption" data-tone="muted">inset</span></div>
+        <div style="width: 84px; height: 56px; background: var(--co-surface-raised); border-radius: var(--co-radius-pill); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px;"><span class="co-text" data-variant="caption" data-tone="muted">pill</span></div>
+        <div style="width: 84px; height: 56px; background: var(--co-surface-raised); border-radius: var(--co-radius-content); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px;"><span class="co-text" data-variant="caption" data-tone="muted">content</span></div>
+      </div>
+    </div>
     <div class="caixa">
       <div class="regua" id="espacos"></div>
       <hr class="co-divider">
@@ -943,7 +1436,7 @@ import "@slipalison/coluna/styles.css";</code></pre>
   <section class="secao">
     <div class="secao__cabeca">
       <h2 class="secao__titulo">Átomos</h2>
-      <span class="secao__nota">dez</span>
+      <span class="secao__nota">doze</span>
     </div>
 
     <div class="coluna">
@@ -964,9 +1457,10 @@ import "@slipalison/coluna/styles.css";</code></pre>
           <div class="co-text" data-variant="label">Badge</div>
           <div class="tira">
             <span class="co-badge">TACO</span>
-            <span class="co-badge" data-tone="accent">cru</span>
+            <span class="co-badge" data-tone="accent">48% da meta</span>
             <span class="co-badge" data-tone="status">cozido</span>
             <span class="co-badge" data-solid="true">62% medido</span>
+            <span class="co-badge" data-shape="square">cru</span>
           </div>
         </div>
         <div class="caixa">
@@ -975,6 +1469,16 @@ import "@slipalison/coluna/styles.css";</code></pre>
           <div class="co-slat" data-size="sm" style="--co-slat-value: 34%;"><div class="co-slat__fill"></div></div>
           <div class="co-slat" data-size="sm" style="--co-slat-value: 62%;"><div class="co-slat__marker"></div></div>
           <div class="co-text" data-variant="caption" data-tone="muted">Preenchimento, tamanho menor, e o marcador — que mostra um ponto na régua entre dois extremos, e não progresso.</div>
+        </div>
+      </div>
+
+      <div class="caixa">
+        <div class="co-text" data-variant="label">Dot</div>
+        <div class="co-text" data-variant="caption" data-tone="secondary">Quadrado porque é conteúdo dentro da vitrine. E ele nunca aparece sozinho: nome e número ao lado, sempre — a cor é o atalho, não a informação.</div>
+        <div class="tira">
+          <span style="display: inline-flex; align-items: center; gap: var(--co-space-12);"><span class="co-dot" data-tone="protein" aria-hidden="true"></span><span class="co-text" data-variant="callout">Proteína</span><span class="co-text" data-variant="callout" data-tone="secondary" data-numeric="true">135 g</span></span>
+          <span style="display: inline-flex; align-items: center; gap: var(--co-space-12);"><span class="co-dot" data-tone="carb" aria-hidden="true"></span><span class="co-text" data-variant="callout">Carboidrato</span><span class="co-text" data-variant="callout" data-tone="secondary" data-numeric="true">225 g</span></span>
+          <span style="display: inline-flex; align-items: center; gap: var(--co-space-12);"><span class="co-dot" data-tone="fat" aria-hidden="true"></span><span class="co-text" data-variant="callout">Gordura</span><span class="co-text" data-variant="callout" data-tone="secondary" data-numeric="true">53 g</span></span>
         </div>
       </div>
 
@@ -989,7 +1493,7 @@ import "@slipalison/coluna/styles.css";</code></pre>
   <section class="secao">
     <div class="secao__cabeca">
       <h2 class="secao__titulo">Moléculas</h2>
-      <span class="secao__nota">seis</span>
+      <span class="secao__nota">dez</span>
     </div>
 
     <div class="coluna">
@@ -1023,83 +1527,148 @@ import "@slipalison/coluna/styles.css";</code></pre>
         <div class="caixa">
           <div class="co-text" data-variant="label">Stat</div>
           <div class="co-stat">
-            <div class="co-text" data-variant="label">Restante hoje</div>
-            <div class="co-stat__value">
-              <div class="co-text" data-variant="numeral" data-numeric="true" style="font-size: var(--co-text-64);">995</div>
-              <div class="co-text" data-variant="body" data-tone="secondary">kcal</div>
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--co-space-16);">
+              <div style="display: flex; flex-direction: column; gap: var(--co-space-6);">
+                <div class="co-text" data-variant="label">Restante</div>
+                <div class="co-stat__value">
+                  <div class="co-text" data-variant="numeral" data-numeric="true">995</div>
+                  <div class="co-text" data-variant="body" data-tone="secondary">kcal</div>
+                </div>
+              </div>
+              <span class="co-badge" data-tone="accent">48% da meta</span>
             </div>
-            <div class="co-text" data-variant="caption" data-tone="secondary">de 1.917 kcal · a meta de hoje</div>
+            <div class="co-text" data-variant="footnote" data-tone="secondary">de 1.917 kcal · a meta de hoje</div>
           </div>
         </div>
 
         <div class="caixa">
           <div class="co-text" data-variant="label">MacroBar</div>
-          <div class="coluna" style="gap: var(--co-space-12);">
-            <div style="display: flex; flex-direction: column; gap: var(--co-space-6);">
-              <div class="tira" style="justify-content: space-between;">
-                <span class="co-text" data-variant="caption" data-tone="secondary">Proteína</span>
-                <span class="co-text" data-variant="caption" data-tone="muted" data-numeric="true">68 / 135 g</span>
+          <div class="co-group" data-inset="dot" style="margin-inline: calc(var(--co-space-20) * -1);">
+            <div class="co-macro">
+              <span class="co-dot" data-tone="protein" aria-hidden="true"></span>
+              <div class="co-macro__body">
+                <div class="co-macro__head">
+                  <span class="co-text" data-variant="body">Proteína</span>
+                  <span class="co-text" data-variant="callout" data-tone="secondary" data-numeric="true">68 de 135 g</span>
+                </div>
+                <div class="co-slat" data-size="sm" data-pattern="solid" data-tone="protein" style="--co-slat-value: 50%;" aria-hidden="true"><div class="co-slat__fill"></div></div>
               </div>
-              <div class="co-slat" data-size="sm" style="--co-slat-value: 50%;"><div class="co-slat__fill"></div></div>
             </div>
-            <div style="display: flex; flex-direction: column; gap: var(--co-space-6);">
-              <div class="tira" style="justify-content: space-between;">
-                <span class="co-text" data-variant="caption" data-tone="secondary">Carboidrato</span>
-                <span class="co-text" data-variant="caption" data-tone="muted" data-numeric="true">95 / 225 g</span>
+            <div class="co-macro">
+              <span class="co-dot" data-tone="carb" aria-hidden="true"></span>
+              <div class="co-macro__body">
+                <div class="co-macro__head">
+                  <span class="co-text" data-variant="body">Carboidrato</span>
+                  <span class="co-text" data-variant="callout" data-tone="secondary" data-numeric="true">95 de 225 g</span>
+                </div>
+                <div class="co-slat" data-size="sm" data-pattern="solid" data-tone="carb" style="--co-slat-value: 42%;" aria-hidden="true"><div class="co-slat__fill"></div></div>
               </div>
-              <div class="co-slat" data-size="sm" style="--co-slat-value: 42%;"><div class="co-slat__fill"></div></div>
             </div>
-            <div style="display: flex; flex-direction: column; gap: var(--co-space-6);">
-              <div class="tira" style="justify-content: space-between;">
-                <span class="co-text" data-variant="caption" data-tone="secondary">Gordura</span>
-                <span class="co-text" data-variant="caption" data-tone="muted" data-numeric="true">30 / 53 g</span>
+            <div class="co-macro">
+              <span class="co-dot" data-tone="fat" aria-hidden="true"></span>
+              <div class="co-macro__body">
+                <div class="co-macro__head">
+                  <span class="co-text" data-variant="body">Gordura</span>
+                  <span class="co-text" data-variant="callout" data-tone="secondary" data-numeric="true">30 de 53 g</span>
+                </div>
+                <div class="co-slat" data-size="sm" data-pattern="solid" data-tone="fat" style="--co-slat-value: 57%;" aria-hidden="true"><div class="co-slat__fill"></div></div>
               </div>
-              <div class="co-slat" data-size="sm" style="--co-slat-value: 57%;"><div class="co-slat__fill"></div></div>
             </div>
           </div>
         </div>
       </div>
 
       <div class="caixa" style="padding: 0;">
-        <div style="padding: var(--co-space-20) var(--co-space-20) 0;">
-          <div class="co-text" data-variant="label">ListRow</div>
+        <div style="padding: var(--co-space-20) var(--co-space-20) var(--co-space-12);">
+          <div class="co-text" data-variant="label">Group + ListRow</div>
+          <div class="co-text" data-variant="footnote" data-tone="secondary" style="padding-top: var(--co-space-6);">O fio entre as linhas sai de <code>::before</code> no filho, e nao de um elemento entre eles: a lista pode vir de <code>.map()</code> sem intercalar separador, e nao sobra fio na ultima. Ele comeca depois do recuo do conteudo &mdash; e o que faz o olho ler a continuidade do grupo e o corte entre os itens ao mesmo tempo.</div>
         </div>
-        <div style="padding-top: var(--co-space-12);">
-          <button type="button" class="co-list-row" data-interactive="true" data-selected="true" data-expanded="false" aria-expanded="false" id="linha-almoco">
-            <span class="co-list-row__marker"></span>
-            <span class="co-list-row__body">
-              <span class="co-text" data-variant="body" style="font-weight: var(--co-weight-medium);">Almoço</span>
-              <span class="co-text" data-variant="caption" data-tone="muted">12:40 · 5 itens</span>
-            </span>
-            <span class="co-list-row__trailing">
-              <span class="co-text" data-variant="body" data-numeric="true">671</span>
-              <span class="co-text" data-variant="caption" data-tone="muted">kcal</span>
-            </span>
-            <span class="co-list-row__chevron">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
-            </span>
+        <div style="padding: 0 var(--co-space-20) var(--co-space-20);">
+          <div class="co-group">
+            <div>
+              <button type="button" class="co-list-row" data-size="lg" data-interactive="true" data-expanded="false" aria-expanded="false" id="linha-almoco">
+                <span class="co-list-row__body">
+                  <span class="co-text" data-variant="headline">Almo&ccedil;o</span>
+                  <span class="co-text" data-variant="footnote" data-tone="muted" data-numeric="true">12:40 &middot; 5 itens</span>
+                </span>
+                <span class="co-list-row__trailing">
+                  <span class="co-text" data-variant="headline" data-tone="secondary" data-numeric="true">612</span>
+                </span>
+                <span class="co-list-row__chevron">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+                </span>
+              </button>
+              <div hidden="" id="itens-almoco" style="padding: 0 var(--co-space-20) var(--co-space-16); display: flex; flex-direction: column; gap: var(--co-space-12);">
+                <div class="tira" style="justify-content: space-between;"><span class="co-text" data-variant="callout" data-tone="body">Arroz, branco, cozido &middot; 4 colheres de sopa</span><span class="co-text" data-variant="subhead" data-tone="muted" data-numeric="true">128</span></div>
+                <div class="tira" style="justify-content: space-between;"><span class="co-text" data-variant="callout" data-tone="body">Feij&atilde;o carioca, cozido &middot; 1 concha m&eacute;dia</span><span class="co-text" data-variant="subhead" data-tone="muted" data-numeric="true">108</span></div>
+                <div class="tira" style="justify-content: space-between;"><span class="co-text" data-variant="callout" data-tone="body">Fil&eacute; de frango grelhado &middot; 120 g</span><span class="co-text" data-variant="subhead" data-tone="muted" data-numeric="true">190</span></div>
+                <div class="tira" style="justify-content: space-between;"><span class="co-text" data-variant="callout" data-tone="body">Farofa de mandioca &middot; 1 colher de sopa</span><span class="co-text" data-variant="subhead" data-tone="muted" data-numeric="true">60</span></div>
+                <div class="tira" style="justify-content: space-between;"><span class="co-text" data-variant="callout" data-tone="body">Salada de folhas com azeite</span><span class="co-text" data-variant="subhead" data-tone="muted" data-numeric="true">126</span></div>
+              </div>
+            </div>
+            <div class="co-list-row" data-size="lg">
+              <span class="co-list-row__body">
+                <span class="co-text" data-variant="headline">Caf&eacute; da manh&atilde;</span>
+                <span class="co-text" data-variant="footnote" data-tone="muted" data-numeric="true">07:20 &middot; 3 itens</span>
+              </span>
+              <span class="co-list-row__trailing">
+                <span class="co-text" data-variant="headline" data-tone="secondary" data-numeric="true">310</span>
+              </span>
+            </div>
+          </div>
+          <div class="co-text" data-variant="footnote" data-tone="muted" style="padding-top: var(--co-space-12);">A primeira tem <code>onClick</code> e sai <code>&lt;button&gt;</code>; a segunda n&atilde;o tem e sai <code>&lt;div&gt;</code>. Nunca um div clic&aacute;vel: n&atilde;o pega foco, n&atilde;o responde a Enter, n&atilde;o aparece como acion&aacute;vel. Repare que a linha e o painel que abre embaixo dela v&atilde;o num <code>&lt;div&gt;</code> s&oacute; &mdash; &eacute; assim que se diz ao grupo que aquilo &eacute; um item, e n&atilde;o dois.</div>
+        </div>
+      </div>
+
+      <div class="caixa">
+        <div class="co-text" data-variant="label">Reckoning</div>
+        <div class="co-text" data-variant="footnote" data-tone="secondary">A conta aberta carrega a premissa do produto &mdash; a pessoa informa, o app calcula &mdash; como desenho, e n&atilde;o como frase. Quando o n&uacute;mero mostrado &eacute; arredondado, a express&atilde;o mostra a casa decimal: <code>1.433 + 937 = 2.371</code> n&atilde;o fecha para quem confere com a calculadora do celular.</div>
+        <div class="co-reckoning">
+          <div class="co-reckoning__line">
+            <div class="co-reckoning__label">
+              <span class="co-text" data-variant="subhead" data-tone="secondary">F&oacute;rmula</span>
+              <span class="co-text" data-variant="caption" data-tone="subtle" data-numeric="true">2.312 &times; 62%</span>
+            </div>
+            <span class="co-text" data-variant="subhead" data-tone="secondary" data-numeric="true">1.433,4</span>
+          </div>
+          <div class="co-reckoning__line">
+            <div class="co-reckoning__label">
+              <span class="co-text" data-variant="subhead" data-tone="secondary">Medido</span>
+              <span class="co-text" data-variant="caption" data-tone="subtle" data-numeric="true">2.467 &times; 38%</span>
+            </div>
+            <span class="co-text" data-variant="subhead" data-tone="secondary" data-numeric="true">937,5</span>
+          </div>
+          <div class="co-reckoning__line" data-total="true">
+            <div class="co-reckoning__label">
+              <span class="co-text" data-variant="subhead" data-weight="semibold">Gasto de hoje</span>
+              <span class="co-text" data-variant="caption" data-tone="subtle" data-numeric="true">2.370,9 arredondado</span>
+            </div>
+            <span class="co-text" data-variant="body" data-weight="semibold" data-numeric="true">2.371</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="caixa">
+        <div class="co-text" data-variant="label">TabBar</div>
+        <div class="co-text" data-variant="footnote" data-tone="secondary">A aba atual muda de cor, de peso e ganha <code>aria-current</code>. Tr&ecirc;s sinais para a mesma informa&ccedil;&atilde;o: cor sozinha n&atilde;o &eacute; sinal.</div>
+        <nav class="co-tabbar" data-position="static" aria-label="Se&ccedil;&otilde;es do Basalto" style="max-width: 390px; border-radius: var(--co-radius-container);">
+          <button type="button" class="co-tabbar__item" aria-current="page">
+            <span class="co-tabbar__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2zM9 9h6M9 13h6"></path></svg></span>
+            Di&aacute;rio
           </button>
-          <div hidden="" id="itens-almoco" style="padding: var(--co-space-12) var(--co-space-20) var(--co-space-16) 52px; display: flex; flex-direction: column; gap: var(--co-space-10);">
-            <div class="tira" style="justify-content: space-between;"><span class="co-text" data-variant="caption">Arroz, branco, cozido · 6 colheres de sopa</span><span class="co-text" data-variant="caption" data-tone="muted" data-numeric="true">192</span></div>
-            <div class="tira" style="justify-content: space-between;"><span class="co-text" data-variant="caption">Feijão carioca, cozido · 1 concha média</span><span class="co-text" data-variant="caption" data-tone="muted" data-numeric="true">108</span></div>
-            <div class="tira" style="justify-content: space-between;"><span class="co-text" data-variant="caption">Filé de frango grelhado · 120 g</span><span class="co-text" data-variant="caption" data-tone="muted" data-numeric="true">190</span></div>
-            <div class="tira" style="justify-content: space-between;"><span class="co-text" data-variant="caption">Salada de folhas · 2 colheres de azeite</span><span class="co-text" data-variant="caption" data-tone="muted" data-numeric="true">181</span></div>
-          </div>
-          <div class="co-list-row">
-            <span class="co-list-row__marker"></span>
-            <span class="co-list-row__body">
-              <span class="co-text" data-variant="body" style="font-weight: var(--co-weight-medium);">Café da manhã</span>
-              <span class="co-text" data-variant="caption" data-tone="muted">07:30 · 4 itens</span>
-            </span>
-            <span class="co-list-row__trailing">
-              <span class="co-text" data-variant="body" data-numeric="true">479</span>
-              <span class="co-text" data-variant="caption" data-tone="muted">kcal</span>
-            </span>
-          </div>
-        </div>
-        <div style="padding: var(--co-space-12) var(--co-space-20) var(--co-space-20);">
-          <div class="co-text" data-variant="caption" data-tone="muted">A primeira tem <code>onClick</code> e sai <code>&lt;button&gt;</code>; a segunda não tem e sai <code>&lt;div&gt;</code>. Nunca um div clicável: não pega foco, não responde a Enter, não aparece como acionável.</div>
-        </div>
+          <button type="button" class="co-tabbar__item">
+            <span class="co-tabbar__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v8a3 3 0 0 0 6 0V3M9 11v10M18 3c-1.5 2-2 4-2 6s.5 3 2 3v9"></path></svg></span>
+            Card&aacute;pio
+          </button>
+          <button type="button" class="co-tabbar__item">
+            <span class="co-tabbar__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16l4.5-5 3.5 3.5L19 7M15 7h4v4"></path></svg></span>
+            Gasto
+          </button>
+          <button type="button" class="co-tabbar__item">
+            <span class="co-tabbar__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h.01M12 12h.01M18 12h.01"></path></svg></span>
+            Mais
+          </button>
+        </nav>
       </div>
 
       <div class="caixa">
@@ -1109,8 +1678,8 @@ import "@slipalison/coluna/styles.css";</code></pre>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
           </span>
           <span class="co-notice__body">
-            <span class="co-text" data-variant="caption" style="font-weight: var(--co-weight-semibold);">Ritmo ajustado</span>
-            <span class="co-text" data-variant="caption" data-tone="secondary">O ritmo pedido (1,20 kg/semana) excede 1% do peso corporal. A conta usou 0,85 kg/semana. Você continua livre para registrar o que quiser.</span>
+            <span class="co-text" data-variant="callout" data-weight="semibold">Ritmo ajustado</span>
+            <span class="co-text" data-variant="footnote" data-tone="secondary">O ritmo pedido (1,20 kg/semana) excede 1% do peso corporal. A conta usou 0,85 kg/semana. Você continua livre para registrar o que quiser.</span>
           </span>
         </div>
         <div class="co-notice" data-tone="status" role="status" aria-live="off">
@@ -1118,8 +1687,8 @@ import "@slipalison/coluna/styles.css";</code></pre>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5a12 12 0 0 1 16 0"></path><path d="M7.5 12a7.5 7.5 0 0 1 9 0"></path><path d="M12 16h.01"></path></svg>
           </span>
           <span class="co-notice__body">
-            <span class="co-text" data-variant="caption" style="font-weight: var(--co-weight-semibold);">Sem rede</span>
-            <span class="co-text" data-variant="caption" data-tone="secondary">Este registro entra na fila e sobe sozinho quando você voltar.</span>
+            <span class="co-text" data-variant="callout" data-weight="semibold">Sem rede</span>
+            <span class="co-text" data-variant="footnote" data-tone="secondary">Este registro entra na fila e sobe sozinho quando você voltar.</span>
           </span>
         </div>
       </div>
@@ -1235,6 +1804,7 @@ import "@slipalison/coluna/styles.css";</code></pre>
   "gear": "M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1",
   "user": "M15.2 9a3.2 3.2 0 1 1-6.4 0 3.2 3.2 0 0 1 6.4 0M5.5 19.5a6.8 6.8 0 0 1 13 0",
   "book": "M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2zM9 9h6M9 13h6",
+  "calendar": "M7 4h10a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2M5 9.5h14M9 2.5v4M15 2.5v4",
   "chart": "M4 16l4.5-5 3.5 3.5L19 7M15 7h4v4",
   "scale": "M6 20h12l-1.4-11H7.4zM9.5 9a2.5 2.5 0 1 1 5 0",
   "utensils": "M6 3v8a3 3 0 0 0 6 0V3M9 11v10M18 3c-1.5 2-2 4-2 6s.5 3 2 3v9",
@@ -1286,11 +1856,14 @@ import "@slipalison/coluna/styles.css";</code></pre>
 
   // ---------------------------------------------------------------- cores --
   var GRUPOS = [
-    ["Superfície", ["canvas", "surface", "surface-raised", "surface-sunken"]],
-    ["Traço", ["border", "border-strong", "line", "track"]],
-    ["Texto", ["text", "text-secondary", "text-muted", "icon-muted"]],
+    ["Superfície", ["canvas", "surface", "surface-raised", "surface-sunken", "overlay"]],
+    ["Traço", ["border", "border-strong", "line", "track", "overlay-line"]],
+    // Cinco degraus de texto, e "icon-muted" no fim: ele e o unico que NAO
+    // serve para texto, porque passa em 3:1 e nao em 4,5:1.
+    ["Texto", ["text", "text-body", "text-secondary", "text-muted", "text-subtle", "icon-muted"]],
     ["Acento", ["accent", "accent-hover", "accent-contrast", "accent-soft"]],
-    ["Estado", ["status", "status-border", "danger", "danger-soft"]]
+    ["Estado", ["status", "status-border", "danger", "danger-soft"]],
+    ["Macro", ["macro-protein", "macro-carb", "macro-fat"]]
   ];
 
   var alvoCores = document.getElementById("cores");

@@ -4,22 +4,35 @@ Design system do [Basalto](https://github.com/slipalison/basalto): tokens, tema
 claro e escuro, e componentes atômicos em React.
 
 > Coluna basáltica é o prisma que a lava deixa ao esfriar devagar. É de onde
-> vem o grid, as ripas das barras e a recusa a cantos arredondados.
+> vêm o grid, as ripas das barras e a aresta viva do conteúdo.
 
 ```bash
 npm install @slipalison/coluna
 ```
 
 ```tsx
-import { ThemeProvider, Stat, MacroBar, Button } from "@slipalison/coluna";
+import { ThemeProvider, Stat, Reckoning, Group, MacroBar } from "@slipalison/coluna";
 import "@slipalison/coluna/styles.css";
 
 export function App() {
   return (
     <ThemeProvider>
-      <Stat label="Restante hoje" value="995" unit="kcal" caption="de 1.917 kcal · a meta de hoje" size="hero" />
-      <MacroBar name="Proteína" value={68} target={135} />
-      <Button icon="plus" size="lg" full>Registrar</Button>
+      <Stat label="Restante" value="995" unit="kcal" size="hero" />
+
+      {/* A conta que produziu o número fica aberta embaixo dele. */}
+      <Reckoning
+        lines={[
+          { label: "Meta do dia", value: "1.917" },
+          { label: "Alimentos registrados", value: "− 922" },
+          { label: "Restante", value: "995", total: true },
+        ]}
+      />
+
+      <Group label="Macros" inset="dot">
+        <MacroBar name="Proteína" value={68} target={135} kind="protein" />
+        <MacroBar name="Carboidrato" value={95} target={225} kind="carb" />
+        <MacroBar name="Gordura" value={30} target={53} kind="fat" />
+      </Group>
     </ThemeProvider>
   );
 }
@@ -121,25 +134,62 @@ escolha da pessoa do mesmo jeito
 O único vermelho do sistema é o `Button variant="danger"`, e ele existe por uma
 razão concreta: apagar a conta apaga os dados de verdade.
 
-### Cantos retos
+### O contêiner arredonda, o conteúdo é reto
 
-O raio máximo é 4px, e a maior parte dos componentes usa 0. Basalto lasca em
-coluna hexagonal, não em pílula.
+O raio depende do **papel** do elemento, e não do gosto de quem monta a tela:
+
+| papel | token | onde |
+|---|---|---|
+| vitrine que segura conteúdo | `--co-radius-container` (16px) | cartão, grupo, aviso |
+| objeto que se toca | `--co-radius-control` (12px) | botão, trilho do segmentado |
+| o que mora dentro do trilho | `--co-radius-inset` (9px) | opção do segmentado |
+| selo | `--co-radius-pill` | `Badge` |
+| **pedra** | `--co-radius-content` (0) | ponto, ripa, barra, marca, fio |
+
+`inset` não é número solto: raio interno = raio externo − folga. Com 12 por fora
+e 3 de folga, o de dentro é 9 — qualquer outro valor faz o canto de dentro
+correr paralelo ao de fora com espessura variável.
+
+A curva organiza os blocos; a aresta viva continua onde o desenho tem textura, e
+é ali que a identidade mora ([ADR-004](docs/adr/004-raio-conteiner-e-conteudo.md)).
+
+### Cor nunca é o único sinal
+
+`Dot` é sempre `aria-hidden`. `MacroBar` renderiza ponto, **nome** e
+**quantidade** — os três, sempre. `TabBar` marca a aba atual com cor, **peso** e
+`aria-current`. `ListRow` com `mark` vira `role="radio"`, e não um botão que só
+parece marcado.
+
+Junto vem um piso de token: **`--co-text-subtle` é o texto menos contrastado que
+o sistema admite**, e ele passa em 4,5:1 sobre `--co-surface`. Abaixo dele só
+existe `--co-icon-muted`, que passa em 3:1 e serve para **desenho**, nunca para
+texto ([ADR-005](docs/adr/005-cor-nunca-sozinha.md)).
 
 ---
 
 ## O que tem dentro
 
-**Átomos** — `Text` `Stack` `Grid` `Surface` `Divider` `Button` `Icon` `Badge`
-`Slat` `VisuallyHidden`
+**Átomos** — `Text` `Stack` `Grid` `Surface` `Screen` `Divider` `Dot` `Button`
+`Icon` `Badge` `Slat` `VisuallyHidden`
 
-**Moléculas** — `SegmentedControl` `Stat` `MacroBar` `Notice` `ListRow`
-`Stepper`
+**Moléculas** — `Group` `ListRow` `Reckoning` `MacroBar` `Stat` `Notice`
+`SegmentedControl` `Stepper` `ScreenHeader` `TabBar`
 
 **Tema** — `ThemeProvider` `useTheme` `readToken` `semanticTokens`
 
 Alguns que merecem nota:
 
+- **`Group`** é a estrutura central: um contêiner arredondado que junta linhas
+  irmãs e as separa por um fio **recuado**. Ele existe para tirar borda da tela
+  — a continuidade é o fundo do grupo, o corte é um fio de 1px, e a hierarquia
+  volta a ser feita de peso e cor. O fio sai de `::before` no filho, então a
+  lista pode vir de `.map()` sem intercalar separador e não sobra fio na última
+  linha. Coisas que devem ficar grudadas — uma linha e o painel que abre embaixo
+  dela — vão num `<div>` só, como um filho.
+- **`Reckoning`** é a conta aberta, e ela carrega a premissa do produto — a
+  pessoa informa, o app calcula — como desenho, não como frase. Quando o número
+  mostrado é arredondado, a expressão mostra a casa decimal: `1.433 + 937 =
+  2.371` não fecha para quem confere; `1.433,4 + 937,5 = 2.370,9 → 2.371` fecha.
 - **`Slat`** é a barra do sistema, desenhada como colunata vista de cima. Sai de
   `repeating-linear-gradient`, e não de um nó por ripa: 24 ripas × 3 barras
   seriam 72 elementos para pintar o que duas regras de CSS pintam. Sem `label`
@@ -179,7 +229,7 @@ quer um tipo carregaria a folha inteira, inclusive em teste e em Node.
 ```bash
 npm install       # o `prepare` já gera os tokens
 npm run tokens    # tokens/*.json -> src/tokens/{tokens.css,gerado.ts}
-npm test          # 67 testes, piso de 80% em linha, ramo, função e comando
+npm test          # 76 testes, piso de 80% em linha, ramo, função e comando
 npm run build     # dist/coluna.js + dist/index.d.ts + os dois CSS
 npm run referencia # docs/referencia.html, pintada pelo CSS que o pacote publica
 ```
@@ -197,3 +247,5 @@ a esteira reprova o que estiver fora.
 - [ADR-001 — tokens em CSS custom properties](docs/adr/001-tokens-em-css-custom-properties.md)
 - [ADR-002 — tema por atributo, com `system` sendo ausência](docs/adr/002-tema-por-atributo.md)
 - [ADR-003 — o que é átomo e o que não entra](docs/adr/003-fronteira-do-sistema.md)
+- [ADR-004 — o contêiner arredonda, o conteúdo é reto](docs/adr/004-raio-conteiner-e-conteudo.md)
+- [ADR-005 — cor nunca é o único sinal](docs/adr/005-cor-nunca-sozinha.md)

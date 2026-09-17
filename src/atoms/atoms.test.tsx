@@ -14,12 +14,12 @@ import { VisuallyHidden } from "./VisuallyHidden";
 describe("Text", () => {
   it("leva variante e tom para o DOM, que é onde o CSS lê", () => {
     render(
-      <Text as="h1" variant="display" tone="accent">
+      <Text as="h1" variant="title-lg" tone="accent">
         Basalto
       </Text>,
     );
     const no = screen.getByRole("heading", { name: "Basalto" });
-    expect(no).toHaveAttribute("data-variant", "display");
+    expect(no).toHaveAttribute("data-variant", "title-lg");
     expect(no).toHaveAttribute("data-tone", "accent");
   });
 

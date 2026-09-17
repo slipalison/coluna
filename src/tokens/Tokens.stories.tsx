@@ -26,11 +26,16 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const GRUPOS: [string, SemanticToken[]][] = [
-  ["Superfície", ["canvas", "surface", "surface-raised", "surface-sunken"]],
-  ["Traço", ["border", "border-strong", "line", "track"]],
-  ["Texto", ["text", "text-secondary", "text-muted", "icon-muted"]],
+  ["Superfície", ["canvas", "surface", "surface-raised", "surface-sunken", "overlay"]],
+  ["Traço", ["border", "border-strong", "line", "track", "overlay-line"]],
+  // Cinco degraus de texto, em contraste decrescente, e `icon-muted` no fim —
+  // que é o único que NÃO serve para texto: ele passa em 3:1, não em 4,5:1.
+  ["Texto", ["text", "text-body", "text-secondary", "text-muted", "text-subtle", "icon-muted"]],
   ["Acento", ["accent", "accent-hover", "accent-contrast", "accent-soft"]],
   ["Estado", ["status", "status-border", "danger", "danger-soft"]],
+  // A cor de cada macro é do SISTEMA, não de quem monta a tela: proteína tem
+  // que ser da mesma cor em todas as telas do aplicativo.
+  ["Macro", ["macro-protein", "macro-carb", "macro-fat"]],
 ];
 
 function Amostra({ token, de }: { token: SemanticToken; de: Element | null }) {
