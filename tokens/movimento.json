@@ -7,6 +7,10 @@
     "$type": "duration",
     "$value": "180ms"
   },
+  "duration-slow": {
+    "$type": "duration",
+    "$value": "220ms"
+  },
   "ease": {
     "$type": "other",
     "$value": "cubic-bezier(0.2, 0, 0, 1)"

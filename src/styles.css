@@ -879,6 +879,499 @@
   color: var(--co-accent);
 }
 
+/* ------------------------------------------------------------------ campo --- */
+
+/*
+ * O anel de foco fica na MOLDURA inteira, e não no `<input>` de dentro. São a
+ * mesma coisa para quem olha, e coisas diferentes para quem usa teclado: o anel
+ * no controle deixaria a unidade (`kg`) do lado de fora do foco, como se ela
+ * pertencesse a outro campo.
+ */
+.co-input {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--co-space-8);
+  min-height: var(--co-target-min);
+  padding: 0 var(--co-space-14);
+  border: var(--co-border-width) solid var(--co-border);
+  border-radius: var(--co-radius-control);
+  background: var(--co-surface);
+  color: var(--co-text);
+  transition: border-color var(--co-duration-fast) var(--co-ease);
+}
+
+.co-input[data-full="true"] {
+  display: flex;
+  width: 100%;
+}
+
+.co-input:focus-within {
+  border-color: var(--co-accent);
+  outline: 2px solid var(--co-accent);
+  outline-offset: 2px;
+}
+
+.co-input[data-invalid="true"] {
+  border-color: var(--co-danger);
+}
+
+.co-input__control {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  padding: var(--co-space-10) 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: var(--co-font-body);
+  /*
+   * 16px, e é regra de plataforma: abaixo disso o Safari do iPhone DÁ ZOOM ao
+   * focar o campo, a tela salta, e a pessoa termina o cadastro com a página
+   * torta. Custa um degrau da rampa e evita um defeito que ninguém reproduz no
+   * computador.
+   */
+  font-size: var(--co-text-16);
+  line-height: var(--co-leading-snug);
+}
+
+.co-input__control:focus-visible {
+  outline: none;
+}
+
+.co-input[data-align="end"] .co-input__control {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.co-input__unit {
+  flex-shrink: 0;
+  color: var(--co-text-muted);
+  font-size: var(--co-text-13);
+}
+
+.co-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-6);
+}
+
+/*
+ * O erro é vermelho E tem ícone. A cor sozinha some para quem não separa
+ * vermelho de cinza, e some de novo na impressão (ADR-005). Este é o segundo
+ * dono do vermelho no sistema — o primeiro é `Button variant="danger"` —, e a
+ * lista para nos dois.
+ */
+.co-field__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--co-space-6);
+  margin: 0;
+  color: var(--co-danger);
+  font-family: var(--co-font-body);
+  font-size: var(--co-text-12);
+  line-height: var(--co-leading-note);
+}
+
+.co-field__error-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ------------------------------------------------------------------- chip --- */
+
+.co-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--co-space-6);
+  min-height: var(--co-target-min);
+  padding: 0 var(--co-space-14);
+  border: var(--co-border-width) solid var(--co-border);
+  border-radius: var(--co-radius-pill);
+  background: transparent;
+  color: var(--co-text-body);
+  font-family: var(--co-font-body);
+  font-size: var(--co-text-13);
+  cursor: default;
+}
+
+button.co-chip {
+  cursor: pointer;
+}
+
+.co-chip[data-selected="true"] {
+  border-color: transparent;
+  background: var(--co-accent-soft);
+  color: var(--co-text);
+  font-weight: var(--co-weight-semibold);
+}
+
+.co-chip__icon {
+  flex-shrink: 0;
+  color: var(--co-icon-muted);
+}
+
+.co-chip[data-removable="true"] {
+  padding-right: 0;
+}
+
+/*
+ * O botão de remover tem os 44px inteiros, e não os 28px que caberiam bonito.
+ * Um alvo pequeno dentro de um alvo grande é pior que nenhum: a pessoa mira no
+ * X, erra, e a restrição continua lá.
+ */
+.co-chip__remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--co-target-min);
+  height: var(--co-target-min);
+  border: 0;
+  border-radius: var(--co-radius-pill);
+  background: transparent;
+  color: var(--co-icon-muted);
+  cursor: pointer;
+}
+
+.co-chip__remove:hover {
+  color: var(--co-text-body);
+}
+
+/* ------------------------------------------------------------------ série --- */
+
+/* Encolhe com o contêiner estreito, e não cresce além do tamanho pedido. */
+.co-series {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.co-series__band {
+  fill: var(--co-accent-soft);
+}
+
+.co-series__line {
+  fill: none;
+  stroke: var(--co-accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* A tendência é TRACEJADA antes de ser de outra cor: forma atravessa o
+   daltonismo, a impressão e o tema claro (ADR-005). */
+.co-series__trend {
+  fill: none;
+  stroke: var(--co-text-subtle);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 5;
+  stroke-linecap: round;
+}
+
+.co-series__mark {
+  fill: var(--co-accent);
+  stroke: var(--co-surface);
+  stroke-width: 2;
+}
+
+/* -------------------------------------------------------------- revelação --- */
+
+.co-disclosure__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-6);
+  min-height: var(--co-target-min);
+  list-style: none;
+  cursor: pointer;
+}
+
+/* O triângulo do navegador some nos dois dialetos, e o chevron do sistema fica
+   no lugar dele — mesmo desenho de seta do resto da casa. */
+.co-disclosure__summary::-webkit-details-marker {
+  display: none;
+}
+
+.co-disclosure__chevron {
+  flex-shrink: 0;
+  color: var(--co-icon-muted);
+  transition: transform var(--co-duration-fast) var(--co-ease);
+}
+
+.co-disclosure[open] .co-disclosure__chevron {
+  transform: rotate(180deg);
+}
+
+.co-disclosure__body {
+  padding-bottom: var(--co-space-8);
+}
+
+/* ------------------------------------------------------------------ vazio --- */
+
+.co-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--co-space-8);
+  padding: var(--co-space-40) var(--co-space-24);
+  text-align: center;
+}
+
+.co-empty > .co-text {
+  max-width: 36ch;
+}
+
+.co-empty__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--co-target-min);
+  height: var(--co-target-min);
+  margin-bottom: var(--co-space-4);
+  border-radius: var(--co-radius-container);
+  background: var(--co-surface-raised);
+  color: var(--co-icon-muted);
+}
+
+.co-empty__action {
+  padding-top: var(--co-space-8);
+}
+
+/* ------------------------------------------------------------- diferença --- */
+
+.co-diff {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--co-space-12);
+  min-height: var(--co-target-min);
+  padding: var(--co-space-10) var(--co-inset-text);
+}
+
+.co-diff__values {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--co-space-8);
+  font-size: var(--co-text-15);
+  font-variant-numeric: tabular-nums;
+}
+
+.co-diff__before {
+  color: var(--co-text-subtle);
+  text-decoration-line: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.co-diff__arrow {
+  color: var(--co-icon-muted);
+}
+
+/* O valor novo muda de COR e de PESO, e vem depois de um risco e de uma seta.
+   Quatro sinais para "isto é o que vai valer" (ADR-005). */
+.co-diff__after {
+  color: var(--co-accent);
+  font-weight: var(--co-weight-semibold);
+}
+
+.co-diff__same {
+  color: var(--co-text-secondary);
+}
+
+/* ----------------------------------------------------------------- painel --- */
+
+.co-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.co-sheet-overlay[data-position="absolute"] {
+  position: absolute;
+}
+
+.co-sheet-overlay__veil {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: var(--co-overlay);
+  cursor: pointer;
+}
+
+.co-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 520px;
+  max-height: 88%;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border-radius: var(--co-radius-container) var(--co-radius-container) var(--co-radius-content)
+    var(--co-radius-content);
+  background: var(--co-surface);
+  box-shadow: var(--co-shadow-overlay);
+  animation: co-sheet-subir var(--co-duration-slow) var(--co-ease);
+}
+
+/*
+ * O mesmo painel, dentro do cartão que o chamou. Sem véu, sem sombra e sem
+ * raio cortado embaixo: aqui ele não está por cima de nada, está DENTRO —
+ * "largura nunca vira modal".
+ */
+.co-sheet[data-mode="inline"] {
+  max-width: none;
+  max-height: none;
+  padding-bottom: 0;
+  border-radius: var(--co-radius-container);
+  background: var(--co-surface-sunken);
+  box-shadow: none;
+  animation: none;
+}
+
+@keyframes co-sheet-subir {
+  from {
+    transform: translateY(var(--co-space-16));
+    opacity: 0;
+  }
+}
+
+.co-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--co-space-12);
+  padding: var(--co-space-14) var(--co-space-8) var(--co-space-10) var(--co-inset-text);
+}
+
+.co-sheet__close {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--co-target-min);
+  height: var(--co-target-min);
+  border: 0;
+  border-radius: var(--co-radius-control);
+  background: transparent;
+  color: var(--co-icon-muted);
+  cursor: pointer;
+}
+
+.co-sheet__close:hover {
+  color: var(--co-text-body);
+}
+
+.co-sheet__body {
+  overflow-y: auto;
+  padding: 0 var(--co-inset-text) var(--co-space-16);
+}
+
+.co-sheet__footer {
+  display: flex;
+  gap: var(--co-space-8);
+  padding: var(--co-space-12) var(--co-inset-text) var(--co-space-16);
+  border-top: var(--co-border-width) solid var(--co-line);
+}
+
+/* ----------------------------------------------------------------- trilho --- */
+
+.co-rail {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  justify-content: space-between;
+  gap: var(--co-space-24);
+  width: 252px;
+  padding: var(--co-space-20) var(--co-space-12);
+  border-right: var(--co-border-width) solid var(--co-line);
+  background: var(--co-surface-sunken);
+}
+
+.co-rail[data-collapsed="true"] {
+  width: 72px;
+}
+
+.co-rail__groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-20);
+}
+
+.co-rail__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-2);
+}
+
+.co-rail__group-label {
+  padding: 0 var(--co-space-12) var(--co-space-6);
+}
+
+.co-rail__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-12);
+  min-height: var(--co-target-min);
+  padding: 0 var(--co-space-12);
+  border: 0;
+  border-radius: var(--co-radius-control);
+  background: transparent;
+  color: var(--co-text-muted);
+  font-family: var(--co-font-body);
+  font-size: var(--co-text-14);
+  text-align: left;
+  cursor: pointer;
+}
+
+.co-rail[data-collapsed="true"] .co-rail__item {
+  justify-content: center;
+  padding: 0;
+}
+
+.co-rail__item:hover {
+  color: var(--co-text-body);
+}
+
+/*
+ * O destino atual muda de fundo, de cor, de peso e ganha uma MARCA à esquerda.
+ * Num trilho em que todos os itens são ícone-mais-rótulo, a marca é o que se
+ * enxerga de longe — e ela é reta, porque é conteúdo (ADR-004).
+ */
+.co-rail__item[aria-current="page"] {
+  background: var(--co-surface);
+  color: var(--co-text);
+  font-weight: var(--co-weight-semibold);
+}
+
+.co-rail__item[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: var(--co-marker-width);
+  height: var(--co-mark-size);
+  transform: translateY(-50%);
+  background: var(--co-accent);
+}
+
+.co-rail__icon {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--co-icon-muted);
+}
+
+.co-rail__item[aria-current="page"] .co-rail__icon {
+  color: var(--co-accent);
+}
+
+.co-rail__footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-8);
+}
+
 /* ------------------------------------------------------------------ grão ---- */
 
 /*

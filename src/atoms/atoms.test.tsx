@@ -1,10 +1,14 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
+import { Chip } from "./Chip";
 import { Divider } from "./Divider";
 import { Grid } from "./Grid";
 import { Icon, iconNames } from "./Icon";
+import { Input } from "./Input";
+import { Series } from "./Series";
 import { Slat } from "./Slat";
 import { Stack } from "./Stack";
 import { Surface } from "./Surface";
@@ -157,5 +161,113 @@ describe("Badge e VisuallyHidden", () => {
     // Se usasse display:none o texto sumiria daqui também, que é o oposto do
     // que o componente existe para fazer.
     expect(screen.getByText("quarta-feira")).toBeInTheDocument();
+  });
+});
+
+describe("Input", () => {
+  it("a unidade é lida junto com o campo", () => {
+    // Sem isto, quem usa leitor de tela ouve "peso" e digita 83 sem saber se o
+    // campo quer quilo ou libra: o `kg` impresso na tela não existe para essa
+    // pessoa.
+    render(<Input aria-label="Peso" unit="kg" />);
+    const campo = screen.getByRole("textbox", { name: "Peso" });
+    const descreve = campo.getAttribute("aria-describedby");
+    expect(descreve).toBeTruthy();
+    expect(document.getElementById(descreve ?? "")).toHaveTextContent("kg");
+  });
+
+  it("um aria-describedby vindo de fora é somado, nunca sobrescrito", () => {
+    // É por aqui que a mensagem de erro do `Field` chega ao campo. Sobrescrever
+    // faria o erro sumir sem aviso nenhum na tela.
+    render(<Input aria-label="Peso" unit="kg" aria-describedby="erro-do-campo" />);
+    const descreve =
+      screen.getByRole("textbox", { name: "Peso" }).getAttribute("aria-describedby") ?? "";
+    expect(descreve.split(" ")).toHaveLength(2);
+    expect(descreve.startsWith("erro-do-campo")).toBe(true);
+  });
+
+  it("sem unidade não inventa descrição", () => {
+    render(<Input aria-label="Nome da refeição" />);
+    expect(screen.getByRole("textbox", { name: "Nome da refeição" })).not.toHaveAttribute(
+      "aria-describedby",
+    );
+  });
+
+  it("recusado não é só a moldura vermelha", () => {
+    render(<Input aria-label="Peso" invalid />);
+    expect(screen.getByRole("textbox", { name: "Peso" })).toHaveAttribute("aria-invalid", "true");
+  });
+});
+
+describe("Chip", () => {
+  it("escolhível é um botão que diz se está ligado", async () => {
+    const usuario = userEvent.setup();
+    const aoClicar = vi.fn();
+    render(<Chip label="Sem lactose" selected onClick={aoClicar} />);
+    const chip = screen.getByRole("button", { name: "Sem lactose", pressed: true });
+    await usuario.click(chip);
+    expect(aoClicar).toHaveBeenCalledTimes(1);
+  });
+
+  it("removível tem um botão com nome próprio", async () => {
+    // "Remover Sem lactose", e não "fechar": numa lista de seis chips, seis
+    // botões chamados "fechar" são seis botões indistinguíveis no leitor de tela.
+    const usuario = userEvent.setup();
+    const aoRemover = vi.fn();
+    render(<Chip label="Sem lactose" onRemove={aoRemover} />);
+    await usuario.click(screen.getByRole("button", { name: "Remover Sem lactose" }));
+    expect(aoRemover).toHaveBeenCalledTimes(1);
+  });
+
+  it("sem ação nenhuma não vira botão", () => {
+    render(<Chip label="Lido do código" />);
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.getByText("Lido do código")).toBeInTheDocument();
+  });
+});
+
+describe("Series", () => {
+  const PESO = [84.6, 84.1, 83.8, 83.4, 83.1].map((y, x) => ({ x, y }));
+
+  it("com rótulo é imagem; sem rótulo some do leitor de tela", () => {
+    const { rerender } = render(<Series points={PESO} label="Peso do mês" />);
+    expect(screen.getByRole("img", { name: "Peso do mês" })).toBeInTheDocument();
+
+    rerender(<Series points={PESO} />);
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+  });
+
+  it("sem ponto nenhum não desenha caixa vazia", () => {
+    const { container } = render(<Series points={[]} />);
+    expect(container.firstElementChild).toBeNull();
+  });
+
+  it("série chapada não divide por zero", () => {
+    // Cinco pesagens iguais: a reta fica no meio da caixa, e nenhuma coordenada
+    // sai como NaN — que é o jeito silencioso de um gráfico sumir.
+    const chapada = [83, 83, 83, 83, 83].map((y, x) => ({ x, y }));
+    const { container } = render(<Series points={chapada} label="Chapada" />);
+    const traco = container.querySelector(".co-series__line");
+    expect(traco?.getAttribute("d")).not.toContain("NaN");
+    expect(container.querySelector(".co-series__mark")?.getAttribute("cy")).not.toBe("NaN");
+  });
+
+  it("a faixa cabe dentro do desenho", () => {
+    // A escala sai de TODOS os dados — série e faixa. Sem isso a faixa fica
+    // meio de fora, e a única pista é um retângulo cortado na borda.
+    const { container } = render(
+      <Series points={PESO} band={{ from: 82, to: 86 }} label="Com faixa" height={150} />,
+    );
+    const faixa = container.querySelector(".co-series__band");
+    const y = Number(faixa?.getAttribute("y"));
+    const altura = Number(faixa?.getAttribute("height"));
+    expect(y).toBeGreaterThanOrEqual(0);
+    expect(y + altura).toBeLessThanOrEqual(150);
+  });
+
+  it("a tendência é outra linha, tracejada por CSS", () => {
+    const tendencia = PESO.map((p) => ({ x: p.x, y: p.y - 0.2 }));
+    const { container } = render(<Series points={PESO} trend={tendencia} label="Peso" />);
+    expect(container.querySelector(".co-series__trend")).toBeInTheDocument();
   });
 });
