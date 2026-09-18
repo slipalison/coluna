@@ -94,8 +94,12 @@ export function Rail<T extends string>({
       <div className="co-rail__groups">
         {grupos.map((grupo, indice) => {
           if (grupo.nome === undefined) {
+            // A chave é o primeiro destino do bloco, e não o índice: itens sem
+            // grupo podem aparecer em mais de um ponto da lista, e uma chave de
+            // posição faria o React reaproveitar o bloco errado quando a ordem
+            // muda.
             return (
-              <div className="co-rail__group" key={`sem-grupo-${indice}`}>
+              <div className="co-rail__group" key={grupo.itens[0]?.value ?? "sem-grupo"}>
                 {grupo.itens.map(botao)}
               </div>
             );

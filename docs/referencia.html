@@ -1147,10 +1147,16 @@
 /* ------------------------------------------------------------------ campo --- */
 
 /*
- * O anel de foco fica na MOLDURA inteira, e não no `<input>` de dentro. São a
+ * O anel de foco fica na MOLDURA inteira, e não no controle de dentro. São a
  * mesma coisa para quem olha, e coisas diferentes para quem usa teclado: o anel
  * no controle deixaria a unidade (`kg`) do lado de fora do foco, como se ela
  * pertencesse a outro campo.
+ *
+ * (A moldura é `.co-input` e o controle é `.co-input__control`. O nome do
+ * elemento HTML não aparece escrito aqui de propósito: esta folha inteira é
+ * embutida na referência visual, e um analisador que leia a página encontra a
+ * palavra dentro do comentário e reclama de um campo sem rótulo que não
+ * existe.)
  */
 .co-input {
   display: inline-flex;
@@ -1303,9 +1309,10 @@ button.co-chip {
 
 /* ------------------------------------------------------------------ série --- */
 
+/* Encolhe com o contêiner estreito, e não cresce além do tamanho pedido. */
 .co-series {
   display: block;
-  width: 100%;
+  max-width: 100%;
   height: auto;
 }
 
