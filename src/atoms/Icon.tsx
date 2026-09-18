@@ -28,7 +28,13 @@ export type IconName =
   | "scale"
   | "utensils"
   | "offline"
-  | "more";
+  | "more"
+  | "arrow-right"
+  | "barcode"
+  | "clock"
+  | "download"
+  | "star"
+  | "trash";
 
 const CAMINHOS: Record<IconName, string> = {
   "chevron-down": "M6 9l6 6 6-6",
@@ -52,6 +58,12 @@ const CAMINHOS: Record<IconName, string> = {
   utensils: "M6 3v8a3 3 0 0 0 6 0V3M9 11v10M18 3c-1.5 2-2 4-2 6s.5 3 2 3v9",
   offline: "M4 8.5a12 12 0 0 1 16 0M7.5 12a7.5 7.5 0 0 1 9 0M12 16h.01",
   more: "M6 12h.01M12 12h.01M18 12h.01",
+  "arrow-right": "M4.5 12h13.5M12.5 6l6 6-6 6",
+  barcode: "M4 6v12M7.5 6v12M11 6v8.5M14.5 6v12M17.5 6v8.5M20 6v12",
+  clock: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M12 7.2V12l3.2 2",
+  download: "M12 4v11M8 11.5l4 4 4-4M5 19.5h14",
+  star: "M12 3.6l2.6 5.4 5.9.8-4.3 4.3 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.8l5.9-.8z",
+  trash: "M5 7h14M10 7V4.6h4V7M7 7l1 13h8l1-13M11 11v6M13 11v6",
 };
 
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, "name"> {

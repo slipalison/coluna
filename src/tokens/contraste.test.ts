@@ -77,9 +77,15 @@ describe.each(TEMAS)("contraste no tema %s", (_nome, tema) => {
   // Os dois fundos em que texto de verdade aparece. A superfície é o caso
   // difícil no escuro (ela é mais clara que o canvas), e o canvas é o caso
   // difícil no claro — conferir os dois evita otimizar para o fácil.
+  //
+  // `surface-sunken` entrou na lista quando o `Rail` e o `Sheet` em modo
+  // `inline` passaram a usá-lo como fundo de TEXTO — antes ele só segurava
+  // trilho de barra, onde o piso é o de desenho. Um fundo novo que recebe texto
+  // e não entra aqui é um fundo cujo contraste ninguém confere.
   const fundos = [
     ["canvas", valor(tema["canvas"])],
     ["surface", valor(tema["surface"])],
+    ["surface-sunken", valor(tema["surface-sunken"])],
   ] as const;
 
   it.each(TEXTO)("%s passa em 4,5:1 nos dois fundos", (token) => {
@@ -113,6 +119,14 @@ describe.each(TEMAS)("contraste no tema %s", (_nome, tema) => {
     // `accent-contrast` existe só para isto, e é o par que quebra primeiro
     // quando alguém clareia o acento para ele "aparecer mais".
     const razao = contraste(valor(tema["accent-contrast"]), valor(tema["accent"]));
+    expect(razao, `deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_TEXTO);
+  });
+
+  it("o chip escolhido lê sobre o acento suave", () => {
+    // `accent-soft` é fundo de texto em dois lugares: o chip escolhido e o
+    // aviso. É o par que quebra quando alguém satura o acento suave para ele
+    // "aparecer mais".
+    const razao = contraste(valor(tema["text"]), valor(tema["accent-soft"]));
     expect(razao, `deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_TEXTO);
   });
 

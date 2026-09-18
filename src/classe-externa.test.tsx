@@ -2,18 +2,27 @@ import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { Badge } from "./atoms/Badge";
 import { Button } from "./atoms/Button";
+import { Chip } from "./atoms/Chip";
 import { Divider } from "./atoms/Divider";
 import { Grid } from "./atoms/Grid";
 import { Icon } from "./atoms/Icon";
+import { Input } from "./atoms/Input";
+import { Series } from "./atoms/Series";
 import { Slat } from "./atoms/Slat";
 import { Stack } from "./atoms/Stack";
 import { Surface } from "./atoms/Surface";
 import { Text } from "./atoms/Text";
 import { VisuallyHidden } from "./atoms/VisuallyHidden";
+import { Diff } from "./molecules/Diff";
+import { Disclosure } from "./molecules/Disclosure";
+import { EmptyState } from "./molecules/EmptyState";
+import { Field } from "./molecules/Field";
 import { ListRow } from "./molecules/ListRow";
 import { MacroBar } from "./molecules/MacroBar";
 import { Notice } from "./molecules/Notice";
+import { Rail } from "./molecules/Rail";
 import { SegmentedControl } from "./molecules/SegmentedControl";
+import { Sheet } from "./molecules/Sheet";
 import { Stat } from "./molecules/Stat";
 import { Stepper } from "./molecules/Stepper";
 import { ThemeProvider } from "./theme/ThemeProvider";
@@ -58,6 +67,42 @@ const CASOS: [nome: string, elemento: React.ReactElement, classeDoSistema: strin
     "co-segmented",
   ],
   ["MacroBar", <MacroBar className="x" key="m" name="Proteína" value={1} target={2} />, "co-macro"],
+  ["Input", <Input className="x" key="in" aria-label="Peso" />, "co-input"],
+  ["Chip", <Chip className="x" key="ch" label="Sem lactose" />, "co-chip"],
+  [
+    "Series",
+    <Series className="x" key="se" points={[{ x: 0, y: 1 }, { x: 1, y: 2 }]} label="Peso" />,
+    "co-series",
+  ],
+  [
+    "Field",
+    <Field className="x" key="fi" label="Peso">
+      {(controle) => <Input {...controle} />}
+    </Field>,
+    "co-field",
+  ],
+  ["Disclosure", <Disclosure className="x" key="di">porque sim</Disclosure>, "co-disclosure"],
+  ["EmptyState", <EmptyState className="x" key="em" title="Nada aqui" />, "co-empty"],
+  ["Diff", <Diff className="x" key="df" label="Meta" before="1" after="2" />, "co-diff"],
+  [
+    "Sheet",
+    <Sheet className="x" key="sh" open title="Trocar" onClose={vi.fn()}>
+      a
+    </Sheet>,
+    "co-sheet",
+  ],
+  [
+    "Rail",
+    <Rail
+      className="x"
+      key="ra"
+      label="Seções"
+      items={[{ value: "a", label: "A", icon: "book" }]}
+      value="a"
+      onChange={vi.fn()}
+    />,
+    "co-rail",
+  ],
 ];
 
 describe("classe externa", () => {

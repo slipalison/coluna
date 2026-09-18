@@ -2,12 +2,20 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
+import { Button } from "../atoms/Button";
+import { Input } from "../atoms/Input";
+import { Diff } from "./Diff";
+import { Disclosure } from "./Disclosure";
+import { EmptyState } from "./EmptyState";
+import { Field } from "./Field";
 import { Group } from "./Group";
 import { ListRow } from "./ListRow";
 import { MacroBar } from "./MacroBar";
 import { Notice } from "./Notice";
+import { Rail } from "./Rail";
 import { Reckoning } from "./Reckoning";
 import { SegmentedControl } from "./SegmentedControl";
+import { Sheet } from "./Sheet";
 import { Stat } from "./Stat";
 import { Stepper } from "./Stepper";
 import { TabBar } from "./TabBar";
@@ -301,5 +309,217 @@ describe("TabBar", () => {
     render(<TabBar label="Seções" items={ABAS} value="diario" onChange={aoTrocar} position="static" />);
     await usuario.click(screen.getByRole("button", { name: "Gasto" }));
     expect(aoTrocar).toHaveBeenCalledWith("gasto");
+  });
+});
+
+describe("Field", () => {
+  it("o rótulo aponta para o controle", () => {
+    // `getByLabelText` só acha se a amarração existir de verdade. Um `<label>`
+    // solto passa na revisão visual e falha aqui.
+    render(
+      <Field label="Peso de hoje">
+        {(controle) => <Input {...controle} unit="kg" />}
+      </Field>,
+    );
+    expect(screen.getByLabelText("Peso de hoje")).toBeInTheDocument();
+  });
+
+  it("a dica e o erro chegam ao campo, e o campo se declara inválido", () => {
+    render(
+      <Field label="Peso" hint="Entre 30 e 300 kg." error="830 parece um dígito a mais.">
+        {(controle) => <Input {...controle} invalid />}
+      </Field>,
+    );
+    const campo = screen.getByLabelText("Peso");
+    expect(campo).toHaveAttribute("aria-invalid", "true");
+
+    const ids = (campo.getAttribute("aria-describedby") ?? "").split(" ");
+    const textos = ids.map((id) => document.getElementById(id)?.textContent ?? "");
+    expect(textos.join(" ")).toContain("Entre 30 e 300 kg.");
+    expect(textos.join(" ")).toContain("830 parece um dígito a mais.");
+  });
+
+  it("sem erro o campo não se declara inválido", () => {
+    render(<Field label="Peso">{(controle) => <Input {...controle} />}</Field>);
+    expect(screen.getByLabelText("Peso")).not.toHaveAttribute("aria-invalid");
+  });
+});
+
+describe("Disclosure", () => {
+  it("nasce fechada e abre no clique", async () => {
+    const usuario = userEvent.setup();
+    const { container } = render(<Disclosure>A conta usa 7.700 kcal por quilo.</Disclosure>);
+    const detalhe = container.querySelector("details");
+    expect(detalhe).not.toHaveAttribute("open");
+
+    await usuario.click(screen.getByText("por quê?"));
+    expect(detalhe).toHaveAttribute("open");
+  });
+
+  it("o texto fechado continua na página", () => {
+    // É o que faz a busca do navegador (Ctrl+F) encontrar a explicação e a
+    // impressão sair com ela. Um acordeão que desmonta o conteúdo perde os dois.
+    render(<Disclosure>A conta usa 7.700 kcal por quilo.</Disclosure>);
+    expect(screen.getByText("A conta usa 7.700 kcal por quilo.")).toBeInTheDocument();
+  });
+
+  it("avisa quem perguntou", async () => {
+    const usuario = userEvent.setup();
+    const aoAbrir = vi.fn();
+    render(<Disclosure onToggle={aoAbrir}>Por isso.</Disclosure>);
+    await usuario.click(screen.getByText("por quê?"));
+    expect(aoAbrir).toHaveBeenCalledWith(true);
+  });
+});
+
+describe("EmptyState", () => {
+  it("diz o que está vazio e oferece uma saída", () => {
+    render(
+      <EmptyState
+        icon="utensils"
+        title="Nada registrado hoje"
+        action={<Button>Registrar a primeira refeição</Button>}
+      >
+        O dia começa em branco.
+      </EmptyState>,
+    );
+    expect(screen.getByText("Nada registrado hoje")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Registrar a primeira refeição" }),
+    ).toBeInTheDocument();
+  });
+
+  it("sem ação continua sendo uma tela inteira", () => {
+    render(<EmptyState title="O gasto medido começa no 14º dia" />);
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+});
+
+describe("Diff", () => {
+  it("o par riscado é desenho; a frase é o que se ouve", () => {
+    // `<s>` não é anunciado por leitor de tela nenhum e a seta sairia como
+    // "seta para a direita". Então o visível some da árvore e a frase entra.
+    render(<Diff label="Meta diária" before="1.677" after="1.540" unit="kcal" />);
+    expect(screen.getByText("Meta diária: de 1.677 kcal para 1.540 kcal")).toBeInTheDocument();
+  });
+
+  it("sem mudança não some da tela", () => {
+    // Sumir faria a tela pular por baixo do dedo quando a pessoa volta o valor
+    // ao original.
+    const { container } = render(<Diff label="Meta diária" before="1.677" after="1.677" />);
+    expect(container.firstElementChild).toHaveAttribute("data-changed", "false");
+    expect(screen.getByText("Meta diária: 1.677, sem mudança")).toBeInTheDocument();
+  });
+});
+
+describe("Sheet", () => {
+  function Abridor({ mode = "overlay" }: { mode?: "overlay" | "inline" }) {
+    const [aberto, definir] = useState(false);
+    return (
+      <div>
+        <button type="button" onClick={() => definir(true)}>
+          Trocar a porção
+        </button>
+        <Sheet open={aberto} mode={mode} title="Trocar a porção" onClose={() => definir(false)}>
+          <button type="button">1 unidade média</button>
+          <button type="button">100 g</button>
+        </Sheet>
+      </div>
+    );
+  }
+
+  it("fechado não existe no documento", () => {
+    render(<Abridor />);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("sobreposto é um diálogo com nome, e o foco entra nele", async () => {
+    const usuario = userEvent.setup();
+    render(<Abridor />);
+    await usuario.click(screen.getByRole("button", { name: "Trocar a porção" }));
+
+    const painel = screen.getByRole("dialog", { name: "Trocar a porção" });
+    expect(painel).toHaveAttribute("aria-modal", "true");
+    expect(document.activeElement).toBe(painel);
+  });
+
+  it("Esc fecha e o foco VOLTA para quem abriu", async () => {
+    // O que mais falta por aí: sem a volta, fechar o painel joga o teclado no
+    // começo da página e a pessoa perde o lugar que levou vinte teclas para
+    // alcançar.
+    const usuario = userEvent.setup();
+    render(<Abridor />);
+    const abridor = screen.getByRole("button", { name: "Trocar a porção" });
+    await usuario.click(abridor);
+    await usuario.keyboard("{Escape}");
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(abridor);
+  });
+
+  it("o botão de fechar tem nome", async () => {
+    const usuario = userEvent.setup();
+    render(<Abridor />);
+    await usuario.click(screen.getByRole("button", { name: "Trocar a porção" }));
+    await usuario.click(screen.getByRole("button", { name: "Fechar" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("dentro do cartão não é diálogo e não prende ninguém", async () => {
+    // "Largura nunca vira modal": no desktop o painel abre dentro do cartão, e
+    // a conta do dia continua visível ao lado — que é o motivo de existir a
+    // versão larga.
+    const usuario = userEvent.setup();
+    render(<Abridor mode="inline" />);
+    await usuario.click(screen.getByRole("button", { name: "Trocar a porção" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Trocar a porção" })).toBeInTheDocument();
+  });
+});
+
+describe("Rail", () => {
+  const DESTINOS = [
+    { value: "diario", label: "Diário", icon: "book", group: "Todo dia" },
+    { value: "registrar", label: "Registrar", icon: "plus", group: "Todo dia" },
+    { value: "ajustes", label: "Ajustes", icon: "gear", group: "De vez em quando" },
+  ] as const;
+
+  it("é uma navegação com nome, e o destino atual se anuncia", () => {
+    render(<Rail label="Seções do Basalto" items={DESTINOS} value="registrar" onChange={vi.fn()} />);
+    expect(screen.getByRole("navigation", { name: "Seções do Basalto" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Registrar" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByRole("button", { name: "Diário" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("os grupos têm nome — inclusive recolhido", () => {
+    const { rerender } = render(
+      <Rail label="Seções" items={DESTINOS} value="diario" onChange={vi.fn()} />,
+    );
+    expect(screen.getByRole("group", { name: "Todo dia" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "De vez em quando" })).toBeInTheDocument();
+
+    // Recolhido, o versalete sai da tela mas continua nomeando o grupo: tirar a
+    // hierarquia junto com a largura deixaria sete botões soltos para quem ouve.
+    rerender(<Rail label="Seções" items={DESTINOS} value="diario" onChange={vi.fn()} collapsed />);
+    expect(screen.getByRole("group", { name: "Todo dia" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ajustes" })).toBeInTheDocument();
+  });
+
+  it("troca de destino pelo clique", async () => {
+    const usuario = userEvent.setup();
+    const aoTrocar = vi.fn();
+    render(<Rail label="Seções" items={DESTINOS} value="diario" onChange={aoTrocar} />);
+    await usuario.click(screen.getByRole("button", { name: "Ajustes" }));
+    expect(aoTrocar).toHaveBeenCalledWith("ajustes");
+  });
+
+  it("item sem grupo não inventa um", () => {
+    const soltos = [{ value: "diario", label: "Diário", icon: "book" }] as const;
+    render(<Rail label="Seções" items={soltos} value="diario" onChange={vi.fn()} />);
+    expect(screen.queryByRole("group")).not.toBeInTheDocument();
   });
 });

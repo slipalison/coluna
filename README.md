@@ -170,10 +170,11 @@ texto ([ADR-005](docs/adr/005-cor-nunca-sozinha.md)).
 ## O que tem dentro
 
 **Átomos** — `Text` `Stack` `Grid` `Surface` `Screen` `Divider` `Dot` `Button`
-`Icon` `Badge` `Slat` `VisuallyHidden`
+`Icon` `Badge` `Slat` `Chip` `Input` `Series` `VisuallyHidden`
 
 **Moléculas** — `Group` `ListRow` `Reckoning` `MacroBar` `Stat` `Notice`
-`SegmentedControl` `Stepper` `ScreenHeader` `TabBar`
+`SegmentedControl` `Stepper` `ScreenHeader` `TabBar` `Field` `Sheet` `Rail`
+`Disclosure` `EmptyState` `Diff`
 
 **Tema** — `ThemeProvider` `useTheme` `readToken` `semanticTokens`
 
@@ -204,6 +205,33 @@ Alguns que merecem nota:
 - **`Stack`** é como **todo** grupo de irmãos deve ser espaçado. Espaço feito de
   `margin` no filho some quando alguém reordena, remove ou duplica um item;
   `gap` é do contêiner e sobrevive.
+- **`Field`** amarra rótulo, controle, dica e erro. O controle chega por
+  **função**, e não como filho que o `Field` clona: clonar é mágica que some no
+  primeiro dia em que alguém envolve o campo num `<div>` para posicioná-lo — o
+  clone acerta o `<div>`, os atributos não chegam ao controle, e isso não
+  aparece na tela, só no leitor de tela de quem não está aqui para reclamar.
+- **`Sheet`** é o mesmo painel nas duas larguras: `overlay` sobe do rodapé no
+  telefone, `inline` abre dentro do cartão que o chamou no desktop. A prop é a
+  regra **"largura nunca vira modal"** escrita como código — trocar a porção de
+  uma refeição não pode escurecer a tela e esconder a conta do dia, que é
+  justamente o número que faz a pessoa escolher a porção. Em `overlay` o foco
+  entra, dá a volta no Tab, sai no Esc e **volta para quem abriu**.
+- **`Rail`** é a contraparte da `TabBar`, e as duas existem porque a diferença
+  entre telefone e desktop não é de tamanho, é de quantidade: embaixo cabem
+  quatro destinos e o resto vira gaveta; na lateral cabem os sete. Os grupos são
+  por **frequência** — "Todo dia" e "De vez em quando" põem as quatro coisas de
+  sempre onde a mão já vai.
+- **`Disclosure`** guarda a explicação até alguém pedir, e é `<details>` do
+  navegador em vez de um acordeão escrito à mão: estado, teclado, anúncio, busca
+  da página achando o texto fechado e impressão abrindo tudo vêm de graça. A
+  régua que ele serve é **uma explicação por tela, não por cartão**.
+- **`Series`** desenha a linha e nada mais: nenhum eixo, nenhum rótulo, nenhum
+  número. Texto dentro do SVG é onde o tema quebra — a cor fica presa no
+  desenho — e onde o rótulo escapa da moldura. O número mora no `Stat` ao lado,
+  em HTML.
+- **`Diff`** mostra o que muda se a pessoa confirmar, e **não some** quando os
+  dois valores voltam a ser iguais: sumir faria a tela pular por baixo do dedo
+  no meio do ajuste.
 
 ---
 
@@ -229,7 +257,7 @@ quer um tipo carregaria a folha inteira, inclusive em teste e em Node.
 ```bash
 npm install       # o `prepare` já gera os tokens
 npm run tokens    # tokens/*.json -> src/tokens/{tokens.css,gerado.ts}
-npm test          # 76 testes, piso de 80% em linha, ramo, função e comando
+npm test          # 146 testes, piso de 80% em linha, ramo, função e comando
 npm run build     # dist/coluna.js + dist/index.d.ts + os dois CSS
 npm run referencia # docs/referencia.html, pintada pelo CSS que o pacote publica
 ```
@@ -249,3 +277,4 @@ a esteira reprova o que estiver fora.
 - [ADR-003 — o que é átomo e o que não entra](docs/adr/003-fronteira-do-sistema.md)
 - [ADR-004 — o contêiner arredonda, o conteúdo é reto](docs/adr/004-raio-conteiner-e-conteudo.md)
 - [ADR-005 — cor nunca é o único sinal](docs/adr/005-cor-nunca-sozinha.md)
+- [ADR-006 — o que entrou com o desktop, e o que ficou de fora](docs/adr/006-o-que-entrou-com-o-desktop.md)
