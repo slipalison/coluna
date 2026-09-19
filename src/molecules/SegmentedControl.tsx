@@ -38,6 +38,17 @@ export function SegmentedControl<T extends string>({
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const classe = className ? `co-segmented ${className}` : "co-segmented";
 
+  // Onde o tabindex itinerante pousa quando NENHUMA opção casa o `value`.
+  //
+  // Sem isto o grupo inteiro fica em `-1` e desaparece da ordem do Tab: quem
+  // chega pelo teclado passa por cima dele e não tem como responder. O tipo de
+  // `value` não deixa esse estado ser pedido de propósito, mas ele chega
+  // sozinho — um valor que veio do servidor e não está na lista, uma opção
+  // removida, um `"" as T`. É o que o WAI-ARIA manda para o grupo sem resposta:
+  // a primeira opção segura o Tab, e as setas cuidam do resto.
+  const escolhida = options.findIndex((opcao) => opcao.value === value);
+  const noTab = escolhida === -1 ? 0 : escolhida;
+
   function mover(indice: number, passo: number) {
     const total = options.length;
     if (total === 0) return;
@@ -88,9 +99,10 @@ export function SegmentedControl<T extends string>({
             type="button"
             role="radio"
             aria-checked={marcado}
-            // Só a opção marcada entra na ordem do Tab; as outras se alcançam
-            // pelas setas. É o que faz o grupo custar um Tab, e não N.
-            tabIndex={marcado ? 0 : -1}
+            // Só uma opção entra na ordem do Tab; as outras se alcançam pelas
+            // setas. É o que faz o grupo custar um Tab, e não N — e `noTab`
+            // garante que essa uma exista mesmo sem resposta escolhida.
+            tabIndex={indice === noTab ? 0 : -1}
             className="co-segmented__option"
             onClick={() => onChange(opcao.value)}
             onKeyDown={(evento) => aoTeclar(evento, indice)}
