@@ -51,6 +51,27 @@ describe("SegmentedControl", () => {
     expect(screen.getByRole("radio", { name: "Cetogênica" })).toHaveAttribute("tabindex", "-1");
   });
 
+  it("sem resposta escolhida, o grupo NAO some da ordem do Tab", () => {
+    // O tabindex itinerante tinha um buraco: com `value` fora da lista, toda
+    // opcao caia em `-1` e o grupo inteiro deixava de ser alcancavel pelo
+    // teclado — de forma silenciosa, porque na tela nada mudava. Quem chegasse
+    // pelo Tab passava por cima e nao tinha como responder.
+    render(
+      <SegmentedControl
+        label="Estratégia de macros"
+        options={ESTRATEGIAS}
+        value={"" as (typeof ESTRATEGIAS)[number]["value"]}
+        onChange={vi.fn()}
+      />,
+    );
+
+    const opcoes = screen.getAllByRole("radio");
+    expect(opcoes.filter((opcao) => opcao.getAttribute("tabindex") === "0")).toHaveLength(1);
+    expect(opcoes[0]).toHaveAttribute("tabindex", "0");
+    // E nenhuma delas mente dizendo que esta marcada.
+    for (const opcao of opcoes) expect(opcao).not.toBeChecked();
+  });
+
   it("anda com as setas e dá a volta na ponta", async () => {
     const usuario = userEvent.setup();
     render(<Segmentado />);
@@ -249,6 +270,7 @@ describe("ListRow com marca de escolha", () => {
     expect(screen.getByRole("radio", { name: "Katch-McArdle" })).toBeChecked();
     expect(screen.getByRole("radio", { name: "Mifflin-St Jeor" })).not.toBeChecked();
   });
+
 });
 
 describe("Reckoning", () => {
