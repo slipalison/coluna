@@ -342,8 +342,19 @@
 
 .co-list-row[data-expanded="true"] .co-list-row__chevron { transform: rotate(180deg); }
 
-/* A marca de escolha da linha: quadrada quando é escolha única dentro de um
- * grupo com conta visível, porque ela é conteúdo, não contêiner. */
+/*
+ * A marca de escolha da linha, e a forma dela DIZ QUANTAS (ADR-007).
+ *
+ * Quadrada quando se pode marcar várias; redonda quando se escolhe uma. É a
+ * única exceção escrita ao ADR-004 ("conteúdo é reto"), e ela existe porque
+ * aqui a forma não é textura: é a informação. Redondo e quadrado são o que
+ * separa as duas perguntas antes de a pessoa tocar em coisa alguma, e é uma
+ * convenção que ela já trouxe pronta de todo outro aplicativo.
+ *
+ * O raio combina com o `role` que o `ListRow` emite, e os dois saem da mesma
+ * decisão — `radio` com marca quadrada diria a quem enxerga o contrário do que
+ * diz a quem escuta, que é a mesma família de defeito do ADR-005.
+ */
 .co-list-row__mark {
   width: var(--co-mark-size);
   height: var(--co-mark-size);
@@ -354,6 +365,10 @@
   border: var(--co-border-width) solid var(--co-border-strong);
   border-radius: var(--co-radius-content);
   color: var(--co-accent-contrast);
+}
+
+.co-list-row__mark[data-mark="single"] {
+  border-radius: var(--co-radius-pill);
 }
 
 .co-list-row[data-selected="true"] .co-list-row__mark {

@@ -271,6 +271,53 @@ describe("ListRow com marca de escolha", () => {
     expect(screen.getByRole("radio", { name: "Mifflin-St Jeor" })).not.toBeChecked();
   });
 
+  it("escolha unica e redonda; marque-quantas-quiser e quadrada", () => {
+    // O que este caso protege nao e estetica: a forma da marca e a unica coisa
+    // que separa as duas perguntas antes de a pessoa tocar em qualquer lugar.
+    // Uma marca quadrada num `role="radio"` diz "marque quantas quiser" a quem
+    // enxerga e "escolha uma" a quem escuta.
+    const { container } = render(
+      <>
+        <ListRow mark="single" onClick={vi.fn()}>
+          Feminino
+        </ListRow>
+        <ListRow mark="multiple" onClick={vi.fn()}>
+          Sem gluten
+        </ListRow>
+      </>,
+    );
+
+    expect(screen.getByRole("radio", { name: "Feminino" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Sem gluten" })).toBeInTheDocument();
+
+    const marcas = container.querySelectorAll(".co-list-row__mark");
+    expect(marcas[0]).toHaveAttribute("data-mark", "single");
+    expect(marcas[1]).toHaveAttribute("data-mark", "multiple");
+  });
+
+  it("`mark` booleano continua sendo escolha unica", () => {
+    // Compatibilidade: `mark` nasceu booleano e ja emitia `role="radio"`. O que
+    // mudou foi a forma passar a concordar com o papel, e nao o papel.
+    const { container } = render(
+      <ListRow mark onClick={vi.fn()}>
+        Katch-McArdle
+      </ListRow>,
+    );
+    expect(screen.getByRole("radio", { name: "Katch-McArdle" })).toBeInTheDocument();
+    expect(container.querySelector(".co-list-row__mark")).toHaveAttribute("data-mark", "single");
+  });
+
+  it("`mark={false}` nao desenha marca nenhuma nem inventa papel", () => {
+    const { container } = render(
+      <ListRow mark={false} onClick={vi.fn()}>
+        Almoco
+      </ListRow>,
+    );
+    expect(container.querySelector(".co-list-row__mark")).toBeNull();
+    expect(screen.queryByRole("radio")).toBeNull();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+    expect(screen.getByRole("button", { name: "Almoco" })).not.toHaveAttribute("aria-checked");
+  });
 });
 
 describe("Reckoning", () => {

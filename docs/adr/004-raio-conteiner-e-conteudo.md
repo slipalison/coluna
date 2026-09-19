@@ -31,6 +31,11 @@ O raio depende do PAPEL do elemento, não do gosto de quem desenha a tela:
 - **Conteúdo é reto.** Ele é pedra: ponto de macro, ripa, barra de progresso,
   marcador, marca de escolha, fio. `--co-radius-content`, que é zero.
 
+> **Uma exceção, escrita depois:** a marca de escolha de **escolha única** é
+> redonda, porque ali a forma carrega a informação de quantas se pode marcar em
+> vez de ser textura — [ADR-007](007-a-marca-de-escolha-diz-quantas.md). A
+> marca de **marcar várias** continua quadrada, como esta regra manda.
+
 `--co-radius-inset` não é um número solto. Raio interno = raio externo − folga:
 com 12 por fora e 3 de folga, o de dentro é 9. Qualquer outro valor faz o canto
 de dentro correr paralelo ao de fora com espessura variável — o olho vê sem

@@ -179,3 +179,37 @@ export const Escolha: Story = {
     );
   },
 };
+
+/**
+ * Marcar quantas quiser. Com `mark="multiple"` a linha vira `role="checkbox"`
+ * e a marca sai QUADRADA — que é a forma que a pessoa já aprendeu a ler como
+ * "pode marcar mais de uma", em qualquer aplicativo que ela tenha usado antes.
+ *
+ * Compare com a história acima: lá a marca é redonda porque só uma resposta
+ * cabe. A diferença de forma é a pergunta sendo feita, e não decoração
+ * ([ADR-007](/docs/adr-007)).
+ */
+export const Marcar: Story = {
+  render: () => {
+    const [marcadas, definir] = useState<readonly string[]>(["Sem lactose"]);
+    const alternar = (nome: string) =>
+      definir((atual) =>
+        atual.includes(nome) ? atual.filter((item) => item !== nome) : [...atual, nome],
+      );
+
+    return (
+      <Group label="Restrições" inset="mark">
+        {["Sem lactose", "Sem glúten", "Vegetariano"].map((restricao) => (
+          <ListRow
+            key={restricao}
+            mark="multiple"
+            selected={marcadas.includes(restricao)}
+            onClick={() => alternar(restricao)}
+          >
+            <Text variant="body">{restricao}</Text>
+          </ListRow>
+        ))}
+      </Group>
+    );
+  },
+};
