@@ -95,7 +95,7 @@
   },
   "basalt-300": {
     "$type": "color",
-    "$value": "#8a8199"
+    "$value": "#8d849c"
   },
   "basalt-250": {
     "$type": "color",
@@ -179,7 +179,7 @@
   },
   "rust-500": {
     "$type": "color",
-    "$value": "#d4635c"
+    "$value": "#d7655e"
   },
   "rust-050": {
     "$type": "color",
