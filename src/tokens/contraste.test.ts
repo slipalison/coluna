@@ -74,21 +74,27 @@ const TEMAS: [string, Folha][] = [
 ];
 
 describe.each(TEMAS)("contraste no tema %s", (_nome, tema) => {
-  // Os dois fundos em que texto de verdade aparece. A superfície é o caso
-  // difícil no escuro (ela é mais clara que o canvas), e o canvas é o caso
-  // difícil no claro — conferir os dois evita otimizar para o fácil.
+  // Todo fundo em que texto de verdade aparece. O caso difícil é o fundo mais
+  // claro no tema escuro e o mais escuro no claro — e qual é qual muda quando
+  // a paleta muda, por isso a lista inteira, e não o "pior" escolhido a olho.
   //
   // `surface-sunken` entrou na lista quando o `Rail` e o `Sheet` em modo
   // `inline` passaram a usá-lo como fundo de TEXTO — antes ele só segurava
   // trilho de barra, onde o piso é o de desenho. Um fundo novo que recebe texto
   // e não entra aqui é um fundo cujo contraste ninguém confere.
+  //
+  // `surface-raised` é o fundo da linha escolhida do `ListRow` e do
+  // `Surface elevation="raised"` — texto de verdade, e no tema escuro o fundo
+  // MAIS CLARO de todos, ou seja, o caso difícil de fato. Ficou de fora até a
+  // história `Escolha` mostrar a legenda sutil da linha marcada a 4,43:1.
   const fundos = [
     ["canvas", valor(tema["canvas"])],
     ["surface", valor(tema["surface"])],
+    ["surface-raised", valor(tema["surface-raised"])],
     ["surface-sunken", valor(tema["surface-sunken"])],
   ] as const;
 
-  it.each(TEXTO)("%s passa em 4,5:1 nos dois fundos", (token) => {
+  it.each(TEXTO)("%s passa em 4,5:1 em todo fundo de texto", (token) => {
     for (const [nomeFundo, fundo] of fundos) {
       const razao = contraste(valor(tema[token]), fundo);
       expect(razao, `${token} sobre ${nomeFundo} deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(

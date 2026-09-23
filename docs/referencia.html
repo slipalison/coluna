@@ -84,7 +84,7 @@
   --co-basalt-600: #3a3346;
   --co-basalt-500: #4b4360;
   --co-basalt-400: #6f6780;
-  --co-basalt-300: #8a8199;
+  --co-basalt-300: #8d849c;
   --co-basalt-250: #9a91ab;
   --co-basalt-200: #b5adc6;
   --co-basalt-100: #ddd7e8;
@@ -104,7 +104,7 @@
   --co-orchid-200: #e7c2f2;
   --co-orchid-950: #33203c;
   --co-rust-600: #b4332e;
-  --co-rust-500: #d4635c;
+  --co-rust-500: #d7655e;
   --co-rust-050: #fdeceb;
   --co-rust-950: #33161a;
   --co-overlay-escuro: rgba(13, 11, 17, 0.74);
@@ -607,8 +607,19 @@
 
 .co-list-row[data-expanded="true"] .co-list-row__chevron { transform: rotate(180deg); }
 
-/* A marca de escolha da linha: quadrada quando é escolha única dentro de um
- * grupo com conta visível, porque ela é conteúdo, não contêiner. */
+/*
+ * A marca de escolha da linha, e a forma dela DIZ QUANTAS (ADR-007).
+ *
+ * Quadrada quando se pode marcar várias; redonda quando se escolhe uma. É a
+ * única exceção escrita ao ADR-004 ("conteúdo é reto"), e ela existe porque
+ * aqui a forma não é textura: é a informação. Redondo e quadrado são o que
+ * separa as duas perguntas antes de a pessoa tocar em coisa alguma, e é uma
+ * convenção que ela já trouxe pronta de todo outro aplicativo.
+ *
+ * O raio combina com o `role` que o `ListRow` emite, e os dois saem da mesma
+ * decisão — `radio` com marca quadrada diria a quem enxerga o contrário do que
+ * diz a quem escuta, que é a mesma família de defeito do ADR-005.
+ */
 .co-list-row__mark {
   width: var(--co-mark-size);
   height: var(--co-mark-size);
@@ -619,6 +630,10 @@
   border: var(--co-border-width) solid var(--co-border-strong);
   border-radius: var(--co-radius-content);
   color: var(--co-accent-contrast);
+}
+
+.co-list-row__mark[data-mark="single"] {
+  border-radius: var(--co-radius-pill);
 }
 
 .co-list-row[data-selected="true"] .co-list-row__mark {
@@ -1835,7 +1850,7 @@ pre code { background: none; border: 0; padding: 0; }
   <header class="topo">
     <div class="marca">
       <span class="marca__nome">Coluna</span>
-      <span class="co-badge" data-tone="accent">v1.0.0</span>
+      <span class="co-badge" data-tone="accent">v1.2.0</span>
     </div>
     <div class="co-segmented" role="radiogroup" aria-label="Tema" id="tema">
       <button type="button" role="radio" class="co-segmented__option" aria-checked="false" data-tema="light">Claro</button>
