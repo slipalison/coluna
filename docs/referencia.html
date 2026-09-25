@@ -1148,7 +1148,14 @@
  * O mesmo trilho do incremento — 12px por fora, 3 de folga, 9 por dentro —
  * porque é o mesmo gesto: dois botões colados que fazem coisas opostas.
  */
+/* O paginador é um fieldset: a borda, a margem e a largura mínima que o
+ * navegador dá a ele saem aqui, para ele ser só o trilho. (O nome da tag fica
+ * sem os sinais de menor e maior de propósito: a folha é embutida na
+ * referência visual, e um analisador leria a tag escrita como tag de verdade.) */
 .co-pager {
+  min-width: 0;
+  margin: 0;
+  border: 0;
   display: inline-flex;
   align-items: center;
   gap: var(--co-space-2);
@@ -2014,6 +2021,16 @@ button.co-chip {
   display: flex;
   flex-direction: column;
   gap: var(--co-space-20);
+}
+
+/* O grupo com nome e a lista inteira em `opens="detail"` são fieldset: a
+ * borda, a margem, o recuo e a largura mínima do navegador saem aqui. */
+.co-nav-list__group,
+fieldset.co-nav-list {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 .co-nav-list__group {
