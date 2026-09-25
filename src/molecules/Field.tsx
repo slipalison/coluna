@@ -25,6 +25,17 @@ export interface FieldProps {
    * para reclamar.
    */
   children: (control: FieldControl) => ReactNode;
+  /**
+   * `stack` (o padrão): rótulo em cima, controle embaixo — o formulário solto.
+   *
+   * `row`: rótulo e dica à esquerda, controle à direita, erro embaixo de tudo —
+   * a linha de medida dentro de um `Group` ("Sobre você": peso, altura,
+   * gordura). A linha tem a mesma altura e a mesma calha da `ListRow`, para as
+   * duas conviverem no mesmo grupo com o fio no mesmo lugar. O controle ganha
+   * uma coluna de largura fixa (`--co-field-row-control`); passe `full` ao
+   * `Input` para ele ocupar a coluna inteira.
+   */
+  layout?: "stack" | "row";
   className?: string | undefined;
 }
 
@@ -42,7 +53,14 @@ export interface FieldProps {
  * vermelho não existe para quem chegou ali pelo teclado com o leitor de tela
  * ligado.
  */
-export function Field({ label, hint, error, children, className }: FieldProps) {
+export function Field({
+  label,
+  hint,
+  error,
+  children,
+  layout = "stack",
+  className,
+}: FieldProps) {
   const base = useId();
   const idControle = `${base}-controle`;
   const idDica = `${base}-dica`;
@@ -54,6 +72,49 @@ export function Field({ label, hint, error, children, className }: FieldProps) {
 
   const classe = className ? `co-field ${className}` : "co-field";
 
+  const controle = children({
+    id: idControle,
+    "aria-describedby": descreve === "" ? undefined : descreve,
+    "aria-invalid": error ? true : undefined,
+  });
+
+  const mensagem = error ? (
+    // `polite` e não `assertive`: o erro que aparece enquanto a pessoa
+    // ainda digita não deve cortar a palavra no meio.
+    <p className="co-field__error" id={idErro} aria-live="polite">
+      <Icon className="co-field__error-icon" name="info" size={15} />
+      <span>{error}</span>
+    </p>
+  ) : null;
+
+  if (layout === "row") {
+    // Na linha o rótulo é o nome da medida, lido como o título de uma
+    // `ListRow` — e não o versalete de cima do campo solto. A dica vira a nota
+    // embaixo dele ("passo de 100 g", "só a Katch-McArdle usa"), e o erro desce
+    // para baixo da linha inteira: espremido ao lado do campo, ele quebraria a
+    // coluna do controle em três linhas.
+    return (
+      <div className={classe} data-layout="row" data-invalid={error ? "true" : undefined}>
+        <div className="co-field__row">
+          <div className="co-field__text">
+            <label className="co-field__label" htmlFor={idControle}>
+              <Text as="span" variant="body">
+                {label}
+              </Text>
+            </label>
+            {hint ? (
+              <Text id={idDica} variant="footnote" tone="muted" style={{ textWrap: "pretty" }}>
+                {hint}
+              </Text>
+            ) : null}
+          </div>
+          <div className="co-field__control">{controle}</div>
+        </div>
+        {mensagem}
+      </div>
+    );
+  }
+
   return (
     <div className={classe} data-invalid={error ? "true" : undefined}>
       <label className="co-field__label" htmlFor={idControle}>
@@ -62,11 +123,7 @@ export function Field({ label, hint, error, children, className }: FieldProps) {
         </Text>
       </label>
 
-      {children({
-        id: idControle,
-        "aria-describedby": descreve === "" ? undefined : descreve,
-        "aria-invalid": error ? true : undefined,
-      })}
+      {controle}
 
       {hint ? (
         <Text id={idDica} variant="footnote" tone="muted" style={{ textWrap: "pretty" }}>
@@ -74,14 +131,7 @@ export function Field({ label, hint, error, children, className }: FieldProps) {
         </Text>
       ) : null}
 
-      {error ? (
-        // `polite` e não `assertive`: o erro que aparece enquanto a pessoa
-        // ainda digita não deve cortar a palavra no meio.
-        <p className="co-field__error" id={idErro} aria-live="polite">
-          <Icon className="co-field__error-icon" name="info" size={15} />
-          <span>{error}</span>
-        </p>
-      ) : null}
+      {mensagem}
     </div>
   );
 }

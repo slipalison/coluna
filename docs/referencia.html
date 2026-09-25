@@ -917,6 +917,78 @@
   background: var(--co-slat-color, var(--co-accent));
 }
 
+/* ----------------------------------------------------------------- régua ---- */
+
+/*
+ * Várias estimativas numa escala só. O eixo é o fio de 1px do sistema, a
+ * faixa é o acento suave e as marcas são traços retos (ADR-004): a usada tem a
+ * altura inteira e o dobro da espessura, as outras metade da altura em cinza
+ * de desenho — a diferença é de forma antes de ser de cor (ADR-005).
+ */
+.co-ruler {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-6);
+  width: 100%;
+}
+
+.co-ruler__track {
+  position: relative;
+  height: 28px;
+}
+
+.co-ruler__axis {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: var(--co-border-width);
+  background: var(--co-line);
+}
+
+.co-ruler__band {
+  position: absolute;
+  top: calc(50% - 3px);
+  left: var(--co-ruler-from, 0%);
+  width: calc(var(--co-ruler-to, 0%) - var(--co-ruler-from, 0%));
+  min-width: var(--co-border-width);
+  height: 6px;
+  background: var(--co-accent-soft);
+}
+
+.co-ruler__mark {
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  left: var(--co-ruler-at, 0%);
+  width: 2px;
+  background: var(--co-icon-muted);
+  transform: translateX(-50%);
+}
+
+.co-ruler__mark[data-emphasis="true"] {
+  top: 0;
+  bottom: 0;
+  width: var(--co-marker-width);
+  background: var(--co-accent);
+}
+
+/* Todos os rótulos na MESMA célula da grade: a linha ganha a altura de um
+ * texto, e cada rótulo anda pela margem até a sua posição. Com `position:
+ * absolute` a linha teria altura zero e o texto cairia em cima do que vem
+ * embaixo. */
+.co-ruler__ticks {
+  display: grid;
+}
+
+.co-ruler__tick {
+  grid-area: 1 / 1;
+  justify-self: start;
+  margin-left: var(--co-ruler-at, 0%);
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
 /* ------------------------------------------------------- controle segmentado -- */
 
 /*
@@ -1412,6 +1484,39 @@
   display: flex;
   flex-direction: column;
   gap: var(--co-space-6);
+}
+
+/*
+ * O campo em linha: a medida dentro de um `Group`. Mesma altura mínima e mesma
+ * calha da `ListRow`, para as duas dividirem um grupo com o fio no mesmo lugar.
+ * O controle mora numa coluna de largura fixa, e não na que sobrar: com a
+ * largura do rótulo decidindo a do campo, peso e altura sairiam com campos de
+ * tamanhos diferentes na mesma lista.
+ */
+.co-field[data-layout="row"] {
+  --co-field-row-control: 128px;
+  justify-content: center;
+  min-height: 56px;
+  padding: var(--co-space-8) var(--co-space-12) var(--co-space-8) var(--co-inset-text);
+}
+
+.co-field__row {
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-12);
+}
+
+.co-field__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--co-space-2);
+  min-width: 0;
+}
+
+.co-field__control {
+  flex: 0 0 var(--co-field-row-control);
+  min-width: 0;
 }
 
 /*
@@ -2316,7 +2421,7 @@ pre code { background: none; border: 0; padding: 0; }
   <header class="topo">
     <div class="marca">
       <span class="marca__nome">Coluna</span>
-      <span class="co-badge" data-tone="accent">v1.2.1</span>
+      <span class="co-badge" data-tone="accent">v1.3.0</span>
     </div>
     <div class="co-segmented" role="radiogroup" aria-label="Tema" id="tema">
       <button type="button" role="radio" class="co-segmented__option" aria-checked="false" data-tema="light">Claro</button>

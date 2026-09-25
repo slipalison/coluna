@@ -175,7 +175,8 @@ texto ([ADR-005](docs/adr/005-cor-nunca-sozinha.md)).
 
 **Moléculas** — `Group` `ListRow` `Reckoning` `MacroBar` `Stat` `Notice`
 `SegmentedControl` `Stepper` `ScreenHeader` `PageHeader` `TabBar` `Rail`
-`NavList` `Pager` `Field` `Sheet` `Legend` `Disclosure` `EmptyState` `Diff`
+`NavList` `Pager` `Field` `Sheet` `Legend` `Ruler` `Disclosure` `EmptyState`
+`Diff`
 
 **Padrões** — no catálogo, `Padrões/Tela do diário` monta a tela do telefone e
 `Padrões/Desktop` monta três do desktop (diário, ajustes, receitas), só com
@@ -234,6 +235,12 @@ Alguns que merecem nota:
   número. Texto dentro do SVG é onde o tema quebra — a cor fica presa no
   desenho — e onde o rótulo escapa da moldura. O número mora no `Stat` ao lado,
   em HTML.
+- **`Field layout="row"`** é a medida dentro de um `Group`: nome e nota à
+  esquerda, campo à direita, erro embaixo da linha inteira — com a mesma altura
+  e a mesma calha da `ListRow`, para as duas dividirem o grupo.
+- **`Ruler`** põe várias estimativas do mesmo número numa escala só, com a
+  faixa entre elas pintada: a incerteza desenhada, e não descrita. A marca
+  usada muda de forma, não só de cor, e os rótulos são HTML, fora do desenho.
 - **`Diff`** mostra o que muda se a pessoa confirmar, e **não some** quando os
   dois valores voltam a ser iguais: sumir faria a tela pular por baixo do dedo
   no meio do ajuste.

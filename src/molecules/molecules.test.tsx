@@ -18,6 +18,7 @@ import { PageHeader } from "./PageHeader";
 import { Pager } from "./Pager";
 import { Rail } from "./Rail";
 import { Reckoning } from "./Reckoning";
+import { Ruler } from "./Ruler";
 import { SegmentedControl } from "./SegmentedControl";
 import { Sheet } from "./Sheet";
 import { Stat } from "./Stat";
@@ -416,6 +417,34 @@ describe("Field", () => {
     render(<Field label="Peso">{(controle) => <Input {...controle} />}</Field>);
     expect(screen.getByLabelText("Peso")).not.toHaveAttribute("aria-invalid");
   });
+
+  it("em linha, o rótulo continua apontando para o controle, e a dica e o erro também chegam", () => {
+    const { container } = render(
+      <Field layout="row" label="Peso" hint="passo de 100 g" error="Escreva só o número.">
+        {(controle) => <Input {...controle} invalid align="end" unit="kg" full />}
+      </Field>,
+    );
+    const campo = screen.getByLabelText("Peso");
+    expect(campo).toHaveAttribute("aria-invalid", "true");
+    const ids = (campo.getAttribute("aria-describedby") ?? "").split(" ");
+    const textos = ids.map((id) => document.getElementById(id)?.textContent ?? "").join(" ");
+    expect(textos).toContain("passo de 100 g");
+    expect(textos).toContain("Escreva só o número.");
+
+    const linha = container.querySelector(".co-field");
+    expect(linha).toHaveAttribute("data-layout", "row");
+    // O controle mora na coluna de largura fixa, e o erro fica FORA da linha
+    // de rótulo e campo — embaixo dela inteira.
+    expect(container.querySelector(".co-field__control")).toContainElement(campo);
+    const erro = container.querySelector(".co-field__error");
+    expect(container.querySelector(".co-field__row")).not.toContainElement(erro as HTMLElement);
+  });
+
+  it("empilhado é o padrão, e não declara layout", () => {
+    const { container } = render(<Field label="Peso">{(controle) => <Input {...controle} />}</Field>);
+    expect(container.querySelector(".co-field")).not.toHaveAttribute("data-layout");
+    expect(container.querySelector(".co-field__row")).toBeNull();
+  });
 });
 
 describe("Disclosure", () => {
@@ -727,6 +756,96 @@ describe("Pager", () => {
       />,
     );
     expect(container.querySelector("[aria-live]")).toBeNull();
+  });
+});
+
+describe("Ruler", () => {
+  const posicaoDe = (elemento: Element | null | undefined) =>
+    (elemento as HTMLElement | null | undefined)?.style.getPropertyValue("--co-ruler-at");
+
+  it("põe cada marca na sua posição, com 10% de folga de cada lado quando não há extremos", () => {
+    // 1.773, 1.794 e 1.859: intervalo de 86, folga de 8,6 — a régua vai de
+    // 1.764,4 a 1.867,6, e 1.773 fica em 8,6 / 103,2 = 8,33%.
+    const { container } = render(
+      <Ruler marks={[{ value: 1794, emphasis: true }, { value: 1773 }, { value: 1859 }]} />,
+    );
+    const marcas = container.querySelectorAll(".co-ruler__mark");
+    expect(marcas).toHaveLength(3);
+    expect(posicaoDe(marcas[1])).toBe("8.33%");
+    expect(posicaoDe(marcas[2])).toBe("91.67%");
+  });
+
+  it("a marca em destaque se declara, e só ela", () => {
+    const { container } = render(<Ruler marks={[{ value: 10, emphasis: true }, { value: 20 }]} />);
+    const marcas = container.querySelectorAll(".co-ruler__mark");
+    expect(marcas[0]).toHaveAttribute("data-emphasis", "true");
+    expect(marcas[1]).not.toHaveAttribute("data-emphasis");
+  });
+
+  it("com extremos dados, fora deles é a ponta, e não um erro", () => {
+    const { container } = render(
+      <Ruler min={0} max={100} marks={[{ value: -40 }, { value: 50 }, { value: 180 }]} />,
+    );
+    const marcas = container.querySelectorAll(".co-ruler__mark");
+    expect([...marcas].map(posicaoDe)).toEqual(["0%", "50%", "100%"]);
+  });
+
+  it("a faixa vai da menor à maior ponta, mesmo pedida ao contrário", () => {
+    const { container } = render(
+      <Ruler min={0} max={200} band={{ from: 150, to: 50 }} marks={[{ value: 100 }]} />,
+    );
+    const faixa = container.querySelector(".co-ruler__band") as HTMLElement;
+    expect(faixa.style.getPropertyValue("--co-ruler-from")).toBe("25%");
+    expect(faixa.style.getPropertyValue("--co-ruler-to")).toBe("75%");
+  });
+
+  it("sem faixa, nenhuma faixa é desenhada", () => {
+    const { container } = render(<Ruler marks={[{ value: 1 }, { value: 2 }]} />);
+    expect(container.querySelector(".co-ruler__band")).toBeNull();
+  });
+
+  it("uma posição só fica no meio, e número que não é número some", () => {
+    const { container } = render(<Ruler marks={[{ value: 7 }, { value: Number.NaN }]} />);
+    const marcas = container.querySelectorAll(".co-ruler__mark");
+    expect(marcas).toHaveLength(1);
+    expect(posicaoDe(marcas[0])).toBe("50%");
+  });
+
+  it("extremos iguais põem tudo no meio", () => {
+    const { container } = render(<Ruler min={5} max={5} marks={[{ value: 5 }]} />);
+    expect(posicaoDe(container.querySelector(".co-ruler__mark"))).toBe("50%");
+  });
+
+  it("sem marca nenhuma, sobra o eixo", () => {
+    const { container } = render(<Ruler marks={[]} />);
+    expect(container.querySelector(".co-ruler__axis")).not.toBeNull();
+    expect(container.querySelectorAll(".co-ruler__mark")).toHaveLength(0);
+  });
+
+  it("os rótulos são texto em HTML, na posição de cada um", () => {
+    const { container } = render(
+      <Ruler
+        min={0}
+        max={100}
+        marks={[{ value: 20 }, { value: 80 }]}
+        ticks={[
+          { value: 20, text: "1.773" },
+          { value: 80, text: "1.859" },
+          { value: Number.NaN, text: "fora" },
+        ]}
+      />,
+    );
+    const rotulos = container.querySelectorAll(".co-ruler__tick");
+    expect([...rotulos].map((r) => r.textContent)).toEqual(["1.773", "1.859"]);
+    expect([...rotulos].map(posicaoDe)).toEqual(["20%", "80%"]);
+    expect(container.querySelector("svg text")).toBeNull();
+  });
+
+  it("sem rótulo é decorativa; com rótulo vira imagem com nome", () => {
+    const { container, rerender } = render(<Ruler marks={[{ value: 1 }]} />);
+    expect(container.querySelector(".co-ruler")).toHaveAttribute("aria-hidden", "true");
+    rerender(<Ruler marks={[{ value: 1 }]} label="Três fórmulas, de 1.773 a 1.859 kcal" />);
+    expect(screen.getByRole("img", { name: "Três fórmulas, de 1.773 a 1.859 kcal" })).toBeInTheDocument();
   });
 });
 

@@ -66,6 +66,8 @@ export type { FieldControl, FieldProps } from "./molecules/Field";
 export { Group } from "./molecules/Group";
 export type { GroupInset, GroupProps } from "./molecules/Group";
 export { Legend } from "./molecules/Legend";
+export { Ruler } from "./molecules/Ruler";
+export type { RulerMark, RulerProps, RulerTick } from "./molecules/Ruler";
 export type { LegendItem, LegendProps, LegendSwatch, LegendTone } from "./molecules/Legend";
 export { ListRow } from "./molecules/ListRow";
 export type { ListRowProps } from "./molecules/ListRow";
