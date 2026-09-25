@@ -279,6 +279,12 @@
   padding: var(--co-space-10) var(--co-space-4) 0;
 }
 
+/* O erro alinha pela mesma calha da nota; a cor, o ícone e a letra são os do
+ * `Field`, na mesma regra (`.co-field__error, .co-group__error`). */
+.co-group__error {
+  padding: var(--co-space-10) var(--co-space-4) 0;
+}
+
 /* ------------------------------------------------------------------ linha -- */
 
 /*
@@ -1260,7 +1266,8 @@
  * dono do vermelho no sistema — o primeiro é `Button variant="danger"` —, e a
  * lista para nos dois.
  */
-.co-field__error {
+.co-field__error,
+.co-group__error {
   display: flex;
   align-items: flex-start;
   gap: var(--co-space-6);
@@ -1271,7 +1278,8 @@
   line-height: var(--co-leading-note);
 }
 
-.co-field__error-icon {
+.co-field__error-icon,
+.co-group__error-icon {
   flex-shrink: 0;
   margin-top: 2px;
 }

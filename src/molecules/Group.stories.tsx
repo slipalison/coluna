@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useState } from "react";
 import { Dot } from "../atoms/Dot";
 import { Text } from "../atoms/Text";
 import { Group } from "./Group";
@@ -140,4 +141,39 @@ export const RótuloENota: Story = {
       </ListRow>
     </Group>
   ),
+};
+
+/**
+ * Com `role`, o grupo amarra sozinho o rótulo (nome), a nota e o erro
+ * (descrição) e o `aria-invalid` — o que o `Field` faz com o campo. O erro sai
+ * embaixo da nota, vermelho e com ícone. Escolha uma opção e ele some.
+ */
+export const EscolhaComErro: Story = {
+  name: "Escolha com erro",
+  render: () => {
+    const [metodo, definirMetodo] = useState<string | undefined>(undefined);
+    const opcoes = ["Bioimpedância", "Adipômetro", "DEXA"];
+    return (
+      <div style={{ maxWidth: "380px" }}>
+        <Group
+          role="radiogroup"
+          inset="mark"
+          label="Como a gordura foi medida"
+          note="A conta só usa o percentual quando sabe de onde ele veio."
+          {...(metodo === undefined ? { error: "Escolha como o percentual foi medido." } : {})}
+        >
+          {opcoes.map((opcao) => (
+            <ListRow
+              key={opcao}
+              mark="single"
+              selected={metodo === opcao}
+              onClick={() => definirMetodo(opcao)}
+            >
+              {opcao}
+            </ListRow>
+          ))}
+        </Group>
+      </div>
+    );
+  },
 };

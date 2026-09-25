@@ -544,6 +544,12 @@
   padding: var(--co-space-10) var(--co-space-4) 0;
 }
 
+/* O erro alinha pela mesma calha da nota; a cor, o ícone e a letra são os do
+ * `Field`, na mesma regra (`.co-field__error, .co-group__error`). */
+.co-group__error {
+  padding: var(--co-space-10) var(--co-space-4) 0;
+}
+
 /* ------------------------------------------------------------------ linha -- */
 
 /*
@@ -1525,7 +1531,8 @@
  * dono do vermelho no sistema — o primeiro é `Button variant="danger"` —, e a
  * lista para nos dois.
  */
-.co-field__error {
+.co-field__error,
+.co-group__error {
   display: flex;
   align-items: flex-start;
   gap: var(--co-space-6);
@@ -1536,7 +1543,8 @@
   line-height: var(--co-leading-note);
 }
 
-.co-field__error-icon {
+.co-field__error-icon,
+.co-group__error-icon {
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -2421,7 +2429,7 @@ pre code { background: none; border: 0; padding: 0; }
   <header class="topo">
     <div class="marca">
       <span class="marca__nome">Coluna</span>
-      <span class="co-badge" data-tone="accent">v1.3.0</span>
+      <span class="co-badge" data-tone="accent">v1.4.0</span>
     </div>
     <div class="co-segmented" role="radiogroup" aria-label="Tema" id="tema">
       <button type="button" role="radio" class="co-segmented__option" aria-checked="false" data-tema="light">Claro</button>
