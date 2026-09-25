@@ -1,4 +1,5 @@
-import type { ElementType, HTMLAttributes, ReactNode } from "react";
+import { useId, type ElementType, type HTMLAttributes, type ReactNode } from "react";
+import { Icon } from "../atoms/Icon";
 import { Text } from "../atoms/Text";
 
 /**
@@ -22,6 +23,12 @@ export interface GroupProps extends HTMLAttributes<HTMLElement> {
   labelTrailing?: ReactNode;
   /** A nota abaixo da caixa, alinhada pela calha. */
   note?: ReactNode;
+  /**
+   * O que o grupo recusou — "Escolha como o percentual foi medido." Sai embaixo
+   * da nota, vermelho E com ícone, como o erro do `Field`: cor sozinha não é
+   * sinal (ADR-005).
+   */
+  error?: ReactNode;
   inset?: GroupInset;
   elevation?: "flat" | "sunken" | "none";
   children?: ReactNode;
@@ -52,24 +59,57 @@ export function Group({
   label,
   labelTrailing,
   note,
+  error,
   inset = "text",
   elevation = "flat",
   className,
   children,
   ...resto
 }: GroupProps) {
+  const base = useId();
+  const idRotulo = `${base}-rotulo`;
+  const idNota = `${base}-nota`;
+  const idErro = `${base}-erro`;
+
+  // Com `role`, a caixa é um controle (um `radiogroup`, um `group` de campos),
+  // e o rótulo, a nota e o erro que o grupo desenha são o nome e a descrição
+  // dele. Amarrar aqui é o que o `Field` faz com o campo: sem isso, cada tela
+  // repete três `useId` e dois `aria-*`, e a primeira que esquecer um sai muda
+  // no leitor de tela. Sem `role` a caixa é só um contêiner — `aria-labelledby`
+  // num `div` sem papel é proibido pelo ARIA —, e nada é amarrado.
+  const {
+    "aria-labelledby": rotuladoPor,
+    "aria-describedby": descritoPor,
+    "aria-invalid": invalido,
+    ...atributos
+  } = resto;
+  const controle = atributos.role !== undefined;
+  const descreve = [
+    descritoPor,
+    controle && note !== undefined ? idNota : undefined,
+    controle && error !== undefined ? idErro : undefined,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const nomeado =
+    rotuladoPor ??
+    (controle && label !== undefined && atributos["aria-label"] === undefined ? idRotulo : undefined);
+
   const caixa = (
     <Elemento
       className={className ? `co-group ${className}` : "co-group"}
       data-inset={inset === "text" ? undefined : inset}
       data-elevation={elevation === "flat" ? undefined : elevation}
-      {...resto}
+      aria-labelledby={nomeado}
+      aria-describedby={descreve === "" ? undefined : descreve}
+      aria-invalid={invalido ?? (controle && error !== undefined ? true : undefined)}
+      {...atributos}
     >
       {children}
     </Elemento>
   );
 
-  if (label === undefined && note === undefined) return caixa;
+  if (label === undefined && note === undefined && error === undefined) return caixa;
 
   return (
     <div>
@@ -83,7 +123,9 @@ export function Group({
             gap: "var(--co-space-12)",
           }}
         >
-          <Text variant="label">{label}</Text>
+          <Text variant="label" id={idRotulo}>
+            {label}
+          </Text>
           {labelTrailing === undefined ? null : (
             <Text variant="caption" tone="subtle" numeric>
               {labelTrailing}
@@ -93,9 +135,23 @@ export function Group({
       )}
       {caixa}
       {note === undefined ? null : (
-        <Text className="co-group__note" variant="caption" tone="subtle" style={{ textWrap: "pretty" }}>
+        <Text
+          id={idNota}
+          className="co-group__note"
+          variant="caption"
+          tone="subtle"
+          style={{ textWrap: "pretty" }}
+        >
           {note}
         </Text>
+      )}
+      {error === undefined ? null : (
+        // `polite`, como no `Field`: o erro que chega enquanto a pessoa ainda
+        // escolhe não corta o que o leitor de tela está dizendo.
+        <p className="co-group__error" id={idErro} aria-live="polite">
+          <Icon className="co-group__error-icon" name="info" size={15} />
+          <span>{error}</span>
+        </p>
       )}
     </div>
   );

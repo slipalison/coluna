@@ -258,6 +258,83 @@ describe("Group", () => {
     expect(screen.getByText("Macros")).toBeInTheDocument();
     expect(screen.getByText("A soma encosta na meta.")).toBeInTheDocument();
   });
+
+  it("com papel, o rótulo nomeia o grupo e a nota e o erro o descrevem", () => {
+    // É o `Field` do grupo de escolha: sem isto, cada tela repete três `useId`
+    // e dois `aria-*`, e a primeira que esquecer um sai muda no leitor de tela.
+    render(
+      <Group
+        role="radiogroup"
+        label="Como a gordura foi medida"
+        note="A conta só usa o percentual com a procedência."
+        error="Escolha como o percentual foi medido."
+      >
+        <ListRow mark="single" onClick={() => undefined}>
+          Bioimpedância
+        </ListRow>
+      </Group>,
+    );
+    const grupo = screen.getByRole("radiogroup", { name: "Como a gordura foi medida" });
+    expect(grupo).toHaveAccessibleDescription(
+      "A conta só usa o percentual com a procedência. Escolha como o percentual foi medido.",
+    );
+    expect(grupo).toHaveAttribute("aria-invalid", "true");
+    const erro = screen.getByText("Escolha como o percentual foi medido.").closest("p");
+    expect(erro).toHaveClass("co-group__error");
+    expect(erro).toHaveAttribute("aria-live", "polite");
+    // Vermelho E ícone: cor sozinha não é sinal (ADR-005).
+    expect(erro?.querySelector("svg")).not.toBeNull();
+    // O erro fica fora da caixa, como a nota.
+    expect(grupo).not.toHaveTextContent("Escolha como o percentual foi medido.");
+  });
+
+  it("sem erro, o grupo não se declara inválido e só a nota o descreve", () => {
+    render(
+      <Group role="radiogroup" label="Nível de atividade" note="Na dúvida, o de baixo.">
+        <ListRow mark="single" onClick={() => undefined}>
+          Leve
+        </ListRow>
+      </Group>,
+    );
+    const grupo = screen.getByRole("radiogroup", { name: "Nível de atividade" });
+    expect(grupo).not.toHaveAttribute("aria-invalid");
+    expect(grupo).toHaveAccessibleDescription("Na dúvida, o de baixo.");
+  });
+
+  it("sem papel, a caixa é só contêiner e não ganha nome nem descrição", () => {
+    const { container } = render(
+      <Group label="Macros" note="A soma encosta na meta." error="Falta um macro.">
+        <ListRow>Proteina</ListRow>
+      </Group>,
+    );
+    const caixa = container.querySelector(".co-group");
+    expect(caixa).not.toHaveAttribute("aria-labelledby");
+    expect(caixa).not.toHaveAttribute("aria-describedby");
+    expect(caixa).not.toHaveAttribute("aria-invalid");
+    expect(screen.getByText("Falta um macro.")).toBeInTheDocument();
+  });
+
+  it("o que vem de fora é somado ou respeitado, nunca sobrescrito", () => {
+    render(
+      <>
+        <span id="de-fora">Resposta do perfil.</span>
+        <Group
+          role="radiogroup"
+          aria-label="Sexo"
+          aria-describedby="de-fora"
+          label="Rótulo visível"
+          note="A nota."
+        >
+          <ListRow mark="single" onClick={() => undefined}>
+            Feminino
+          </ListRow>
+        </Group>
+      </>,
+    );
+    const grupo = screen.getByRole("radiogroup", { name: "Sexo" });
+    expect(grupo).not.toHaveAttribute("aria-labelledby");
+    expect(grupo).toHaveAccessibleDescription("Resposta do perfil. A nota.");
+  });
 });
 
 describe("ListRow com marca de escolha", () => {

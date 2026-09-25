@@ -192,7 +192,9 @@ Alguns que merecem nota:
   volta a ser feita de peso e cor. O fio sai de `::before` no filho, então a
   lista pode vir de `.map()` sem intercalar separador e não sobra fio na última
   linha. Coisas que devem ficar grudadas — uma linha e o painel que abre embaixo
-  dela — vão num `<div>` só, como um filho.
+  dela — vão num `<div>` só, como um filho. Com `role` (um `radiogroup`), o
+  grupo amarra sozinho o rótulo, a nota e o `error` ao controle, como o `Field`
+  faz com o campo.
 - **`Reckoning`** é a conta aberta, e ela carrega a premissa do produto — a
   pessoa informa, o app calcula — como desenho, não como frase. Quando o número
   mostrado é arredondado, a expressão mostra a casa decimal: `1.433 + 937 =
