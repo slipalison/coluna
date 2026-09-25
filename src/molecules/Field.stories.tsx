@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Input } from "../atoms/Input";
 import { Stack } from "../atoms/Stack";
 import { Field } from "./Field";
+import { Group } from "./Group";
+import { ListRow } from "./ListRow";
 
 /**
  * Rótulo, controle, dica e erro — amarrados.
@@ -111,4 +113,43 @@ export const AConta: Story = {
       </Stack>
     );
   },
+};
+
+/**
+ * Em linha, dentro de um `Group`: "Sobre você", com uma medida por linha.
+ *
+ * Nome e nota à esquerda, campo à direita, na coluna de largura fixa — peso e
+ * altura saem com o campo do mesmo tamanho. O erro desce para baixo da linha
+ * inteira. A linha tem a altura e a calha da `ListRow`, e a última linha do
+ * grupo mostra as duas convivendo com o fio no mesmo lugar.
+ */
+export const EmLinha: Story = {
+  name: "Em linha",
+  render: () => (
+    <div style={{ maxWidth: "380px" }}>
+      <Group label="Sobre você">
+        <Field layout="row" label="Peso" hint="a balança da manhã">
+          {(controle) => (
+            <Input {...controle} defaultValue="84,5" unit="kg" align="end" inputMode="decimal" full />
+          )}
+        </Field>
+        <Field layout="row" label="Altura" hint="entra em duas fórmulas">
+          {(controle) => (
+            <Input {...controle} defaultValue="178" unit="cm" align="end" inputMode="decimal" full />
+          )}
+        </Field>
+        <Field
+          layout="row"
+          label="Gordura corporal"
+          hint="opcional — só a Katch-McArdle usa"
+          error="Escreva só o número, como 22."
+        >
+          {(controle) => (
+            <Input {...controle} defaultValue="vinte" unit="%" align="end" invalid full />
+          )}
+        </Field>
+        <ListRow trailing="38 anos">Idade</ListRow>
+      </Group>
+    </div>
+  ),
 };
