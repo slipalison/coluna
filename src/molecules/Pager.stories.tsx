@@ -51,7 +51,7 @@ const RESUMO = [
 export const NoCabeçalho: Story = {
   name: "No cabeçalho",
   render: () => {
-    const [mes, definir] = useState(2);
+    const [mes, setMes] = useState(2);
     const nome = MESES[mes] ?? "";
     return (
       <div style={{ maxWidth: "720px" }}>
@@ -65,8 +65,8 @@ export const NoCabeçalho: Story = {
               nextLabel="Próximo mês"
               hasPrevious={mes > 0}
               hasNext={mes < MESES.length - 1}
-              onPrevious={() => definir((atual) => atual - 1)}
-              onNext={() => definir((atual) => atual + 1)}
+              onPrevious={() => setMes((atual) => atual - 1)}
+              onNext={() => setMes((atual) => atual + 1)}
               current={`${nome} de 2026`}
             />
           }

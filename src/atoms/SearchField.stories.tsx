@@ -56,7 +56,7 @@ const TACO = [
 export const ComContagem: Story = {
   name: "Com contagem",
   render: () => {
-    const [termo, definir] = useState("arroz cozido");
+    const [termo, setTermo] = useState("arroz cozido");
     const palavras = termo.toLowerCase().split(/\s+/).filter(Boolean);
     const achados = TACO.filter((nome) =>
       palavras.every((palavra) => nome.toLowerCase().includes(palavra)),
@@ -71,7 +71,7 @@ export const ComContagem: Story = {
           size="lg"
           full
           value={termo}
-          onChange={(evento) => definir(evento.target.value)}
+          onChange={(evento) => setTermo(evento.target.value)}
           count={termo.trim() === "" ? undefined : contagem}
         />
         <Stack gap={4} style={{ padding: "0 4px" }}>

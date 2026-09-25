@@ -48,7 +48,7 @@ export function PageHeader({
   actions,
   as = "h1",
   className,
-}: PageHeaderProps) {
+}: Readonly<PageHeaderProps>) {
   const classe = className ? `co-page-header ${className}` : "co-page-header";
   return (
     <header className={classe}>

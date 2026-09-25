@@ -48,7 +48,7 @@ type Destino = (typeof DESTINOS)[number]["value"];
  * A marca no topo do trilho. É o nome do lugar, e não um destino: fica fora da
  * lista de botões, e recolhida continua dizendo "Basalto" ao leitor de tela.
  */
-function Marca({ collapsed }: { collapsed: boolean }) {
+function Marca({ collapsed }: Readonly<{ collapsed: boolean }>) {
   return (
     <>
       <span
@@ -75,7 +75,10 @@ function Marca({ collapsed }: { collapsed: boolean }) {
   );
 }
 
-function Moldura({ collapsed = false, marca = false }: { collapsed?: boolean; marca?: boolean }) {
+function Moldura({
+  collapsed = false,
+  marca = false,
+}: Readonly<{ collapsed?: boolean; marca?: boolean }>) {
   const [destino, definir] = useState<Destino>("diario");
   const atual = DESTINOS.find((d) => d.value === destino);
 

@@ -56,11 +56,13 @@ export function Pager({
   hasNext = true,
   current,
   className,
-}: PagerProps) {
+}: Readonly<PagerProps>) {
   const classe = className ? `co-pager ${className}` : "co-pager";
 
   return (
-    <div className={classe} role="group" aria-label={label}>
+    // `<fieldset>`, e não `<div role="group">`: é o elemento que já nasce
+    // grupo, e o papel escrito à mão é o que some no primeiro ajuste de marcação.
+    <fieldset className={classe} aria-label={label}>
       <button
         type="button"
         className="co-pager__button"
@@ -86,6 +88,6 @@ export function Pager({
           {current}
         </VisuallyHidden>
       )}
-    </div>
+    </fieldset>
   );
 }

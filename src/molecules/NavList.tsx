@@ -63,7 +63,7 @@ export function NavList<T extends string>({
   onChange,
   opens = "page",
   className,
-}: NavListProps<T>) {
+}: Readonly<NavListProps<T>>) {
   const base = useId();
   const classe = className ? `co-nav-list ${className}` : "co-nav-list";
   const atualVale = opens === "page" ? "page" : "true";
@@ -154,12 +154,12 @@ export function NavList<T extends string>({
 
     const idGrupo = `${base}-grupo-${indice}`;
     return (
-      <div className="co-nav-list__group" key={grupo.nome} role="group" aria-labelledby={idGrupo}>
+      <fieldset className="co-nav-list__group" key={grupo.nome} aria-labelledby={idGrupo}>
         <Text id={idGrupo} className="co-nav-list__group-label" variant="micro" tone="subtle">
           {grupo.nome}
         </Text>
         {lista(grupo.itens)}
-      </div>
+      </fieldset>
     );
   });
 
@@ -171,9 +171,11 @@ export function NavList<T extends string>({
     );
   }
 
+  // `<fieldset>`, e não `<div role="group">`: o elemento já nasce grupo — o
+  // mesmo motivo de os blocos com nome, lá em cima, também serem `<fieldset>`.
   return (
-    <div className={classe} role="group" aria-label={label}>
+    <fieldset className={classe} aria-label={label}>
       {conteudo}
-    </div>
+    </fieldset>
   );
 }

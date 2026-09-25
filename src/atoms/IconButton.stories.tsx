@@ -63,7 +63,7 @@ export const AoLadoDaBusca: Story = {
  */
 export const Favorito: Story = {
   render: () => {
-    const [salvo, definir] = useState(false);
+    const [salvo, setSalvo] = useState(false);
     return (
       <Stack direction="row" gap={10} style={{ maxWidth: "386px" }}>
         <Button size="lg" icon="check" full>
@@ -74,7 +74,7 @@ export const Favorito: Story = {
           label="Salvar nos favoritos"
           size="lg"
           pressed={salvo}
-          onClick={() => definir((atual) => !atual)}
+          onClick={() => setSalvo((atual) => !atual)}
         />
       </Stack>
     );

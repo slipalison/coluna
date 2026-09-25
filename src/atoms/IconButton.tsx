@@ -54,7 +54,7 @@ export function IconButton({
   type = "button",
   className,
   ...resto
-}: IconButtonProps) {
+}: Readonly<IconButtonProps>) {
   const classe = className ? `co-icon-button ${className}` : "co-icon-button";
   return (
     <button

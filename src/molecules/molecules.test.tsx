@@ -656,7 +656,7 @@ describe("MacroBar em linha", () => {
 
 describe("Pager", () => {
   function Mes() {
-    const [mes, definir] = useState(8);
+    const [mes, setMes] = useState(8);
     const NOMES = ["julho", "agosto", "setembro"];
     return (
       <Pager
@@ -665,8 +665,8 @@ describe("Pager", () => {
         nextLabel="Próximo mês"
         hasPrevious={mes > 6}
         hasNext={mes < 8}
-        onPrevious={() => definir((m) => m - 1)}
-        onNext={() => definir((m) => m + 1)}
+        onPrevious={() => setMes((m) => m - 1)}
+        onNext={() => setMes((m) => m + 1)}
         current={`${NOMES[mes - 6]} de 2026`}
       />
     );

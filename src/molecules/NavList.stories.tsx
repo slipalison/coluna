@@ -56,10 +56,10 @@ const SECOES = [
  */
 export const Ajustes: Story = {
   render: () => {
-    const [secao, definir] = useState<(typeof SECOES)[number]["value"]>("meta");
+    const [secao, setSecao] = useState<(typeof SECOES)[number]["value"]>("meta");
     return (
       <div style={{ width: "290px" }}>
-        <NavList label="Ajustes" items={SECOES} value={secao} onChange={definir} />
+        <NavList label="Ajustes" items={SECOES} value={secao} onChange={setSecao} />
       </div>
     );
   },
@@ -81,7 +81,7 @@ const RECEITAS = [
 export const ListaEDetalhe: Story = {
   name: "Lista e detalhe",
   render: () => {
-    const [aberta, definir] = useState("frango");
+    const [aberta, setAberta] = useState("frango");
     const itens = RECEITAS.map((r) => ({
       value: r.value,
       label: r.nome,
@@ -101,7 +101,7 @@ export const ListaEDetalhe: Story = {
     return (
       <Stack gap={14} style={{ width: "392px" }}>
         <SearchField label="Buscar receita" placeholder="Nome ou ingrediente" full />
-        <NavList label="Receitas" items={itens} value={aberta} onChange={definir} opens="detail" />
+        <NavList label="Receitas" items={itens} value={aberta} onChange={setAberta} opens="detail" />
       </Stack>
     );
   },
@@ -120,14 +120,14 @@ const FONTES = [
 export const ComPonto: Story = {
   name: "Com ponto",
   render: () => {
-    const [fonte, definir] = useState<(typeof FONTES)[number]["value"]>("taco");
+    const [fonte, setFonte] = useState<(typeof FONTES)[number]["value"]>("taco");
     return (
       <Stack gap={12} style={{ width: "300px" }}>
         <NavList
           label="Bases de alimentos"
           opens="detail"
           value={fonte}
-          onChange={definir}
+          onChange={setFonte}
           items={FONTES.map((f) => ({
             value: f.value,
             label: f.label,

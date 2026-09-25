@@ -49,7 +49,7 @@ export interface LegendProps {
  * marca que ela nomeia, e um cinza que não passa em 3:1 contra o fundo não é
  * sinal de nada.
  */
-export function Legend({ items, label, className }: LegendProps) {
+export function Legend({ items, label, className }: Readonly<LegendProps>) {
   const classe = className ? `co-legend ${className}` : "co-legend";
   return (
     <ul className={classe} aria-label={label}>

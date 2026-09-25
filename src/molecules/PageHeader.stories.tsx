@@ -117,13 +117,13 @@ const JANELAS = [
 export const ComSegmentado: Story = {
   name: "Com segmentado",
   render: () => {
-    const [janela, definir] = useState<(typeof JANELAS)[number]["value"]>("28");
+    const [janela, setJanela] = useState<(typeof JANELAS)[number]["value"]>("28");
     return (
       <PageHeader
         title="O que o corpo respondeu"
         subtitle="Peso à esquerda, gasto à direita — e a seta entre os dois é a razão de estarem na mesma tela."
         actions={
-          <SegmentedControl label="Janela de tempo" options={JANELAS} value={janela} onChange={definir} />
+          <SegmentedControl label="Janela de tempo" options={JANELAS} value={janela} onChange={setJanela} />
         }
       />
     );

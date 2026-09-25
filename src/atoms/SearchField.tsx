@@ -63,7 +63,7 @@ export function SearchField({
   full = false,
   className,
   ...resto
-}: SearchFieldProps) {
+}: Readonly<SearchFieldProps>) {
   const campo = useRef<HTMLInputElement>(null);
 
   useEffect(() => {

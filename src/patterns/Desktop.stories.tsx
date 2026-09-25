@@ -60,7 +60,7 @@ const DESTINOS = [
 type Destino = (typeof DESTINOS)[number]["value"];
 
 /** A marca no topo do trilho: o quadrado de acento e, aberto, o nome. */
-function Marca({ collapsed = false }: { collapsed?: boolean }) {
+function Marca({ collapsed = false }: Readonly<{ collapsed?: boolean }>) {
   return (
     <>
       <span
@@ -92,12 +92,12 @@ function Moldura({
   destino,
   collapsed = false,
   children,
-}: {
+}: Readonly<{
   destino: Destino;
   collapsed?: boolean;
   children: ReactNode;
-}) {
-  const [atual, definir] = useState<Destino>(destino);
+}>) {
+  const [atual, setAtual] = useState<Destino>(destino);
   return (
     <div
       className="co-grain"
@@ -114,7 +114,7 @@ function Moldura({
         label="Seções do Basalto"
         items={DESTINOS}
         value={atual}
-        onChange={definir}
+        onChange={setAtual}
         collapsed={collapsed}
         header={<Marca collapsed={collapsed} />}
         footer={
@@ -206,7 +206,7 @@ const PESO = [85.1, 84.8, 84.6, 84.5, 84.2, 84.1, 83.9, 84.0, 83.8, 83.7, 83.6, 
  */
 export const Diário: Story = {
   render: () => {
-    const [aberta, definir] = useState<string | null>("almoco");
+    const [aberta, setAberta] = useState<string | null>("almoco");
     return (
       <Moldura destino="diario">
         <main
@@ -293,7 +293,7 @@ export const Diário: Story = {
                           ? {}
                           : {
                               expanded: estaAberta,
-                              onClick: () => definir(estaAberta ? null : refeicao.id),
+                              onClick: () => setAberta(estaAberta ? null : refeicao.id),
                             })}
                         leading={
                           <Text variant="subhead" tone="subtle" numeric style={{ width: "44px" }}>
@@ -465,9 +465,9 @@ const virgula = (n: number) => String(n).replace(".", ",");
 export const Ajustes: Story = {
   render: () => {
     const guardado = 0.5;
-    const [secao, definirSecao] = useState<(typeof SECOES)[number]["value"]>("meta");
-    const [objetivo, definirObjetivo] = useState<(typeof OBJETIVOS)[number]["value"]>("perder");
-    const [ritmo, definirRitmo] = useState(0.75);
+    const [secao, setSecao] = useState<(typeof SECOES)[number]["value"]>("meta");
+    const [objetivo, setObjetivo] = useState<(typeof OBJETIVOS)[number]["value"]>("perder");
+    const [ritmo, setRitmo] = useState(0.75);
 
     const antes = contaDaMeta(guardado);
     const depois = contaDaMeta(ritmo);
@@ -490,7 +490,7 @@ export const Ajustes: Story = {
           <Text as="h1" variant="title-lg" style={{ padding: "0 8px" }}>
             Ajustes
           </Text>
-          <NavList label="Seções dos ajustes" items={SECOES} value={secao} onChange={definirSecao} />
+          <NavList label="Seções dos ajustes" items={SECOES} value={secao} onChange={setSecao} />
         </div>
 
         <main
@@ -527,7 +527,7 @@ export const Ajustes: Story = {
                   label="Objetivo"
                   options={OBJETIVOS}
                   value={objetivo}
-                  onChange={definirObjetivo}
+                  onChange={setObjetivo}
                   full
                 />
               </Stack>
@@ -548,7 +548,7 @@ export const Ajustes: Story = {
                       align="start"
                       size="lg"
                       selected={marcado}
-                      onClick={() => definirRitmo(r.value)}
+                      onClick={() => setRitmo(r.value)}
                     >
                       <Stack direction="row" gap={10} align="baseline">
                         <Text variant="body" weight={marcado ? "semibold" : "regular"}>
@@ -675,10 +675,10 @@ const INGREDIENTES = [
  */
 export const Receitas: Story = {
   render: () => {
-    const [filtro, definirFiltro] = useState<(typeof FILTROS)[number]["value"]>("todas");
-    const [aberta, definirAberta] = useState("frango");
-    const [escala, definirEscala] = useState<(typeof ESCALAS)[number]["value"]>("1");
-    const [termo, definirTermo] = useState("");
+    const [filtro, setFiltro] = useState<(typeof FILTROS)[number]["value"]>("todas");
+    const [aberta, setAberta] = useState("frango");
+    const [escala, setEscala] = useState<(typeof ESCALAS)[number]["value"]>("1");
+    const [termo, setTermo] = useState("");
 
     const visiveis = RECEITAS.filter(
       (r) =>
@@ -713,17 +713,17 @@ export const Receitas: Story = {
               placeholder="Nome ou ingrediente"
               full
               value={termo}
-              onChange={(evento) => definirTermo(evento.target.value)}
+              onChange={(evento) => setTermo(evento.target.value)}
               count={termo.trim() === "" ? undefined : `${visiveis.length} de ${RECEITAS.length}`}
             />
-            <SegmentedControl label="Filtro" options={FILTROS} value={filtro} onChange={definirFiltro} full />
+            <SegmentedControl label="Filtro" options={FILTROS} value={filtro} onChange={setFiltro} full />
           </Stack>
           <div style={{ flexGrow: 1, minHeight: 0, overflowY: "auto", padding: "0 12px 20px" }}>
             <NavList
               label="Receitas"
               opens="detail"
               value={aberta}
-              onChange={definirAberta}
+              onChange={setAberta}
               items={visiveis.map((r) => ({
                 value: r.value,
                 label: r.nome,
@@ -750,7 +750,7 @@ export const Receitas: Story = {
             subtitle={`${Math.round(4 * fator)} porções · ${receita?.tempo ?? ""} · sua receita`}
             actions={
               <>
-                <SegmentedControl label="Escala da receita" options={ESCALAS} value={escala} onChange={definirEscala} />
+                <SegmentedControl label="Escala da receita" options={ESCALAS} value={escala} onChange={setEscala} />
                 <Button icon="check">Registrar 1 porção</Button>
               </>
             }
