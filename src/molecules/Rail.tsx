@@ -27,6 +27,12 @@ export interface RailProps<T extends string> {
   onChange: (value: T) => void;
   /** Só o ícone, em 72px de largura. O rótulo continua no leitor de tela e no `title`. */
   collapsed?: boolean;
+  /**
+   * O topo do trilho: a marca do aplicativo. As nove pranchas de desktop abrem
+   * o trilho com ela — o quadrado de acento recolhido, o quadrado e o nome
+   * aberto —, e ela fica FORA da navegação: é o nome do lugar, não um destino.
+   */
+  header?: ReactNode;
   /** O rodapé do trilho: a conta, o tema, a versão. */
   footer?: ReactNode;
   className?: string | undefined;
@@ -57,6 +63,7 @@ export function Rail<T extends string>({
   value,
   onChange,
   collapsed = false,
+  header,
   footer,
   className,
 }: RailProps<T>) {
@@ -91,6 +98,7 @@ export function Rail<T extends string>({
 
   return (
     <nav className={classe} aria-label={label} data-collapsed={collapsed ? "true" : undefined}>
+      {header ? <div className="co-rail__header">{header}</div> : null}
       <div className="co-rail__groups">
         {grupos.map((grupo, indice) => {
           if (grupo.nome === undefined) {

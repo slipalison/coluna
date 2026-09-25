@@ -9,9 +9,13 @@ import { Disclosure } from "./Disclosure";
 import { EmptyState } from "./EmptyState";
 import { Field } from "./Field";
 import { Group } from "./Group";
+import { Legend } from "./Legend";
 import { ListRow } from "./ListRow";
 import { MacroBar } from "./MacroBar";
+import { NavList } from "./NavList";
 import { Notice } from "./Notice";
+import { PageHeader } from "./PageHeader";
+import { Pager } from "./Pager";
 import { Rail } from "./Rail";
 import { Reckoning } from "./Reckoning";
 import { SegmentedControl } from "./SegmentedControl";
@@ -590,5 +594,281 @@ describe("Rail", () => {
     const soltos = [{ value: "diario", label: "Diário", icon: "book" }] as const;
     render(<Rail label="Seções" items={soltos} value="diario" onChange={vi.fn()} />);
     expect(screen.queryByRole("group")).not.toBeInTheDocument();
+  });
+});
+
+describe("Rail com marca", () => {
+  it("a marca abre o trilho e não vira destino", () => {
+    const DESTINOS = [{ value: "diario", label: "Diário", icon: "book" }] as const;
+    render(
+      <Rail
+        label="Seções"
+        items={DESTINOS}
+        value="diario"
+        onChange={vi.fn()}
+        header={<span>Basalto</span>}
+      />,
+    );
+    expect(screen.getByText("Basalto")).toBeInTheDocument();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+  });
+});
+
+describe("MacroBar em linha", () => {
+  it("põe barra e número na mesma linha, e o número diz a verdade", () => {
+    const { container } = render(
+      <MacroBar name="Proteína" value={68} target={135} kind="protein" layout="inline" />,
+    );
+    expect(container.firstElementChild).toHaveAttribute("data-layout", "inline");
+    expect(screen.getByText("68 de 135 g")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: "Proteína: 68 de 135 g" })).toHaveAttribute(
+      "aria-valuenow",
+      "50",
+    );
+  });
+
+  it("o número mostrado pode não ser o par da barra, e a conta vem embaixo", () => {
+    // As macros da meta: a barra é a fatia da energia do dia (540 de 1.917),
+    // o número é o que a pessoa conhece — os gramas.
+    render(
+      <MacroBar
+        name="Proteína"
+        value={540}
+        target={1917}
+        layout="inline"
+        valueText="135 g"
+        expression="135 × 4 = 540"
+      />,
+    );
+    expect(screen.getByText("135 g")).toBeInTheDocument();
+    expect(screen.getByText("135 × 4 = 540")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: "Proteína: 135 g" })).toHaveAttribute(
+      "aria-valuenow",
+      "28",
+    );
+  });
+
+  it("empilhada também aceita a conta", () => {
+    render(<MacroBar name="Gordura" value={30} target={53} kind="fat" expression="30 × 9 = 270" />);
+    expect(screen.getByText("30 × 9 = 270")).toBeInTheDocument();
+  });
+});
+
+describe("Pager", () => {
+  function Mes() {
+    const [mes, definir] = useState(8);
+    const NOMES = ["julho", "agosto", "setembro"];
+    return (
+      <Pager
+        label="Mês"
+        previousLabel="Mês anterior"
+        nextLabel="Próximo mês"
+        hasPrevious={mes > 6}
+        hasNext={mes < 8}
+        onPrevious={() => definir((m) => m - 1)}
+        onNext={() => definir((m) => m + 1)}
+        current={`${NOMES[mes - 6]} de 2026`}
+      />
+    );
+  }
+
+  it("é um grupo com nome, e cada botão diz para onde vai", () => {
+    render(<Mes />);
+    expect(screen.getByRole("group", { name: "Mês" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Mês anterior" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Próximo mês" })).toBeInTheDocument();
+  });
+
+  it("anuncia o período novo depois de cada toque", async () => {
+    const usuario = userEvent.setup();
+    render(<Mes />);
+    expect(screen.getByText("setembro de 2026")).toHaveAttribute("aria-live", "polite");
+    await usuario.click(screen.getByRole("button", { name: "Mês anterior" }));
+    expect(screen.getByText("agosto de 2026")).toBeInTheDocument();
+  });
+
+  it("na ponta o botão apaga, mas o foco não cai fora da página", async () => {
+    // Quem volta até o primeiro mês apertando Enter tem o botão desligado
+    // debaixo do próprio foco no último toque. Com `disabled` o foco sumiria
+    // para o começo da página; com `aria-disabled` ele fica onde estava.
+    const usuario = userEvent.setup();
+    render(<Mes />);
+    const voltar = screen.getByRole("button", { name: "Mês anterior" });
+    voltar.focus();
+    await usuario.keyboard("{Enter}{Enter}");
+    expect(screen.getByText("julho de 2026")).toBeInTheDocument();
+    expect(voltar).toHaveAttribute("aria-disabled", "true");
+    expect(document.activeElement).toBe(voltar);
+
+    // E apertar de novo na ponta não anda para lugar nenhum.
+    await usuario.keyboard("{Enter}");
+    expect(screen.getByText("julho de 2026")).toBeInTheDocument();
+  });
+
+  it("hoje é a ponta da direita", () => {
+    render(<Mes />);
+    expect(screen.getByRole("button", { name: "Próximo mês" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Mês anterior" })).not.toHaveAttribute(
+      "aria-disabled",
+    );
+  });
+
+  it("sem período, não inventa um anúncio", () => {
+    const { container } = render(
+      <Pager
+        label="Dia"
+        previousLabel="Dia anterior"
+        nextLabel="Próximo dia"
+        onPrevious={vi.fn()}
+        onNext={vi.fn()}
+      />,
+    );
+    expect(container.querySelector("[aria-live]")).toBeNull();
+  });
+});
+
+describe("Legend", () => {
+  it("é uma lista de nomes, e a amostra não fala", () => {
+    const { container } = render(
+      <Legend
+        label="Legenda do calendário"
+        items={[
+          { label: "dia fechado", tone: "accent" },
+          { label: "parcial", tone: "carb" },
+          { label: "sem registro", tone: "neutral" },
+        ]}
+      />,
+    );
+    const lista = screen.getByRole("list", { name: "Legenda do calendário" });
+    expect(lista.querySelectorAll("li")).toHaveLength(3);
+    for (const amostra of container.querySelectorAll(".co-legend__swatch")) {
+      expect(amostra).toHaveAttribute("aria-hidden", "true");
+    }
+  });
+
+  it("a amostra leva a forma da marca que explica", () => {
+    const { container } = render(
+      <Legend
+        items={[
+          { label: "pesagem do dia", swatch: "point", tone: "neutral" },
+          { label: "tendência", swatch: "line" },
+          { label: "projeção", swatch: "dashed" },
+          { label: "faixa da meta", swatch: "band" },
+        ]}
+      />,
+    );
+    const formas = [...container.querySelectorAll(".co-legend__swatch")].map((a) =>
+      a.getAttribute("data-swatch"),
+    );
+    expect(formas).toEqual(["point", "line", "dashed", "band"]);
+  });
+
+  it("sem forma nem tom, é o quadrado do acento", () => {
+    const { container } = render(<Legend items={[{ label: "dia fechado" }]} />);
+    const amostra = container.querySelector(".co-legend__swatch");
+    expect(amostra).toHaveAttribute("data-swatch", "square");
+    expect(amostra).toHaveAttribute("data-tone", "accent");
+  });
+});
+
+describe("NavList", () => {
+  const SECOES = [
+    { value: "meta", label: "Meta e ritmo", description: "perder 0,5 kg/semana", group: "A sua conta" },
+    { value: "macros", label: "Estratégia de macros", description: "padrão", group: "A sua conta" },
+    { value: "dados", label: "Seus dados", description: "exportar, sair, apagar", group: "Conta e dados" },
+  ] as const;
+
+  it("de páginas: é navegação, e a seção aberta é a página atual", () => {
+    render(<NavList label="Ajustes" items={SECOES} value="macros" onChange={vi.fn()} />);
+    expect(screen.getByRole("navigation", { name: "Ajustes" })).toBeInTheDocument();
+    const aberta = screen.getByRole("button", { name: "Estratégia de macros" });
+    expect(aberta).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "Meta e ritmo" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("o nome é o rótulo; o que a seção guarda é descrição", () => {
+    // Sem isso o nome seria a linha inteira, e quem pula de item em item
+    // ouviria a conta antes de saber em que seção está.
+    render(<NavList label="Ajustes" items={SECOES} value="meta" onChange={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "Meta e ritmo" })).toHaveAccessibleDescription(
+      "perder 0,5 kg/semana",
+    );
+  });
+
+  it("os grupos têm nome e os itens são lista", () => {
+    render(<NavList label="Ajustes" items={SECOES} value="meta" onChange={vi.fn()} />);
+    const grupo = screen.getByRole("group", { name: "A sua conta" });
+    expect(grupo.querySelectorAll("li")).toHaveLength(2);
+    expect(screen.getByRole("group", { name: "Conta e dados" })).toBeInTheDocument();
+  });
+
+  it("de detalhe: não é navegação, e o item aberto é o atual do grupo", () => {
+    // Lista e detalhe: a página não muda, muda o painel ao lado. Anunciar
+    // "página atual" ali seria mentir sobre o que o clique fez.
+    const RECEITAS = [
+      { value: "frango", label: "Frango com batata-doce", trailing: "519", description: "4 porções · 30 min" },
+      { value: "omelete", label: "Omelete de três ovos", trailing: "341" },
+    ] as const;
+    render(
+      <NavList label="Receitas" items={RECEITAS} value="frango" onChange={vi.fn()} opens="detail" />,
+    );
+    expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Receitas" })).toBeInTheDocument();
+    const aberta = screen.getByRole("button", { name: "Frango com batata-doce" });
+    expect(aberta).toHaveAttribute("aria-current", "true");
+    expect(aberta).toHaveAccessibleDescription("4 porções · 30 min 519");
+  });
+
+  it("troca de item pelo clique", async () => {
+    const usuario = userEvent.setup();
+    const aoTrocar = vi.fn();
+    render(<NavList label="Ajustes" items={SECOES} value="meta" onChange={aoTrocar} />);
+    await usuario.click(screen.getByRole("button", { name: "Seus dados" }));
+    expect(aoTrocar).toHaveBeenCalledWith("dados");
+  });
+
+  it("item sem grupo não inventa um, e o que abre a linha aparece", () => {
+    const FONTES = [
+      { value: "taco", label: "TACO", leading: <span data-testid="ponto" />, trailing: "597" },
+    ] as const;
+    render(<NavList label="Bases" items={FONTES} value="taco" onChange={vi.fn()} opens="detail" />);
+    expect(screen.getAllByRole("group")).toHaveLength(1);
+    expect(screen.getByTestId("ponto")).toBeInTheDocument();
+  });
+});
+
+describe("PageHeader", () => {
+  it("o título é o h1 da página, e as ações ficam no cabeçalho", () => {
+    render(
+      <PageHeader
+        title="Hoje"
+        subtitle="quarta, 16 de setembro"
+        navigation={
+          <Pager
+            label="Dia"
+            previousLabel="Dia anterior"
+            nextLabel="Próximo dia"
+            hasNext={false}
+            onPrevious={vi.fn()}
+            onNext={vi.fn()}
+          />
+        }
+        actions={<Button icon="plus">Registrar</Button>}
+      />,
+    );
+    expect(screen.getByRole("heading", { level: 1, name: "Hoje" })).toBeInTheDocument();
+    expect(screen.getByText("quarta, 16 de setembro")).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Dia" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Registrar" })).toBeInTheDocument();
+  });
+
+  it("dentro de um painel o título desce um nível, e o que não veio não ocupa lugar", () => {
+    const { container } = render(<PageHeader as="h2" title="Frango com batata-doce" />);
+    expect(screen.getByRole("heading", { level: 2 })).toBeInTheDocument();
+    expect(container.querySelector(".co-page-header__navigation")).toBeNull();
+    expect(container.querySelector(".co-page-header__actions")).toBeNull();
   });
 });

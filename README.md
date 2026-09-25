@@ -170,11 +170,16 @@ texto ([ADR-005](docs/adr/005-cor-nunca-sozinha.md)).
 ## O que tem dentro
 
 **Átomos** — `Text` `Stack` `Grid` `Surface` `Screen` `Divider` `Dot` `Button`
-`Icon` `Badge` `Slat` `Chip` `Input` `Series` `VisuallyHidden`
+`IconButton` `Icon` `Badge` `Slat` `Chip` `Input` `SearchField` `Series`
+`VisuallyHidden`
 
 **Moléculas** — `Group` `ListRow` `Reckoning` `MacroBar` `Stat` `Notice`
-`SegmentedControl` `Stepper` `ScreenHeader` `TabBar` `Field` `Sheet` `Rail`
-`Disclosure` `EmptyState` `Diff`
+`SegmentedControl` `Stepper` `ScreenHeader` `PageHeader` `TabBar` `Rail`
+`NavList` `Pager` `Field` `Sheet` `Legend` `Disclosure` `EmptyState` `Diff`
+
+**Padrões** — no catálogo, `Padrões/Tela do diário` monta a tela do telefone e
+`Padrões/Desktop` monta três do desktop (diário, ajustes, receitas), só com
+peças do sistema.
 
 **Tema** — `ThemeProvider` `useTheme` `readToken` `semanticTokens`
 
@@ -232,6 +237,28 @@ Alguns que merecem nota:
 - **`Diff`** mostra o que muda se a pessoa confirmar, e **não some** quando os
   dois valores voltam a ser iguais: sumir faria a tela pular por baixo do dedo
   no meio do ajuste.
+- **`PageHeader`** é o cabeçalho do desktop: título e linha de baixo à
+  esquerda, as ações da página à direita, tudo na mesma base. Não é o
+  `ScreenHeader` esticado — no telefone cabe uma ação; no desktop cabem a
+  busca, o botão principal e o seletor de período na linha do título.
+- **`Pager`** é o anterior/próximo colado ao título que ele troca. Na ponta o
+  botão fica `aria-disabled`, e não `disabled`, para o foco não cair no começo
+  da página no último toque; e o `current` anuncia o período que chegou.
+- **`SearchField`** é `<input type="search">` num marco `search`, com a
+  contagem de resultados anunciada quando muda. O atalho (`/`) traz o foco de
+  qualquer ponto da página — menos de dentro de outro campo, onde a barra
+  continua sendo barra.
+- **`NavList`** é a coluna que escolhe o que a coluna do lado mostra: as
+  seções dos Ajustes, a lista das receitas. Não é o `Rail`: o trilho é a
+  navegação do aplicativo; esta é a de dentro de uma seção. `opens="page"`
+  sai `<nav>`; `opens="detail"` sai grupo, porque ali muda o painel e não a
+  página.
+- **`Legend`** mora fora da `Series` pelo mesmo motivo de a série não ter
+  eixo, e a amostra copia a marca que explica — quadrado, ponto, traço,
+  tracejado, faixa.
+- **`MacroBar layout="inline"`** põe ponto, nome, barra e número numa linha só,
+  para a coluna larga. As colunas se alinham por `--co-macro-name-width` e
+  `--co-macro-figure-width`, escritas uma vez no `Group`.
 
 ---
 
@@ -257,7 +284,7 @@ quer um tipo carregaria a folha inteira, inclusive em teste e em Node.
 ```bash
 npm install       # o `prepare` já gera os tokens
 npm run tokens    # tokens/*.json -> src/tokens/{tokens.css,gerado.ts}
-npm test          # 146 testes, piso de 80% em linha, ramo, função e comando
+npm test          # 189 testes, piso de 80% em linha, ramo, função e comando
 npm run build     # dist/coluna.js + dist/index.d.ts + os dois CSS
 npm run referencia # docs/referencia.html, pintada pelo CSS que o pacote publica
 ```
@@ -278,3 +305,5 @@ a esteira reprova o que estiver fora.
 - [ADR-004 — o contêiner arredonda, o conteúdo é reto](docs/adr/004-raio-conteiner-e-conteudo.md)
 - [ADR-005 — cor nunca é o único sinal](docs/adr/005-cor-nunca-sozinha.md)
 - [ADR-006 — o que entrou com o desktop, e o que ficou de fora](docs/adr/006-o-que-entrou-com-o-desktop.md)
+- [ADR-007 — a marca de escolha diz quantas](docs/adr/007-a-marca-de-escolha-diz-quantas.md)
+- [ADR-008 — a segunda leitura do desktop](docs/adr/008-a-segunda-leitura-do-desktop.md)

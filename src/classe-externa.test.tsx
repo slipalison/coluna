@@ -6,7 +6,9 @@ import { Chip } from "./atoms/Chip";
 import { Divider } from "./atoms/Divider";
 import { Grid } from "./atoms/Grid";
 import { Icon } from "./atoms/Icon";
+import { IconButton } from "./atoms/IconButton";
 import { Input } from "./atoms/Input";
+import { SearchField } from "./atoms/SearchField";
 import { Series } from "./atoms/Series";
 import { Slat } from "./atoms/Slat";
 import { Stack } from "./atoms/Stack";
@@ -17,9 +19,13 @@ import { Diff } from "./molecules/Diff";
 import { Disclosure } from "./molecules/Disclosure";
 import { EmptyState } from "./molecules/EmptyState";
 import { Field } from "./molecules/Field";
+import { Legend } from "./molecules/Legend";
 import { ListRow } from "./molecules/ListRow";
 import { MacroBar } from "./molecules/MacroBar";
+import { NavList } from "./molecules/NavList";
 import { Notice } from "./molecules/Notice";
+import { PageHeader } from "./molecules/PageHeader";
+import { Pager } from "./molecules/Pager";
 import { Rail } from "./molecules/Rail";
 import { SegmentedControl } from "./molecules/SegmentedControl";
 import { Sheet } from "./molecules/Sheet";
@@ -103,6 +109,35 @@ const CASOS: [nome: string, elemento: React.ReactElement, classeDoSistema: strin
     />,
     "co-rail",
   ],
+  ["IconButton", <IconButton className="x" key="ib" icon="plus" label="Nova" />, "co-icon-button"],
+  ["SearchField", <SearchField className="x" key="sf" label="Buscar" />, "co-search"],
+  [
+    "Pager",
+    <Pager
+      className="x"
+      key="pg"
+      label="Dia"
+      previousLabel="Dia anterior"
+      nextLabel="Próximo dia"
+      onPrevious={vi.fn()}
+      onNext={vi.fn()}
+    />,
+    "co-pager",
+  ],
+  ["Legend", <Legend className="x" key="lg" items={[{ label: "parcial" }]} />, "co-legend"],
+  [
+    "NavList",
+    <NavList
+      className="x"
+      key="nl"
+      label="Ajustes"
+      items={[{ value: "a", label: "A" }]}
+      value="a"
+      onChange={vi.fn()}
+    />,
+    "co-nav-list",
+  ],
+  ["PageHeader", <PageHeader className="x" key="ph" title="Hoje" />, "co-page-header"],
 ];
 
 describe("classe externa", () => {

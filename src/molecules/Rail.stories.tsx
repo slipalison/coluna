@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { Stack } from "../atoms/Stack";
 import { Text } from "../atoms/Text";
+import { VisuallyHidden } from "../atoms/VisuallyHidden";
 import { Rail, type RailItem } from "./Rail";
 
 /**
@@ -43,7 +44,38 @@ const DESTINOS = [
 
 type Destino = (typeof DESTINOS)[number]["value"];
 
-function Moldura({ collapsed = false }: { collapsed?: boolean }) {
+/**
+ * A marca no topo do trilho. É o nome do lugar, e não um destino: fica fora da
+ * lista de botões, e recolhida continua dizendo "Basalto" ao leitor de tela.
+ */
+function Marca({ collapsed }: { collapsed: boolean }) {
+  return (
+    <>
+      <span
+        aria-hidden="true"
+        style={{
+          width: "26px",
+          height: "26px",
+          flexShrink: 0,
+          borderRadius: "var(--co-radius-inset)",
+          background: "var(--co-accent)",
+        }}
+      />
+      {collapsed ? (
+        <VisuallyHidden>Basalto</VisuallyHidden>
+      ) : (
+        <Text
+          as="span"
+          style={{ fontFamily: "var(--co-font-display)", fontSize: "var(--co-text-24)", lineHeight: 1 }}
+        >
+          Basalto
+        </Text>
+      )}
+    </>
+  );
+}
+
+function Moldura({ collapsed = false, marca = false }: { collapsed?: boolean; marca?: boolean }) {
   const [destino, definir] = useState<Destino>("diario");
   const atual = DESTINOS.find((d) => d.value === destino);
 
@@ -65,6 +97,7 @@ function Moldura({ collapsed = false }: { collapsed?: boolean }) {
         value={destino}
         collapsed={collapsed}
         onChange={definir}
+        header={marca ? <Marca collapsed={collapsed} /> : undefined}
         footer={
           <Text variant="micro" tone="subtle">
             Coluna
@@ -87,6 +120,15 @@ export const Padrão: Story = {
 };
 
 /**
+ * Com a marca no topo (`header`), como nas nove pranchas de desktop. Ela fica
+ * fora da navegação — é o nome do lugar —, e o rodapé continua embaixo.
+ */
+export const ComMarca: Story = {
+  name: "Com marca",
+  render: () => <Moldura marca />,
+};
+
+/**
  * Recolhido em 72px, para a janela estreita que ainda não é telefone.
  *
  * O rótulo sai da tela mas continua no leitor de tela e no `title` do mouse — e
@@ -94,5 +136,5 @@ export const Padrão: Story = {
  * botões soltos para quem navega ouvindo.
  */
 export const Recolhido: Story = {
-  render: () => <Moldura collapsed />,
+  render: () => <Moldura collapsed marca />,
 };
