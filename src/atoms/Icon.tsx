@@ -34,7 +34,8 @@ export type IconName =
   | "clock"
   | "download"
   | "star"
-  | "trash";
+  | "trash"
+  | "bookmark";
 
 const CAMINHOS: Record<IconName, string> = {
   "chevron-down": "M6 9l6 6 6-6",
@@ -64,6 +65,7 @@ const CAMINHOS: Record<IconName, string> = {
   download: "M12 4v11M8 11.5l4 4 4-4M5 19.5h14",
   star: "M12 3.6l2.6 5.4 5.9.8-4.3 4.3 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.8l5.9-.8z",
   trash: "M5 7h14M10 7V4.6h4V7M7 7l1 13h8l1-13M11 11v6M13 11v6",
+  bookmark: "M6.5 4h11v16.5L12 16.4l-5.5 4.1z",
 };
 
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, "name"> {

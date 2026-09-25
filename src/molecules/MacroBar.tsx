@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Dot } from "../atoms/Dot";
 import { Slat } from "../atoms/Slat";
 import { Text } from "../atoms/Text";
@@ -18,6 +19,35 @@ export interface MacroBarProps {
   kind?: MacroKind;
   /** Esconde a barra e deixa só ponto, nome e número. */
   bar?: boolean;
+  /**
+   * `stacked` (padrão) põe nome e número numa linha e a barra embaixo — o
+   * cartão estreito do telefone e da coluna lateral.
+   *
+   * `inline` põe tudo numa linha só: ponto, nome, barra, número. É a forma
+   * das colunas largas do desktop, e ela existe porque ali a barra empilhada
+   * vira um fio de 500px com o número perdido na outra ponta. Em linha, as
+   * barras de um grupo começam e terminam nos mesmos pontos, e a comparação
+   * entre elas é o que se lê primeiro.
+   *
+   * As colunas se alinham entre as linhas do grupo pelas variáveis
+   * `--co-macro-name-width` e `--co-macro-figure-width`, que se escrevem UMA
+   * vez no `Group` e as linhas herdam.
+   */
+  layout?: "stacked" | "inline";
+  /**
+   * O número à direita, quando ele não é "value de target unit".
+   *
+   * A barra continua sendo `value / target`; muda só o que se lê. É o caso das
+   * macros da meta, em que a barra mostra a fatia da energia do dia e o número
+   * mostra os gramas — "135 g", com a barra em 28%.
+   */
+  valueText?: string;
+  /**
+   * A conta que produziu o número, embaixo dele: "135 × 4 = 540". O mesmo
+   * nome e o mesmo papel da `expression` do `Reckoning` — o que transforma o
+   * número em algo que se confere.
+   */
+  expression?: ReactNode;
   className?: string | undefined;
 }
 
@@ -41,10 +71,50 @@ export function MacroBar({
   unit = "g",
   kind = "protein",
   bar = true,
+  layout = "stacked",
+  valueText,
+  expression,
   className,
 }: MacroBarProps) {
   const fracao = target > 0 ? value / target : 0;
   const classe = className ? `co-macro ${className}` : "co-macro";
+  const texto = valueText ?? `${value} de ${target} ${unit}`;
+
+  const barra = bar ? (
+    <Slat
+      className="co-macro__bar"
+      value={fracao}
+      size="sm"
+      pattern="solid"
+      tone={kind}
+      label={`${name}: ${texto}`}
+    />
+  ) : null;
+
+  const conta =
+    expression === undefined ? null : (
+      <Text variant="caption" tone="subtle" numeric>
+        {expression}
+      </Text>
+    );
+
+  if (layout === "inline") {
+    return (
+      <div className={classe} data-layout="inline">
+        <Dot tone={kind} />
+        <Text className="co-macro__name" variant="callout">
+          {name}
+        </Text>
+        {barra}
+        <div className="co-macro__figure">
+          <Text variant="callout" numeric>
+            {texto}
+          </Text>
+          {conta}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={classe}>
@@ -53,18 +123,11 @@ export function MacroBar({
         <div className="co-macro__head">
           <Text variant="body">{name}</Text>
           <Text variant="callout" tone="secondary" numeric>
-            {value} de {target} {unit}
+            {texto}
           </Text>
         </div>
-        {bar ? (
-          <Slat
-            value={fracao}
-            size="sm"
-            pattern="solid"
-            tone={kind}
-            label={`${name}: ${value} de ${target} ${unit}`}
-          />
-        ) : null}
+        {barra}
+        {conta}
       </div>
     </div>
   );

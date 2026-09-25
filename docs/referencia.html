@@ -749,6 +749,67 @@
   flex-shrink: 0;
 }
 
+/* ----------------------------------------------------------- botão-ícone --- */
+
+/*
+ * Quadrado, com o mesmo piso de 44px do botão. O `lg` tem os 52px do
+ * `Button size="lg"`, para os dois ficarem da mesma altura lado a lado —
+ * "Registrar" e o marcador de favorito.
+ */
+.co-icon-button {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--co-target-min);
+  height: var(--co-target-min);
+  padding: 0;
+  border: 0;
+  border-radius: var(--co-radius-control);
+  background: var(--co-surface);
+  color: var(--co-text-secondary);
+  cursor: pointer;
+  transition: background var(--co-duration-fast) var(--co-ease),
+    color var(--co-duration-fast) var(--co-ease);
+}
+
+.co-icon-button[data-size="lg"] {
+  width: 52px;
+  height: 52px;
+}
+
+.co-icon-button:hover:not(:disabled) {
+  background: var(--co-surface-raised);
+  color: var(--co-text-body);
+}
+
+.co-icon-button[data-variant="ghost"] {
+  background: transparent;
+  color: var(--co-text-muted);
+}
+
+.co-icon-button[data-variant="ghost"]:hover:not(:disabled) {
+  background: var(--co-surface);
+}
+
+.co-icon-button[data-tone="accent"],
+.co-icon-button[data-tone="accent"]:hover:not(:disabled) {
+  color: var(--co-accent);
+}
+
+/* Ligado muda de cor E de fundo: o ícone é traço, não tem como encher, e a
+ * cor sozinha não é sinal (ADR-005). */
+.co-icon-button[aria-pressed="true"],
+.co-icon-button[aria-pressed="true"]:hover:not(:disabled) {
+  background: var(--co-accent-soft);
+  color: var(--co-accent);
+}
+
+.co-icon-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* ------------------------------------------------------------------ selo ---- */
 
 .co-badge {
@@ -979,6 +1040,32 @@
   gap: var(--co-space-12);
 }
 
+/*
+ * Em linha, para a coluna larga do desktop. As larguras do nome e do número
+ * vêm de variáveis que o GRUPO escreve e as linhas herdam: é o que faz as
+ * barras de três macros começarem e terminarem nos mesmos pontos, sem que
+ * cada linha precise saber quanto mede a vizinha.
+ */
+.co-macro[data-layout="inline"] .co-macro__name {
+  flex-shrink: 0;
+  width: var(--co-macro-name-width, 112px);
+}
+
+.co-macro[data-layout="inline"] .co-macro__bar {
+  flex-grow: 1;
+  min-width: var(--co-space-40);
+}
+
+.co-macro__figure {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--co-space-2);
+  flex-shrink: 0;
+  min-width: var(--co-macro-figure-width, 88px);
+  text-align: right;
+}
+
 /* ------------------------------------------------------------------ aviso --- */
 
 /*
@@ -1055,6 +1142,50 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ------------------------------------------------------------- paginador --- */
+
+/*
+ * O mesmo trilho do incremento — 12px por fora, 3 de folga, 9 por dentro —
+ * porque é o mesmo gesto: dois botões colados que fazem coisas opostas.
+ */
+/* O paginador é um fieldset: a borda, a margem e a largura mínima que o
+ * navegador dá a ele saem aqui, para ele ser só o trilho. (O nome da tag fica
+ * sem os sinais de menor e maior de propósito: a folha é embutida na
+ * referência visual, e um analisador leria a tag escrita como tag de verdade.) */
+.co-pager {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--co-space-2);
+  padding: var(--co-space-2);
+  background: var(--co-surface);
+  border-radius: var(--co-radius-control);
+}
+
+.co-pager__button {
+  width: 46px;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--co-radius-inset);
+  background: transparent;
+  color: var(--co-text-secondary);
+  cursor: pointer;
+}
+
+.co-pager__button:hover:not([aria-disabled="true"]) { background: var(--co-surface-raised); }
+
+/* Na ponta o botão apaga, mas continua focável: `aria-disabled`, e não
+ * `disabled`, para o foco não cair fora da página no último toque. */
+.co-pager__button[aria-disabled="true"] {
+  color: var(--co-icon-muted);
+  cursor: not-allowed;
+}
+
 /* ------------------------------------------------------------ cabeçalho ---- */
 
 .co-screen-header {
@@ -1086,6 +1217,48 @@
   background: transparent;
   color: var(--co-text-muted);
   cursor: pointer;
+}
+
+/* ------------------------------------------------------ cabeçalho da página -- */
+
+/*
+ * O desktop: título à esquerda, ações à direita, tudo assentado na mesma base.
+ * `flex-wrap` porque a janela estreita existe antes de virar telefone — as
+ * ações descem para baixo do título em vez de espremê-lo em três linhas.
+ */
+.co-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--co-space-16) var(--co-space-24);
+  padding-bottom: var(--co-space-20);
+}
+
+.co-page-header__lead {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--co-space-16);
+  min-width: 0;
+}
+
+.co-page-header__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-2);
+  min-width: 0;
+}
+
+.co-page-header__navigation {
+  flex-shrink: 0;
+}
+
+.co-page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--co-space-10);
 }
 
 /* ------------------------------------------------------------- barra de abas -- */
@@ -1263,6 +1436,109 @@
   margin-top: 2px;
 }
 
+/* ----------------------------------------------------------------- busca ---- */
+
+/*
+ * A moldura da busca é a do campo — fundo de superfície, raio de controle, o
+ * anel de foco em volta de TUDO —, sem o contorno: a busca mora no alto da
+ * página ou da coluna, sobre o fundo do lugar, e ali o degrau de fundo já
+ * separa. O contorno fica para o campo de formulário, que precisa dizer "aqui
+ * se escreve" no meio de outras linhas.
+ */
+.co-search {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--co-space-10);
+  min-height: var(--co-target-min);
+  padding: 0 var(--co-space-14);
+  border-radius: var(--co-radius-control);
+  background: var(--co-surface);
+  color: var(--co-text);
+}
+
+.co-search[data-size="lg"] {
+  min-height: 52px;
+  padding: 0 var(--co-space-16);
+  gap: var(--co-space-12);
+}
+
+.co-search[data-full="true"] {
+  display: flex;
+  width: 100%;
+}
+
+.co-search:focus-within {
+  outline: 2px solid var(--co-accent);
+  outline-offset: 2px;
+}
+
+.co-search__icon {
+  flex-shrink: 0;
+  color: var(--co-icon-muted);
+}
+
+/* Com o foco dentro, a lupa acende: é o sinal de que o que se digita agora vai
+ * para a busca, e não para o atalho de alguma outra coisa. */
+.co-search:focus-within .co-search__icon {
+  color: var(--co-accent);
+}
+
+.co-search__control {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  padding: var(--co-space-10) 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: var(--co-font-body);
+  font-size: var(--co-text-16);
+  line-height: var(--co-leading-snug);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.co-search__control:focus-visible {
+  outline: none;
+}
+
+.co-search__control::placeholder {
+  color: var(--co-text-subtle);
+  opacity: 1;
+}
+
+/* A lupa que o Safari desenha dentro do campo: a do sistema já está do lado. */
+.co-search__control::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+.co-search__count {
+  flex-shrink: 0;
+  color: var(--co-text-subtle);
+  font-size: var(--co-text-12);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* A tecla desenhada: um degrau abaixo do campo, reta porque é conteúdo. Sai de
+ * cena com o foco dentro — ela ensina o caminho até aqui, e aqui já se está. */
+.co-search__key {
+  flex-shrink: 0;
+  min-width: 20px;
+  padding: var(--co-space-2) var(--co-space-6);
+  border-radius: var(--co-radius-content);
+  background: var(--co-surface-sunken);
+  color: var(--co-text-subtle);
+  font-family: var(--co-font-body);
+  font-size: var(--co-text-11);
+  line-height: var(--co-leading-normal);
+  text-align: center;
+}
+
+.co-search:focus-within .co-search__key {
+  display: none;
+}
+
 /* ------------------------------------------------------------------- chip --- */
 
 .co-chip {
@@ -1357,6 +1633,67 @@ button.co-chip {
   fill: var(--co-accent);
   stroke: var(--co-surface);
   stroke-width: 2;
+}
+
+/* ---------------------------------------------------------------- legenda --- */
+
+.co-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--co-space-6) var(--co-space-16);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.co-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--co-space-8);
+}
+
+/*
+ * A amostra copia a marca que ela explica: quadrado de categoria, ponto de
+ * medida, traço cheio, traço tracejado, faixa. O tom sai dos mesmos tokens do
+ * `Dot` e da `Slat`; o neutro é o cinza da tendência da `Series`, para a
+ * amostra ser a mesma cor da marca que ela nomeia.
+ */
+.co-legend__swatch {
+  --co-legend-color: var(--co-accent);
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--co-radius-content);
+  background: var(--co-legend-color);
+}
+
+.co-legend__swatch[data-tone="protein"] { --co-legend-color: var(--co-macro-protein); }
+.co-legend__swatch[data-tone="carb"] { --co-legend-color: var(--co-macro-carb); }
+.co-legend__swatch[data-tone="fat"] { --co-legend-color: var(--co-macro-fat); }
+.co-legend__swatch[data-tone="status"] { --co-legend-color: var(--co-status); }
+.co-legend__swatch[data-tone="neutral"] { --co-legend-color: var(--co-text-subtle); }
+
+.co-legend__swatch[data-swatch="point"] {
+  border-radius: var(--co-radius-pill);
+}
+
+.co-legend__swatch[data-swatch="line"] {
+  width: 14px;
+  height: 2px;
+}
+
+.co-legend__swatch[data-swatch="dashed"] {
+  width: 14px;
+  height: 0;
+  background: none;
+  border-top: 2px dashed var(--co-legend-color);
+}
+
+.co-legend__swatch[data-swatch="band"] {
+  width: 14px;
+  height: 8px;
+  opacity: 0.3;
 }
 
 /* -------------------------------------------------------------- revelação --- */
@@ -1578,10 +1915,25 @@ button.co-chip {
   width: 72px;
 }
 
+/* Os grupos crescem e empurram o rodapé para baixo, com ou sem marca no topo. */
 .co-rail__groups {
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
   gap: var(--co-space-20);
+}
+
+.co-rail__header {
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-10);
+  min-height: var(--co-target-min);
+  padding: 0 var(--co-space-12);
+}
+
+.co-rail[data-collapsed="true"] .co-rail__header {
+  justify-content: center;
+  padding: 0;
 }
 
 .co-rail__group {
@@ -1656,6 +2008,120 @@ button.co-chip {
   display: flex;
   flex-direction: column;
   gap: var(--co-space-8);
+}
+
+/* ------------------------------------------------------- lista de destinos -- */
+
+/*
+ * A coluna que escolhe o que a coluna do lado mostra. Sem fundo próprio: ela
+ * mora no fundo do lugar, e só o item aberto ganha a superfície — o mesmo
+ * degrau que marca o destino atual do trilho.
+ */
+.co-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-20);
+}
+
+/* O grupo com nome e a lista inteira em `opens="detail"` são fieldset: a
+ * borda, a margem, o recuo e a largura mínima do navegador saem aqui. */
+.co-nav-list__group,
+fieldset.co-nav-list {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.co-nav-list__group {
+  display: flex;
+  flex-direction: column;
+}
+
+.co-nav-list__group-label {
+  padding: 0 var(--co-space-12) var(--co-space-8);
+}
+
+.co-nav-list__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.co-nav-list__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-10);
+  width: 100%;
+  min-height: 52px;
+  padding: var(--co-space-8) var(--co-space-20) var(--co-space-8) var(--co-space-14);
+  border: 0;
+  border-radius: var(--co-radius-control);
+  background: transparent;
+  color: var(--co-text-muted);
+  font-family: var(--co-font-body);
+  font-size: var(--co-text-14);
+  text-align: left;
+  cursor: pointer;
+}
+
+.co-nav-list__item:hover {
+  color: var(--co-text-body);
+}
+
+.co-nav-list__leading {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.co-nav-list__body {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  gap: var(--co-space-2);
+  min-width: 0;
+}
+
+/* A linha de baixo é uma linha: o que passa vira reticências, e a lista não
+ * muda de altura porque uma seção guardou um valor comprido. */
+.co-nav-list__description {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.co-nav-list__trailing {
+  flex-shrink: 0;
+}
+
+/*
+ * O item aberto muda de fundo, de cor, de peso e ganha a marca na borda
+ * DIREITA — do lado do conteúdo que ele abriu. A marca é reta: é conteúdo
+ * (ADR-004).
+ */
+.co-nav-list__item[aria-current] {
+  background: var(--co-surface);
+  color: var(--co-text);
+}
+
+.co-nav-list__item[aria-current] .co-nav-list__label {
+  font-weight: var(--co-weight-semibold);
+}
+
+.co-nav-list__item[aria-current]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: var(--co-space-6);
+  width: var(--co-marker-width);
+  height: 22px;
+  transform: translateY(-50%);
+  background: var(--co-accent);
 }
 
 /* ------------------------------------------------------------------ grão ---- */
@@ -1850,7 +2316,7 @@ pre code { background: none; border: 0; padding: 0; }
   <header class="topo">
     <div class="marca">
       <span class="marca__nome">Coluna</span>
-      <span class="co-badge" data-tone="accent">v1.2.0</span>
+      <span class="co-badge" data-tone="accent">v1.2.1</span>
     </div>
     <div class="co-segmented" role="radiogroup" aria-label="Tema" id="tema">
       <button type="button" role="radio" class="co-segmented__option" aria-checked="false" data-tema="light">Claro</button>
@@ -2330,7 +2796,8 @@ import "@slipalison/coluna/styles.css";</code></pre>
   "clock": "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M12 7.2V12l3.2 2",
   "download": "M12 4v11M8 11.5l4 4 4-4M5 19.5h14",
   "star": "M12 3.6l2.6 5.4 5.9.8-4.3 4.3 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.8l5.9-.8z",
-  "trash": "M5 7h14M10 7V4.6h4V7M7 7l1 13h8l1-13M11 11v6M13 11v6"
+  "trash": "M5 7h14M10 7V4.6h4V7M7 7l1 13h8l1-13M11 11v6M13 11v6",
+  "bookmark": "M6.5 4h11v16.5L12 16.4l-5.5 4.1z"
 };
 
   var raiz = document.documentElement;

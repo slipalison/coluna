@@ -136,6 +136,14 @@ describe.each(TEMAS)("contraste no tema %s", (_nome, tema) => {
     expect(razao, `deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_TEXTO);
   });
 
+  it("o ícone ligado do botão-ícone se vê sobre o acento suave", () => {
+    // `IconButton pressed` pinta o traço de acento sobre `accent-soft`. É
+    // desenho, então o piso é 3:1 — e é o par que some quando alguém aproxima
+    // o acento suave do acento para o fundo "combinar".
+    const razao = contraste(valor(tema["accent"]), valor(tema["accent-soft"]));
+    expect(razao, `deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
+  });
+
   it("text-subtle é o piso, e icon-muted fica abaixo dele", () => {
     // A hierarquia importa: se `icon-muted` subisse acima de `text-subtle`,
     // os dois papéis colapsariam e a regra "isto não é para texto" perderia
