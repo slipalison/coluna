@@ -39,10 +39,15 @@ jobs:
       # Sem imagem: isto e um pacote, nao um servico. Sem `app`: nao ha deploy
       # no GitOps. Os dois jobs sao pulados, e o `portao` aceita pulado.
       #
-      # Sonar entra quando o projeto existir no SonarCloud. Apontar para um
-      # projectKey inexistente reprova a esteira inteira com um erro que nao
-      # fala de codigo nenhum.
+      # Sonar por CI desligado, com o motivo escrito: a esteira compartilhada
+      # reprova o portao com `sonar_projeto` vazio e sem `sonar_dispensa`
+      # ("Sonar desligado sem motivo"). O projeto `slipalison_coluna` existe no
+      # SonarCloud com a analise AUTOMATICA ligada, que ja mede cada PR (o
+      # check "SonarCloud Code Analysis"); uma analise por CI em cima dela
+      # reprova com "Automatic Analysis is enabled". Trocar para CI e decisao
+      # do dono no painel do SonarCloud, e ai esta linha vira `sonar_projeto`.
       sonar_projeto: ""
+      sonar_dispensa: "a analise automatica do SonarCloud (slipalison_coluna) ja mede cada PR; a analise por CI conflitaria com ela"
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 

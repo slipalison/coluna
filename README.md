@@ -229,6 +229,29 @@ Alguns que merecem nota:
   quatro destinos e o resto vira gaveta; na lateral cabem os sete. Os grupos são
   por **frequência** — "Todo dia" e "De vez em quando" põem as quatro coisas de
   sempre onde a mão já vai.
+- **A área segura** do aparelho — o relógio e a ilha em cima, o indicador de
+  início embaixo, o entalhe nas laterais em paisagem — é token **público**:
+  `--co-safe-top`, `--co-safe-right`, `--co-safe-bottom` e `--co-safe-left`,
+  declaradas uma vez no `:root`, cada uma com `env(safe-area-inset-*, 0px)`.
+  Quem as lê: a `Screen` (soma a de cima e a de baixo ao respiro, e usa o
+  maior entre 16px e o inset nas laterais), a `TabBar` (o maior entre 10px e a
+  de baixo — nunca a soma), a reserva da `Screen` com `tabBar` (104px sem área
+  segura, e cresce o que a barra cresce embaixo) e a marca do `Rail` (recua a
+  de cima, aberto e recolhido). Sem área segura as quatro valem zero e nada
+  muda de lugar. Quem põe alguma coisa colada na borda de cima — um aviso
+  acima da tela — recua essa coisa e zera a de cima no que vem depois dela,
+  sem reescrever regra do sistema
+  ([ADR-011](docs/adr/011-a-area-segura-vira-token-publico.md)):
+
+  ```css
+  .app-notices {
+    padding-block-start: calc(var(--co-space-16) + var(--co-safe-top));
+  }
+  .app-notices ~ .co-screen,
+  .app-notices ~ .app-shell {
+    --co-safe-top: 0px;
+  }
+  ```
 - **`Disclosure`** guarda a explicação até alguém pedir, e é `<details>` do
   navegador em vez de um acordeão escrito à mão: estado, teclado, anúncio, busca
   da página achando o texto fechado e impressão abrindo tudo vêm de graça. A
@@ -293,7 +316,7 @@ quer um tipo carregaria a folha inteira, inclusive em teste e em Node.
 ```bash
 npm install       # o `prepare` já gera os tokens
 npm run tokens    # tokens/*.json -> src/tokens/{tokens.css,gerado.ts}
-npm test          # 189 testes, piso de 80% em linha, ramo, função e comando
+npm test          # 213 testes, piso de 80% em linha, ramo, função e comando
 npm run build     # dist/coluna.js + dist/index.d.ts + os dois CSS
 npm run referencia # docs/referencia.html, pintada pelo CSS que o pacote publica
 ```
@@ -316,3 +339,6 @@ a esteira reprova o que estiver fora.
 - [ADR-006 — o que entrou com o desktop, e o que ficou de fora](docs/adr/006-o-que-entrou-com-o-desktop.md)
 - [ADR-007 — a marca de escolha diz quantas](docs/adr/007-a-marca-de-escolha-diz-quantas.md)
 - [ADR-008 — a segunda leitura do desktop](docs/adr/008-a-segunda-leitura-do-desktop.md)
+- [ADR-009 — a régua e o campo em linha](docs/adr/009-a-regua-e-o-campo-em-linha.md)
+- [ADR-010 — o grupo de escolha amarra rótulo, nota e erro](docs/adr/010-o-grupo-amarra-rotulo-nota-e-erro.md)
+- [ADR-011 — a área segura vira token público](docs/adr/011-a-area-segura-vira-token-publico.md)
