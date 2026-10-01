@@ -234,13 +234,15 @@ Alguns que merecem nota:
   `--co-safe-top`, `--co-safe-right`, `--co-safe-bottom` e `--co-safe-left`,
   declaradas uma vez no `:root`, cada uma com `env(safe-area-inset-*, 0px)`.
   Quem as lê: a `Screen` (soma a de cima e a de baixo ao respiro, e usa o
-  maior entre 16px e o inset nas laterais), a `TabBar` (o maior entre 10px e a
-  de baixo — nunca a soma), a reserva da `Screen` com `tabBar` (104px sem área
-  segura, e cresce o que a barra cresce embaixo) e a marca do `Rail` (recua a
-  de cima, aberto e recolhido). Sem área segura as quatro valem zero e nada
-  muda de lugar. Quem põe alguma coisa colada na borda de cima — um aviso
-  acima da tela — recua essa coisa e zera a de cima no que vem depois dela,
-  sem reescrever regra do sistema
+  maior entre 16px e o inset nas laterais), a `TabBar` (os destinos entram
+  `--co-space-14` na área de baixo, com o piso de 10px: 20px de rodapé com o
+  indicador de 34px — nunca a soma), a reserva da `Screen` com `tabBar` (104px
+  sem área segura, e cresce o que a barra cresce embaixo, com a última linha
+  sempre 31px acima dela) e a marca do `Rail` (recua a de cima, aberto e
+  recolhido). Sem área segura as quatro valem zero e nada muda de lugar. Quem
+  põe alguma coisa colada na borda de cima — um aviso acima da tela — recua
+  essa coisa e zera a de cima no que vem depois dela, sem reescrever regra do
+  sistema
   ([ADR-011](docs/adr/011-a-area-segura-vira-token-publico.md)):
 
   ```css
@@ -252,6 +254,17 @@ Alguns que merecem nota:
     --co-safe-top: 0px;
   }
   ```
+- **`--co-statusbar-height`** é a altura do que o sistema desenha em cima — o
+  relógio e a ilha —, declarada no `:root` como `var(--co-safe-top)`. Só a
+  faixa sob o relógio a lê: a `Screen` monta sempre, como primeiro filho, um
+  `.co-screen__statusbar` `aria-hidden`, fixo no topo, com a área de cima mais
+  um terço, opaco em `--co-canvas` até 75% e esmaecendo no resto, com o
+  desfoque na mesma máscara. Com a tela rolada, o conteúdo passa por trás dele,
+  e não por trás do relógio; sem área segura ele tem 0px. Por ser resolvida no
+  `:root`, ela sobrevive ao zero que o consumidor escreve em `--co-safe-top`
+  debaixo de um aviso — o relógio não sai do lugar com o aviso de pé. Fora do
+  aparelho, quem simula a área escreve as duas
+  ([ADR-012](docs/adr/012-faixa-sob-o-relogio-e-respiro-da-barra.md)).
 - **`Disclosure`** guarda a explicação até alguém pedir, e é `<details>` do
   navegador em vez de um acordeão escrito à mão: estado, teclado, anúncio, busca
   da página achando o texto fechado e impressão abrindo tudo vêm de graça. A
@@ -342,3 +355,4 @@ a esteira reprova o que estiver fora.
 - [ADR-009 — a régua e o campo em linha](docs/adr/009-a-regua-e-o-campo-em-linha.md)
 - [ADR-010 — o grupo de escolha amarra rótulo, nota e erro](docs/adr/010-o-grupo-amarra-rotulo-nota-e-erro.md)
 - [ADR-011 — a área segura vira token público](docs/adr/011-a-area-segura-vira-token-publico.md)
+- [ADR-012 — a faixa sob o relógio e o respiro da barra](docs/adr/012-faixa-sob-o-relogio-e-respiro-da-barra.md)
