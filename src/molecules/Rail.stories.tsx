@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { Stack } from "../atoms/Stack";
 import { Text } from "../atoms/Text";
 import { VisuallyHidden } from "../atoms/VisuallyHidden";
@@ -75,16 +75,25 @@ function Marca({ collapsed }: Readonly<{ collapsed: boolean }>) {
   );
 }
 
+/**
+ * A área de cima de um iPad em paisagem, instalado: 24px para o relógio. A
+ * custom property PÚBLICA simula o aparelho, que no navegador não tem `env()`
+ * nenhum (ADR-011).
+ */
+const IPAD = { ["--co-safe-top" as string]: "24px" } as CSSProperties;
+
 function Moldura({
   collapsed = false,
   marca = false,
-}: Readonly<{ collapsed?: boolean; marca?: boolean }>) {
+  areaSegura = false,
+}: Readonly<{ collapsed?: boolean; marca?: boolean; areaSegura?: boolean }>) {
   const [destino, definir] = useState<Destino>("diario");
   const atual = DESTINOS.find((d) => d.value === destino);
 
   return (
     <div
       style={{
+        position: "relative",
         display: "flex",
         width: "100%",
         maxWidth: "900px",
@@ -92,8 +101,23 @@ function Moldura({
         overflow: "hidden",
         borderRadius: "var(--co-radius-container)",
         background: "var(--co-canvas)",
+        ...(areaSegura ? IPAD : {}),
       }}
     >
+      {areaSegura ? (
+        // A faixa do sistema, desenhada para se ver o recuo. Decorativa.
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: 0,
+            insetInline: 0,
+            height: "var(--co-safe-top)",
+            background: "var(--co-overlay)",
+            borderBottom: "var(--co-border-width) solid var(--co-overlay-line)",
+          }}
+        />
+      ) : null}
       <Rail
         label="Seções do Basalto"
         items={DESTINOS}
@@ -140,4 +164,15 @@ export const ComMarca: Story = {
  */
 export const Recolhido: Story = {
   render: () => <Moldura collapsed marca />,
+};
+
+/**
+ * Num iPad em paisagem, instalado, o relógio fica em cima — e o trilho começa
+ * ali. A marca recua da área segura de cima (`--co-safe-top`), aberta ou
+ * recolhida, e os destinos descem junto; sem área segura o recuo vale zero e o
+ * trilho fica onde sempre esteve.
+ */
+export const ComAreaSegura: Story = {
+  name: "Com área segura",
+  render: () => <Moldura marca areaSegura />,
 };

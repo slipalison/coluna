@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { Badge } from "../atoms/Badge";
 import { Screen } from "../atoms/Screen";
 import { Slat } from "../atoms/Slat";
@@ -72,125 +72,201 @@ const REFEICOES = [
   },
 ];
 
-export const Diário: Story = {
-  render: () => {
-    const [aberta, definir] = useState<string | null>("almoco");
-    const [aba, trocarAba] = useState<(typeof ABAS)[number]["value"]>("diario");
+/**
+ * A área que o iPhone 16 reserva em retrato: 59px em cima, para o relógio e a
+ * ilha, e 34px embaixo, para o indicador de início. É a custom property
+ * PÚBLICA que simula o aparelho aqui — o `env()` de verdade só existe no
+ * aparelho, e é dele que o `:root` da folha a tira (ADR-011).
+ */
+const IPHONE = {
+  ["--co-safe-top" as string]: "59px",
+  ["--co-safe-bottom" as string]: "34px",
+} as CSSProperties;
 
-    return (
+/**
+ * O desenho do que é do sistema: a faixa de cima e o indicador de início.
+ * Decorativo, e por cima do conteúdo, como no aparelho — o conteúdo rola por
+ * baixo dele. A altura da faixa é a própria `--co-safe-top`.
+ */
+function AreaDoSistema() {
+  return (
+    <>
       <div
+        aria-hidden="true"
         style={{
-          position: "relative",
-          width: "390px",
-          height: "844px",
-          overflow: "hidden",
-          borderRadius: "var(--co-radius-container)",
-          background: "var(--co-canvas)",
+          position: "absolute",
+          top: 0,
+          insetInline: 0,
+          zIndex: 30,
+          height: "var(--co-safe-top)",
+          background: "var(--co-overlay)",
+          borderBottom: "var(--co-border-width) solid var(--co-overlay-line)",
         }}
-      >
-        <div style={{ height: "100%", overflowY: "auto" }}>
-          <Screen tabBar>
-            <ScreenHeader
-              title="Hoje"
-              subtitle="quarta, 16 de setembro"
-              action={{ icon: "calendar", label: "Dias anteriores", onClick: () => undefined }}
-            />
+      />
+      <span
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          bottom: "8px",
+          left: "50%",
+          zIndex: 30,
+          width: "134px",
+          height: "5px",
+          transform: "translateX(-50%)",
+          borderRadius: "var(--co-radius-pill)",
+          background: "var(--co-text)",
+        }}
+      />
+    </>
+  );
+}
 
-            <Stack gap={20}>
-              <Surface padding={20}>
-                <Stack gap={16}>
-                  <Stat
-                    label="Restante"
-                    value={(META - CONSUMIDO).toLocaleString("pt-BR")}
-                    unit="kcal"
-                    size="hero"
-                    trailing={<Badge tone="accent">48% da meta</Badge>}
-                  />
-                  <Slat value={CONSUMIDO / META} label={`${CONSUMIDO} de ${META} kcal`} />
-                  <Reckoning
-                    lines={[
-                      { label: "Meta do dia", value: META.toLocaleString("pt-BR") },
-                      { label: "Alimentos registrados", value: `− ${CONSUMIDO}` },
-                      { label: "Restante", value: (META - CONSUMIDO).toLocaleString("pt-BR"), total: true },
-                    ]}
-                    note="A conta fica aberta de propósito: o número grande é o resultado dela, e não um veredito sobre o seu dia."
-                  />
-                </Stack>
-              </Surface>
+function TelaDoDiario({ iphone = false }: Readonly<{ iphone?: boolean }>) {
+  const [aberta, definir] = useState<string | null>("almoco");
+  const [aba, trocarAba] = useState<(typeof ABAS)[number]["value"]>("diario");
 
-              <Group label="Macros" inset="dot">
-                <MacroBar name="Proteína" value={68} target={135} kind="protein" />
-                <MacroBar name="Carboidrato" value={95} target={225} kind="carb" />
-                <MacroBar name="Gordura" value={30} target={53} kind="fat" />
-              </Group>
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: "390px",
+        height: "844px",
+        overflow: "hidden",
+        borderRadius: "var(--co-radius-container)",
+        background: "var(--co-canvas)",
+        ...(iphone ? IPHONE : {}),
+      }}
+    >
+      <div style={{ height: "100%", overflowY: "auto" }}>
+        <Screen tabBar>
+          <ScreenHeader
+            title="Hoje"
+            subtitle="quarta, 16 de setembro"
+            action={{ icon: "calendar", label: "Dias anteriores", onClick: () => undefined }}
+          />
 
-              <Group
-                label="Refeições"
-                labelTrailing={`${CONSUMIDO} kcal registrados`}
-                note="O diário não recusa registro. Comeu, registra — nenhum dia é marcado como falha, e é isso que mantém o histórico honesto."
-              >
-                {REFEICOES.map((refeicao) => (
-                  <div key={refeicao.id}>
-                    <ListRow
-                      size="lg"
-                      expanded={aberta === refeicao.id}
-                      onClick={() => definir(aberta === refeicao.id ? null : refeicao.id)}
-                      trailing={
-                        <Text variant="headline" tone="secondary" numeric>
-                          {refeicao.kcal}
-                        </Text>
-                      }
-                    >
-                      <Text variant="headline">{refeicao.nome}</Text>
-                      <Text variant="footnote" tone="muted" numeric>
-                        {refeicao.hora} · {refeicao.itens.length} itens
+          <Stack gap={20}>
+            <Surface padding={20}>
+              <Stack gap={16}>
+                <Stat
+                  label="Restante"
+                  value={(META - CONSUMIDO).toLocaleString("pt-BR")}
+                  unit="kcal"
+                  size="hero"
+                  trailing={<Badge tone="accent">48% da meta</Badge>}
+                />
+                <Slat value={CONSUMIDO / META} label={`${CONSUMIDO} de ${META} kcal`} />
+                <Reckoning
+                  lines={[
+                    { label: "Meta do dia", value: META.toLocaleString("pt-BR") },
+                    { label: "Alimentos registrados", value: `− ${CONSUMIDO}` },
+                    {
+                      label: "Restante",
+                      value: (META - CONSUMIDO).toLocaleString("pt-BR"),
+                      total: true,
+                    },
+                  ]}
+                  note="A conta fica aberta de propósito: o número grande é o resultado dela, e não um veredito sobre o seu dia."
+                />
+              </Stack>
+            </Surface>
+
+            <Group label="Macros" inset="dot">
+              <MacroBar name="Proteína" value={68} target={135} kind="protein" />
+              <MacroBar name="Carboidrato" value={95} target={225} kind="carb" />
+              <MacroBar name="Gordura" value={30} target={53} kind="fat" />
+            </Group>
+
+            <Group
+              label="Refeições"
+              labelTrailing={`${CONSUMIDO} kcal registrados`}
+              note="O diário não recusa registro. Comeu, registra — nenhum dia é marcado como falha, e é isso que mantém o histórico honesto."
+            >
+              {REFEICOES.map((refeicao) => (
+                <div key={refeicao.id}>
+                  <ListRow
+                    size="lg"
+                    expanded={aberta === refeicao.id}
+                    onClick={() => definir(aberta === refeicao.id ? null : refeicao.id)}
+                    trailing={
+                      <Text variant="headline" tone="secondary" numeric>
+                        {refeicao.kcal}
                       </Text>
-                    </ListRow>
-                    {aberta === refeicao.id ? (
-                      <Stack gap={12} style={{ padding: "0 20px 18px" }}>
-                        {refeicao.itens.map((item) => (
-                          <Stack
-                            key={item.nome}
-                            direction="row"
-                            gap={12}
-                            justify="space-between"
-                            align="baseline"
-                          >
-                            <Stack gap={2}>
-                              <Text variant="callout" tone="body">
-                                {item.nome}
-                              </Text>
-                              <Text variant="caption" tone="subtle">
-                                {item.medida}
-                              </Text>
-                            </Stack>
-                            <Text variant="subhead" tone="muted" numeric>
-                              {item.kcal}
+                    }
+                  >
+                    <Text variant="headline">{refeicao.nome}</Text>
+                    <Text variant="footnote" tone="muted" numeric>
+                      {refeicao.hora} · {refeicao.itens.length} itens
+                    </Text>
+                  </ListRow>
+                  {aberta === refeicao.id ? (
+                    <Stack gap={12} style={{ padding: "0 20px 18px" }}>
+                      {refeicao.itens.map((item) => (
+                        <Stack
+                          key={item.nome}
+                          direction="row"
+                          gap={12}
+                          justify="space-between"
+                          align="baseline"
+                        >
+                          <Stack gap={2}>
+                            <Text variant="callout" tone="body">
+                              {item.nome}
+                            </Text>
+                            <Text variant="caption" tone="subtle">
+                              {item.medida}
                             </Text>
                           </Stack>
-                        ))}
-                      </Stack>
-                    ) : null}
-                  </div>
-                ))}
-                <ListRow onClick={() => undefined}>
-                  <Text variant="body" tone="accent">
-                    Nova refeição
-                  </Text>
-                </ListRow>
-              </Group>
-            </Stack>
-          </Screen>
-        </div>
-
-        <TabBar
-          label="Seções do Basalto"
-          items={ABAS}
-          value={aba}
-          onChange={trocarAba}
-          position="absolute"
-        />
+                          <Text variant="subhead" tone="muted" numeric>
+                            {item.kcal}
+                          </Text>
+                        </Stack>
+                      ))}
+                    </Stack>
+                  ) : null}
+                </div>
+              ))}
+              <ListRow onClick={() => undefined}>
+                <Text variant="body" tone="accent">
+                  Nova refeição
+                </Text>
+              </ListRow>
+            </Group>
+          </Stack>
+        </Screen>
       </div>
-    );
-  },
+
+      <TabBar
+        label="Seções do Basalto"
+        items={ABAS}
+        value={aba}
+        onChange={trocarAba}
+        position="absolute"
+      />
+
+      {iphone ? <AreaDoSistema /> : null}
+    </div>
+  );
+}
+
+export const Diário: Story = {
+  render: () => <TelaDoDiario />,
+};
+
+/**
+ * A mesma tela num iPhone com ilha dinâmica, instalado em tela cheia.
+ *
+ * O título começa 28px abaixo da faixa do sistema, e não embaixo do relógio: a
+ * moldura SOMA a área de cima ao respiro. A barra de abas usa os 34px do
+ * indicador no lugar do respiro de 10px, e não os dois somados — era essa a
+ * sobra embaixo dos rótulos. E a reserva da tela cresce o que a barra cresceu:
+ * a última linha continua 31px acima do vidro, como na tela sem área segura.
+ *
+ * Quem simula o aparelho é `--co-safe-top` e `--co-safe-bottom`, escritas no
+ * contêiner — as mesmas que um aplicativo zera quando põe um aviso colado na
+ * borda de cima.
+ */
+export const NoIPhone: Story = {
+  name: "No iPhone",
+  render: () => <TelaDoDiario iphone />,
 };
