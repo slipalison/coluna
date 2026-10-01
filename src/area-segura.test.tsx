@@ -432,6 +432,8 @@ const RODAPE = "max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-sp
 /** A faixa sob o relógio (ADR-012) e a máscara que esmaece o desfoque dela. */
 const FAIXA = ".co-screen__statusbar";
 const MASCARA = "linear-gradient(to bottom, #000 0%, #000 75%, transparent 100%)";
+/** O recuo da rolagem da janela, no `:root`: a altura da faixa (ADR-012, adendo 1.7.1). */
+const RECUO = "scroll-padding-top";
 const CABECALHO = ".co-rail__header";
 const RECOLHIDO = '.co-rail[data-collapsed="true"] .co-rail__header';
 
@@ -672,6 +674,8 @@ it("a altura da faixa do relógio é pública e declarada só no :root, a partir
     r.declaracoes.filter(([p]) => p === "--co-statusbar-height").map(([p, v]) => [lugar(r), p, v]),
   );
   expect(declaradas).toEqual([[":root", "--co-statusbar-height", "var(--co-safe-top)"]]);
+  // O bloco fecha com o recuo da rolagem, que lê a altura (adendo 1.7.1 do
+  // ADR-012) — e nada mais entra nele.
   const daArea = REGRAS.filter((r) => r.declaracoes.some(([p]) => p === "--co-safe-left"));
   expect(daArea.map((r) => r.declaracoes.map(([p]) => p))).toEqual([
     [
@@ -680,6 +684,7 @@ it("a altura da faixa do relógio é pública e declarada só no :root, a partir
       "--co-safe-bottom",
       "--co-safe-left",
       "--co-statusbar-height",
+      "scroll-padding-top",
     ],
   ]);
 
@@ -861,14 +866,17 @@ it("a faixa tem a área de cima mais um terço, e 0 sem área segura", () => {
   ]);
 });
 
-it("só a faixa lê a altura dela, e ela não lê a área de cima direto", () => {
+it("só a faixa e o recuo da rolagem leem a altura dela, e nenhum dos dois lê a área de cima direto", () => {
   const leem = REGRAS.flatMap((r) =>
     r.declaracoes
       .filter(([p, v]) => p !== "--co-statusbar-height" && v.includes("--co-statusbar-height"))
       .map(([p]) => `${lugar(r)} ${p}`),
   );
-  expect(leem).toEqual([".co-screen__statusbar height"]);
+  expect(leem).toEqual([`:root ${RECUO}`, ".co-screen__statusbar height"]);
   expect(bloco(FAIXA).filter(([, v]) => /--co-safe-|safe-area-inset/.test(v))).toEqual([]);
+  expect(
+    bloco(":root").filter(([p, v]) => p === RECUO && /--co-safe-|safe-area-inset/.test(v)),
+  ).toEqual([]);
 
   // A lista fechada de quem lê a área segura: as regras do ADR-011, a `.co-sheet`
   // de sempre e, agora, a altura da faixa — no `:root`, e em mais lugar nenhum.
@@ -886,4 +894,56 @@ it("só a faixa lê a altura dela, e ela não lê a área de cima direto", () =>
     ".co-tabbar padding-bottom",
     ":root --co-statusbar-height",
   ]);
+});
+
+// ------------------------------------------------------ o foco fora da faixa --
+
+it("o foco do teclado não fica atrás da faixa: o :root recua a rolagem pela altura dela, e 0 sem área segura", () => {
+  // A faixa é opaca na área de cima, e um controle que já está ali na janela
+  // não faz a página rolar ao receber o foco: fica inteiro atrás dela, com o
+  // anel junto (WCAG 2.2, 2.4.11). O recuo da rolagem é o que o navegador
+  // respeita no Tab, na âncora e no `scrollIntoView`, e o da janela mora no
+  // elemento raiz.
+  //
+  // Um `scroll-padding` só na folha inteira, no `:root` do nível de cima:
+  // dentro de um `@media` ele só valeria às vezes, e um segundo, mais abaixo
+  // ou noutro seletor, venceria ou desfaria este.
+  const recuos = REGRAS.flatMap((r) =>
+    r.declaracoes.filter(([p]) => /^scroll-padding/.test(p)).map(([p, v]) => [lugar(r), p, v]),
+  );
+  expect(recuos).toEqual([[":root", RECUO, "calc(var(--co-statusbar-height) * 4 / 3)"]]);
+
+  // O MESMO texto da altura da faixa: lê a propriedade que sobrevive ao zero
+  // do consumidor, com o mesmo fator. Se um mudar sem o outro, o foco volta a
+  // cair atrás da faixa (recuo menor) ou para longe dela (maior).
+  const altura = Object.fromEntries(bloco(FAIXA))["height"] ?? "";
+  const texto = Object.fromEntries(bloco(":root"))[RECUO] ?? "";
+  expect(texto).toBe(altura);
+  const topos = [0, 24, 59, 84];
+  const recuo = (topo: number) => avaliar(texto, aparelho(topo, 0, 0, 0));
+  expect(topos.map(recuo)).toEqual(topos.map((topo) => avaliar(altura, aparelho(topo, 0, 0, 0))));
+  expect(recuo(59)).toBeCloseTo(78.67, 2);
+  expect(recuo(24)).toBe(32);
+  expect(recuo(0)).toBe(0);
+
+  // Resolvido no `:root`, onde a janela o lê: sem aparelho, o `env()` com a
+  // reserva de 0px — a rolagem da 1.7.0.
+  expect(raiz(RECUO)).toBe("calc(env(safe-area-inset-top, 0px) * 4 / 3)");
+  expect(avaliar(raiz(RECUO), SEM_AREA)).toBe(0);
+
+  // O aparelho simulado pela propriedade pública, no próprio `:root` (a
+  // `--co-safe-top` intacta): o recuo e a faixa montada resolvem para o mesmo
+  // texto, e ele fecha em 78,67px.
+  const html = document.documentElement;
+  html.style.setProperty("--co-statusbar-height", "59px");
+  try {
+    const naRaiz = normalizar(raiz(RECUO));
+    expect(naRaiz).toBe("calc(59px * 4 / 3)");
+    expect(resolvido(telaMontada(<Screen>conteúdo</Screen>).faixa, "height")).toBe(naRaiz);
+    expect(avaliar(naRaiz, SEM_AREA)).toBeCloseTo(78.67, 2);
+  } finally {
+    html.style.removeProperty("--co-statusbar-height");
+    cleanup();
+  }
+  expect(raiz(RECUO)).toBe("calc(env(safe-area-inset-top, 0px) * 4 / 3)");
 });

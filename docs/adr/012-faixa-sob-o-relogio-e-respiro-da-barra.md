@@ -202,3 +202,59 @@ no escuro — a cor de fundo da própria tela nos dois.
   avalia a conta (agora com `*` e `/`) e confere o elemento que a `Screen`
   monta; o número em pixel é do navegador, e no Basalto o teste de ponta a
   ponta mede.
+
+---
+
+## Adendo 1.7.1 (2026-10-01) — o foco não fica atrás da faixa
+
+**O defeito.** Com área segura, a faixa é opaca de 0 a 59px (os 75% de cima dos
+78,67px dela). Um controle que já está nessa altura da janela é "visível" para o
+navegador: ao receber o foco pelo teclado, a página não rola, e ele fica
+inteiro atrás da faixa, com o anel de foco junto. É o critério 2.4.11 do WCAG
+2.2 (foco não escondido, nível AA), o caso clássico do cabeçalho fixo. Na 1.6.0
+o mesmo controle ficava sob a barra de status translúcida do sistema, e se via;
+o axe não mede isso. Achado pela revisão da fase
+`barra-no-fundo-e-faixa-sob-o-relogio` do Basalto, que já fixava a 1.7.0.
+
+**O conserto.** O `:root` recua a rolagem da janela pela altura da faixa:
+
+```css
+:root {
+  /* ...as quatro --co-safe-* e --co-statusbar-height, como acima... */
+  scroll-padding-top: calc(var(--co-statusbar-height) * 4 / 3);
+}
+```
+
+- **O mesmo texto da altura da faixa**, e não um número parecido: se um mudar
+  sem o outro, o foco volta a cair atrás dela. Lê `--co-statusbar-height`, a
+  única coisa que a faixa lê, e por isso sobrevive ao zero do consumidor.
+- **No `:root`**, porque o recuo da janela é o do elemento raiz. Vale para o
+  Tab, para a âncora (`#id`) e para o `scrollIntoView`.
+- **Sem área segura vale 0**, e a rolagem é exatamente a da 1.7.0.
+
+**A medição.** No Chromium, com o app real do Basalto (a casca dele com 30
+botões no conteúdo), a área segura emulada pelo CDP em 59/34, e a folha da
+coluna trocada só na linha nova. Foram 25 Shift+Tab e 25 Tab, a partir do topo e
+do fim. Conta como escondido o foco cujo retângulo fica inteiro dentro da faixa
+(0 a 78,67):
+
+| | telefone (Galaxy S24) | desktop 1440×900 |
+|---|---|---|
+| 1.7.0, 59/34 | **1** (y −0,13 a 43,88) | **3** (y 0,38–3,38 a 44,38–47,38) |
+| 1.7.1, 59/34 | **0** (menor topo de foco: 78,88) | **0** (78,88) |
+| 1.7.1 com o aviso do Basalto de pé | 0 | 0 |
+| sem área segura | 0 nas duas versões; os 100 passos iguais aos da 1.7.0 | idem |
+
+Os escondidos saem todos do Shift+Tab, quando o foco sobe e a página rola para
+pôr o controle na borda de cima. Com o Tab, a página rola para a borda de
+baixo: 0 nas duas versões.
+
+**Consequências.** É `fix`, e por isso a versão é patch: nada muda sem área
+segura, e nenhuma API nova aparece. O recuo é da JANELA. Um consumidor que role
+a tela dentro de um contêiner próprio (`overflow: auto`) precisa do mesmo recuo
+nesse contêiner. Um `scroll-padding-top` do consumidor no `:root`, carregado
+depois da folha, vence este; no `html`, não, porque `:root` é mais específico.
+O teste de unidade (`src/area-segura.test.tsx`)
+prova o texto: um `scroll-padding` só na folha, no `:root` do nível de cima,
+igual à altura da faixa. Também prova a conta (0, 32 e 78,67) e o valor que o
+happy-dom resolve no `:root`. O número da rolagem é do navegador.
