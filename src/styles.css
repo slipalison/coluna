@@ -93,6 +93,16 @@
   --co-safe-bottom: env(safe-area-inset-bottom, 0px);
   --co-safe-left: env(safe-area-inset-left, 0px);
   --co-statusbar-height: var(--co-safe-top);
+  /* O foco do teclado não fica atrás da faixa sob o relógio (ADR-012, adendo
+   * 1.7.1). A faixa é opaca na área de cima, e um controle que já está nessa
+   * área da janela é "visível" para o navegador: ao receber o foco, a página
+   * não rola, e ele fica inteiro escondido, com o anel junto (WCAG 2.2, 2.4.11).
+   * O recuo é a ALTURA DA FAIXA, com o mesmo texto da regra dela — se um mudar
+   * sem o outro, o foco volta a cair atrás da faixa —, e lê
+   * `--co-statusbar-height`, que sobrevive ao zero do consumidor. Sem área
+   * segura vale 0, e a rolagem é a da 1.7.0. No `:root` porque é dele o recuo
+   * da janela: é o que o Tab, a âncora e o `scrollIntoView` respeitam. */
+  scroll-padding-top: calc(var(--co-statusbar-height) * 4 / 3);
 }
 
 /* ----------------------------------------------------------------- tela --- */

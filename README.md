@@ -255,8 +255,8 @@ Alguns que merecem nota:
   }
   ```
 - **`--co-statusbar-height`** é a altura do que o sistema desenha em cima — o
-  relógio e a ilha —, declarada no `:root` como `var(--co-safe-top)`. Só a
-  faixa sob o relógio a lê: a `Screen` monta sempre, como primeiro filho, um
+  relógio e a ilha —, declarada no `:root` como `var(--co-safe-top)`. A faixa
+  sob o relógio a lê: a `Screen` monta sempre, como primeiro filho, um
   `.co-screen__statusbar` `aria-hidden`, fixo no topo, com a área de cima mais
   um terço, opaco em `--co-canvas` até 75% e esmaecendo no resto, com o
   desfoque na mesma máscara. Com a tela rolada, o conteúdo passa por trás dele,
@@ -264,7 +264,12 @@ Alguns que merecem nota:
   `:root`, ela sobrevive ao zero que o consumidor escreve em `--co-safe-top`
   debaixo de um aviso — o relógio não sai do lugar com o aviso de pé. Fora do
   aparelho, quem simula a área escreve as duas
-  ([ADR-012](docs/adr/012-faixa-sob-o-relogio-e-respiro-da-barra.md)).
+  ([ADR-012](docs/adr/012-faixa-sob-o-relogio-e-respiro-da-barra.md)). A
+  mesma conta é o recuo da rolagem da janela: o `:root` declara
+  `scroll-padding-top` com o texto da altura da faixa, e o foco do teclado, a
+  âncora e o `scrollIntoView` param abaixo dela, e não atrás (WCAG 2.2, 2.4.11).
+  Sem área segura o recuo vale 0. Quem rola dentro de um contêiner próprio põe
+  o mesmo recuo nele (adendo 1.7.1 do ADR-012).
 - **`Disclosure`** guarda a explicação até alguém pedir, e é `<details>` do
   navegador em vez de um acordeão escrito à mão: estado, teclado, anúncio, busca
   da página achando o texto fechado e impressão abrindo tudo vêm de graça. A
