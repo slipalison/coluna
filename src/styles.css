@@ -78,12 +78,21 @@
  * O `, 0px` é explícito, como a folha já escrevia na barra de abas: sem área
  * segura (o navegador comum, o desktop), as quatro valem zero e toda conta
  * abaixo fecha igual à 1.5.0.
+ *
+ * `--co-statusbar-height` é a altura do que o sistema desenha em cima — o
+ * relógio e a ilha —, e é a ÚNICA coisa que a faixa sob o relógio lê
+ * (ADR-012). Ela é resolvida aqui, no `:root`, a partir da área de cima, e é
+ * por isso que sobrevive ao zero do consumidor: quem zera `--co-safe-top`
+ * debaixo de um aviso diz onde o CONTEÚDO começa, e o relógio continua no
+ * mesmo lugar da tela, com ou sem aviso. Declarada SÓ aqui, pelo mesmo motivo
+ * das quatro.
  */
 :root {
   --co-safe-top: env(safe-area-inset-top, 0px);
   --co-safe-right: env(safe-area-inset-right, 0px);
   --co-safe-bottom: env(safe-area-inset-bottom, 0px);
   --co-safe-left: env(safe-area-inset-left, 0px);
+  --co-statusbar-height: var(--co-safe-top);
 }
 
 /* ----------------------------------------------------------------- tela --- */
@@ -118,12 +127,61 @@
  * A reserva da tela com barra é a da 1.5.0, 104px, mais o que a barra cresce
  * embaixo. A barra mede 73px sem área segura e cresce o que o `max` do rodapé
  * dela crescer; a reserva cresce o mesmo, e a última linha continua 31px acima
- * do vidro com qualquer aparelho: 104px sem área segura, 128px com o indicador
- * de 34px. O termo `max(...)` é o mesmo texto do `padding-bottom` da
- * `.co-tabbar` — se um mudar sem o outro, a folga muda junto (ADR-011).
+ * do vidro com qualquer aparelho: 104px sem área segura (barra de 73px), 114px
+ * com o indicador de 34px (rodapé de 20px, barra de 83px). O termo `max(...)`
+ * é o mesmo texto do `padding-bottom` da `.co-tabbar` — os destinos entram
+ * `--co-space-14` na área de baixo — e, se um mudar sem o outro, a folga muda
+ * junto (ADR-011, ADR-012).
  */
 .co-screen[data-tabbar="true"] {
-  --co-screen-bottom: calc(104px - var(--co-space-10) + max(var(--co-space-10), var(--co-safe-bottom)));
+  --co-screen-bottom: calc(104px - var(--co-space-10)
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14))));
+}
+
+/*
+ * A faixa sob o relógio (ADR-012). Com a tela rolada, o conteúdo passa por
+ * baixo do relógio e da ilha, e o texto rolado atrás deles é ilegível para os
+ * dois: o relógio e o texto. A `Screen` monta esta faixa SEMPRE, fixa no topo,
+ * e o conteúdo passa por trás dela.
+ *
+ * - A altura é a área de cima MAIS UM TERÇO, e lê `--co-statusbar-height`,
+ *   resolvida no `:root` — nunca `--co-safe-top` direto, que o consumidor zera
+ *   debaixo de um aviso. Proporção, e não trecho fixo somado: sem área segura
+ *   a faixa tem 0px e nada aparece.
+ * - O fundo é OPACO até 75% (= 3/4, o fim da área de cima) e só esmaece no
+ *   terço extra: o relógio fica todo sobre `--co-canvas`. Com o gradiente indo
+ *   ao transparente dentro da área, o relógio ficaria sobre metade de
+ *   opacidade, com o texto rolado aparecendo atrás dele.
+ * - A máscara esmaece o DESFOQUE junto, com o mesmo gradiente: sem ela, o
+ *   `backdrop-filter` acabaria numa linha dura na base da faixa. O
+ *   `-webkit-mask-image` é o do Safari, que é o motor do iPhone. O `#000` da
+ *   máscara não é cor que chega à tela — a máscara só lê o alfa —, então não
+ *   fere a regra 1 do topo: não há o que o tema trocar ali.
+ * - `pointer-events: none`: ela é pintura, e o toque passa ao conteúdo atrás.
+ * - Camada 20, a mesma da barra de abas, DENTRO da pilha da tela: o
+ *   `isolation` do grão faz da tela uma pilha própria, então a faixa cobre o
+ *   conteúdo da tela e nada de fora dela.
+ * - Nada inline (a CSP com `style-src 'self'` continua de pé), e os dois temas
+ *   saem do `--co-canvas`, o fundo da própria tela.
+ *
+ * Em repouso nada fica embaixo dela: o título (28px + área) fica fora enquanto
+ * a área de cima for de até 84px, e a marca do trilho (20px + área) enquanto
+ * for de até 60px. Com os 59px do iPhone, a faixa vai a 78,67px, o título a
+ * 87px (8,33px abaixo) e a marca a 79px (0,33px abaixo).
+ */
+.co-screen__statusbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  height: calc(var(--co-statusbar-height) * 4 / 3);
+  pointer-events: none;
+  background: linear-gradient(to bottom, var(--co-canvas) 0%, var(--co-canvas) 75%, transparent 100%);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 75%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 75%, transparent 100%);
 }
 
 /* --------------------------------------------------------------- texto ---- */
@@ -1138,10 +1196,16 @@
   grid-auto-columns: minmax(0, 1fr);
   gap: var(--co-space-4);
   padding: var(--co-space-10) var(--co-space-10);
-  /* O MAIOR entre o respiro e a área segura, e não a soma: o sistema já
-   * reserva a faixa do indicador de início, e os 10px por cima dela eram a
-   * sobra embaixo dos rótulos. Vem DEPOIS do `padding`, que senão o zeraria. */
-  padding-bottom: max(var(--co-space-10), var(--co-safe-bottom));
+  /* Os destinos entram 14px na área de baixo (ADR-012): o gesto do indicador
+   * de início dispara nos últimos milímetros da borda, e não nos 34px inteiros
+   * que o iPhone reserva. 14 é `--co-space-14`, o respiro horizontal do botão e
+   * do campo, e não um número solto. Rodapé de 20px com o indicador de 34px
+   * (barra de 83px); sem área segura, o `max` fica nos 10px de sempre (barra
+   * de 73px). O termo `max(...)` é o mesmo texto da reserva da
+   * `.co-screen[data-tabbar="true"]` — se um mudar sem o outro, a folga de 31px
+   * até a última linha muda junto. Vem DEPOIS do `padding`, que senão o
+   * zeraria. */
+  padding-bottom: max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14)));
   background: var(--co-overlay);
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);

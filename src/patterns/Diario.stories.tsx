@@ -77,47 +77,41 @@ const REFEICOES = [
  * ilha, e 34px embaixo, para o indicador de início. É a custom property
  * PÚBLICA que simula o aparelho aqui — o `env()` de verdade só existe no
  * aparelho, e é dele que o `:root` da folha a tira (ADR-011).
+ *
+ * `--co-statusbar-height` vai junto porque é resolvida no `:root`, a partir do
+ * `env()`, e não daqui: é isso que a deixa sobreviver ao zero que um aplicativo
+ * escreve em `--co-safe-top` debaixo de um aviso (ADR-012). Sem ela, a faixa
+ * sob o relógio teria os 0px do navegador que abre o catálogo.
  */
 const IPHONE = {
   ["--co-safe-top" as string]: "59px",
   ["--co-safe-bottom" as string]: "34px",
+  ["--co-statusbar-height" as string]: "59px",
 } as CSSProperties;
 
 /**
- * O desenho do que é do sistema: a faixa de cima e o indicador de início.
- * Decorativo, e por cima do conteúdo, como no aparelho — o conteúdo rola por
- * baixo dele. A altura da faixa é a própria `--co-safe-top`.
+ * O desenho do que é do sistema: o indicador de início. Decorativo, e por cima
+ * do conteúdo, como no aparelho — o conteúdo rola por baixo dele.
+ *
+ * Em cima não há desenho: quem cobre a área do relógio é a faixa que a própria
+ * `Screen` monta (ADR-012), e um segundo vidro aqui a duplicaria.
  */
 function AreaDoSistema() {
   return (
-    <>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          top: 0,
-          insetInline: 0,
-          zIndex: 30,
-          height: "var(--co-safe-top)",
-          background: "var(--co-overlay)",
-          borderBottom: "var(--co-border-width) solid var(--co-overlay-line)",
-        }}
-      />
-      <span
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          bottom: "8px",
-          left: "50%",
-          zIndex: 30,
-          width: "134px",
-          height: "5px",
-          transform: "translateX(-50%)",
-          borderRadius: "var(--co-radius-pill)",
-          background: "var(--co-text)",
-        }}
-      />
-    </>
+    <span
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        bottom: "8px",
+        left: "50%",
+        zIndex: 30,
+        width: "134px",
+        height: "5px",
+        transform: "translateX(-50%)",
+        borderRadius: "var(--co-radius-pill)",
+        background: "var(--co-text)",
+      }}
+    />
   );
 }
 
@@ -125,10 +119,14 @@ function TelaDoDiario({ iphone = false }: Readonly<{ iphone?: boolean }>) {
   const [aberta, definir] = useState<string | null>("almoco");
   const [aba, trocarAba] = useState<(typeof ABAS)[number]["value"]>("diario");
 
+  // `contain: layout` faz da moldura o bloco de contenção do que é `fixed`:
+  // a faixa sob o relógio fica no topo DESTE aparelho, como ficaria no topo da
+  // tela de verdade, e não no topo da página do catálogo.
   return (
     <div
       style={{
         position: "relative",
+        contain: "layout",
         width: "390px",
         height: "844px",
         overflow: "hidden",
@@ -256,15 +254,18 @@ export const Diário: Story = {
 /**
  * A mesma tela num iPhone com ilha dinâmica, instalado em tela cheia.
  *
- * O título começa 28px abaixo da faixa do sistema, e não embaixo do relógio: a
- * moldura SOMA a área de cima ao respiro. A barra de abas usa os 34px do
- * indicador no lugar do respiro de 10px, e não os dois somados — era essa a
- * sobra embaixo dos rótulos. E a reserva da tela cresce o que a barra cresceu:
- * a última linha continua 31px acima do vidro, como na tela sem área segura.
+ * O título começa 28px abaixo da área do sistema, e não embaixo do relógio: a
+ * moldura SOMA a área de cima ao respiro. Rolada, a lista passa por trás da
+ * faixa sob o relógio, opaca em toda a área de cima e esmaecendo no terço a
+ * mais (ADR-012). Os destinos da barra de abas entram 14px na área do
+ * indicador: o rodapé fica em 20px, e não nos 34px inteiros — o gesto do
+ * indicador dispara nos últimos milímetros da borda. E a reserva da tela cresce
+ * o que a barra cresceu: a última linha continua 31px acima do vidro, como na
+ * tela sem área segura.
  *
- * Quem simula o aparelho é `--co-safe-top` e `--co-safe-bottom`, escritas no
- * contêiner — as mesmas que um aplicativo zera quando põe um aviso colado na
- * borda de cima.
+ * Quem simula o aparelho é `--co-safe-top`, `--co-safe-bottom` e
+ * `--co-statusbar-height`, escritas no contêiner — as duas primeiras são as
+ * mesmas que um aplicativo zera quando põe um aviso colado na borda de cima.
  */
 export const NoIPhone: Story = {
   name: "No iPhone",
