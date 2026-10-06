@@ -4,6 +4,7 @@ import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { Button } from "../atoms/Button";
 import { Input } from "../atoms/Input";
+import { bloco, paddingQueVale } from "../test/folha";
 import { Diff } from "./Diff";
 import { Disclosure } from "./Disclosure";
 import { EmptyState } from "./EmptyState";
@@ -549,6 +550,27 @@ describe("Disclosure", () => {
     await usuario.click(screen.getByText("por quê?"));
     expect(aoAbrir).toHaveBeenCalledWith(true);
   });
+
+  it("o Disclosure abre e fecha quando o defaultOpen muda", () => {
+    // O `defaultOpen` vai ao `open` do `<details>` a cada render, e não só no
+    // primeiro: quem o liga a uma largura (aberto no desktop, fechado no
+    // telefone) vê o mesmo detalhe abrir e fechar ao cruzar o corte, sem
+    // remontar o que está dentro (ADR-013).
+    const { container, rerender } = render(<Disclosure defaultOpen={false}>A conta.</Disclosure>);
+    const detalhe = container.querySelector("details") as HTMLDetailsElement;
+    const conteudo = screen.getByText("A conta.");
+    expect(detalhe.open).toBe(false);
+
+    rerender(<Disclosure defaultOpen>A conta.</Disclosure>);
+    expect(detalhe.open).toBe(true);
+    expect(detalhe).toHaveAttribute("open");
+
+    rerender(<Disclosure defaultOpen={false}>A conta.</Disclosure>);
+    expect(detalhe.open).toBe(false);
+    expect(detalhe).not.toHaveAttribute("open");
+    expect(container.querySelector("details")).toBe(detalhe);
+    expect(screen.getByText("A conta.")).toBe(conteudo);
+  });
 });
 
 describe("EmptyState", () => {
@@ -757,6 +779,66 @@ describe("MacroBar em linha", () => {
   it("empilhada também aceita a conta", () => {
     render(<MacroBar name="Gordura" value={30} target={53} kind="fat" expression="30 × 9 = 270" />);
     expect(screen.getByText("30 × 9 = 270")).toBeInTheDocument();
+  });
+});
+
+describe("MacroBar compacta", () => {
+  it("empilha ponto e nome, número e barra curta, e os três textos se leem", () => {
+    const { container } = render(
+      <MacroBar
+        name="Carboidrato líquido"
+        value={222.2}
+        target={222}
+        kind="carb"
+        layout="compact"
+        valueText="222,2 de 222 g"
+      />,
+    );
+    const macro = container.firstElementChild as HTMLElement;
+    expect(macro).toHaveAttribute("data-layout", "compact");
+
+    // A ordem é a de cima para baixo: o rótulo (ponto e nome), o número, a barra.
+    const [rotulo, numero, barra, ...resto] = [...macro.children];
+    expect(resto).toEqual([]);
+    expect(rotulo).toHaveClass("co-macro__label");
+    expect(rotulo?.firstElementChild).toHaveClass("co-dot");
+    expect(rotulo?.firstElementChild).toHaveAttribute("aria-hidden", "true");
+    expect(rotulo).toHaveTextContent("Carboidrato líquido");
+    expect(numero).toHaveTextContent("222,2 de 222 g");
+    expect(barra).toBe(screen.getByRole("progressbar", { name: "Carboidrato líquido: 222,2 de 222 g" }));
+
+    // Os três textos: o nome, o número e o nome da barra — a cor nunca sozinha.
+    expect(screen.getByText("Carboidrato líquido")).toBeInTheDocument();
+    expect(screen.getByText("222,2 de 222 g")).toBeInTheDocument();
+    expect(barra).toHaveAttribute("aria-valuenow", "100");
+  });
+
+  it("não herda a altura mínima nem o respiro da linha de lista, e quebra o texto em vez de vazar", () => {
+    // Por cima da `.co-macro`, que é a linha de 56px com 20px de cada lado: a
+    // compacta zera os dois, e quem dá a calha é a grade das três colunas.
+    const linha = bloco(".co-macro");
+    const compacta = bloco('.co-macro[data-layout="compact"]');
+    const vale = (propriedade: string) =>
+      [...linha, ...compacta].filter(([p]) => p === propriedade).at(-1)?.[1];
+    expect(Object.fromEntries(linha)["min-height"]).toBe("56px");
+    expect(vale("min-height")).toBe("0");
+    expect(vale("min-width")).toBe("0");
+    expect(vale("flex-direction")).toBe("column");
+    // (A folha não está carregada aqui: os tokens da linha entram pelo nome.)
+    const tokens = { "--co-space-12": "12px", "--co-inset-text": "20px" };
+    expect(paddingQueVale(linha, tokens)).toEqual({ topo: 12, direita: 20, baixo: 12, esquerda: 20 });
+    expect(paddingQueVale([...linha, ...compacta], tokens)).toEqual({
+      topo: 0,
+      direita: 0,
+      baixo: 0,
+      esquerda: 0,
+    });
+    // O texto comprido quebra dentro da coluna, inclusive no meio da palavra
+    // se uma palavra sozinha não couber.
+    expect(bloco('.co-macro[data-layout="compact"] .co-text')).toEqual([
+      ["min-width", "0"],
+      ["overflow-wrap", "anywhere"],
+    ]);
   });
 });
 

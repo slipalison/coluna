@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { Grid } from "../atoms/Grid";
 import { Text } from "../atoms/Text";
 import { Group } from "./Group";
 import { MacroBar } from "./MacroBar";
@@ -23,7 +24,7 @@ const meta = {
     value: { control: { type: "range", min: 0, max: 200, step: 1 } },
     target: { control: { type: "range", min: 0, max: 300, step: 1 } },
     kind: { control: "inline-radio", options: ["protein", "carb", "fat"] },
-    layout: { control: "inline-radio", options: ["stacked", "inline"] },
+    layout: { control: "inline-radio", options: ["stacked", "inline", "compact"] },
   },
 } satisfies Meta<typeof MacroBar>;
 
@@ -166,6 +167,49 @@ export const MacrosDaMeta: Story = {
           expression="53 × 9 = 477"
         />
       </Group>
+    </div>
+  ),
+};
+
+/**
+ * Compacta, em três colunas lado a lado: a faixa de macros do telefone
+ * (ADR-013). Ponto e nome, o número embaixo, a barra curta embaixo dele.
+ *
+ * A moldura tem 328px — um telefone de 360px menos a calha de 16px de cada
+ * lado —, e a grade dá uns 104px a cada coluna. É a pior combinação que o
+ * Basalto escreve: "Carboidrato líquido" e "222,2 de 222 g". O texto quebra
+ * dentro da coluna, e nada vaza para a do vizinho.
+ */
+export const Compacta: Story = {
+  name: "Compacta, em três colunas",
+  render: () => (
+    <div style={{ width: "328px" }}>
+      <Grid columns={3} gap={8}>
+        <MacroBar
+          name="Proteína"
+          value={68}
+          target={135}
+          kind="protein"
+          layout="compact"
+          valueText="68 de 135 g"
+        />
+        <MacroBar
+          name="Carboidrato líquido"
+          value={222.2}
+          target={222}
+          kind="carb"
+          layout="compact"
+          valueText="222,2 de 222 g"
+        />
+        <MacroBar
+          name="Gordura"
+          value={30}
+          target={53}
+          kind="fat"
+          layout="compact"
+          valueText="30 de 53 g"
+        />
+      </Grid>
     </div>
   ),
 };

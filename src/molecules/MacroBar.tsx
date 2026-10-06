@@ -32,8 +32,17 @@ export interface MacroBarProps {
    * As colunas se alinham entre as linhas do grupo pelas variáveis
    * `--co-macro-name-width` e `--co-macro-figure-width`, que se escrevem UMA
    * vez no `Group` e as linhas herdam.
+   *
+   * `compact` empilha tudo numa coluna estreita: ponto e nome, o número
+   * embaixo, a barra curta embaixo dele. É a faixa de três macros lado a lado
+   * do telefone, onde cada coluna tem uns 104px a 360px de largura e o
+   * `stacked` estoura — o nome e o número disputam a mesma linha, e o respiro
+   * de 20px de cada lado come o que sobrava. Sem respiro e sem altura mínima
+   * de linha: quem dá a calha é a grade que põe os três lado a lado, e o texto
+   * comprido ("Carboidrato líquido", "222,2 de 222 g") quebra em vez de vazar
+   * (ADR-013).
    */
-  layout?: "stacked" | "inline";
+  layout?: "stacked" | "inline" | "compact";
   /**
    * O número à direita, quando ele não é "value de target unit".
    *
@@ -97,6 +106,24 @@ export function MacroBar({
         {expression}
       </Text>
     );
+
+  if (layout === "compact") {
+    return (
+      <div className={classe} data-layout="compact">
+        <div className="co-macro__label">
+          <Dot tone={kind} />
+          <Text className="co-macro__name" variant="footnote" tone="secondary">
+            {name}
+          </Text>
+        </div>
+        <Text className="co-macro__value" variant="callout" numeric>
+          {texto}
+        </Text>
+        {barra}
+        {conta}
+      </div>
+    );
+  }
 
   if (layout === "inline") {
     return (

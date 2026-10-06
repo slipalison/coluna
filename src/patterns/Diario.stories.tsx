@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState, type CSSProperties } from "react";
 import { Badge } from "../atoms/Badge";
+import { Button } from "../atoms/Button";
 import { Screen } from "../atoms/Screen";
 import { Slat } from "../atoms/Slat";
 import { Stack } from "../atoms/Stack";
@@ -115,9 +116,35 @@ function AreaDoSistema() {
   );
 }
 
-function TelaDoDiario({ iphone = false }: Readonly<{ iphone?: boolean }>) {
+function TelaDoDiario({
+  iphone = false,
+  acao = false,
+}: Readonly<{ iphone?: boolean; acao?: boolean }>) {
   const [aberta, definir] = useState<string | null>("almoco");
   const [aba, trocarAba] = useState<(typeof ABAS)[number]["value"]>("diario");
+
+  const abas = (
+    <TabBar
+      label="Seções do Basalto"
+      items={ABAS}
+      value={aba}
+      onChange={trocarAba}
+      position={acao ? "fixed" : "absolute"}
+    />
+  );
+
+  // Com a barra de ação (ADR-013), a `TabBar` vai como NÓ do `tabBar`: entra
+  // depois da barra de ação, e a ordem do documento — a do Tab — fica a da
+  // tela. `fixed` dá certo dentro da moldura do aparelho pelo mesmo
+  // `contain: layout` que segura a faixa sob o relógio. A barra recebe o que
+  // um aplicativo poria nela: um grupo com nome, em fileira, com a ação.
+  const barraDeAcao = (
+    <Stack direction="row" gap={8} role="group" aria-label="Ações desta tela">
+      <Button full icon="plus">
+        Nova refeição
+      </Button>
+    </Stack>
+  );
 
   // `contain: layout` faz da moldura o bloco de contenção do que é `fixed`:
   // a faixa sob o relógio fica no topo DESTE aparelho, como ficaria no topo da
@@ -136,7 +163,7 @@ function TelaDoDiario({ iphone = false }: Readonly<{ iphone?: boolean }>) {
       }}
     >
       <div style={{ height: "100%", overflowY: "auto" }}>
-        <Screen tabBar>
+        <Screen tabBar={acao ? abas : true} actionBar={acao ? barraDeAcao : undefined}>
           <ScreenHeader
             title="Hoje"
             subtitle="quarta, 16 de setembro"
@@ -224,23 +251,19 @@ function TelaDoDiario({ iphone = false }: Readonly<{ iphone?: boolean }>) {
                   ) : null}
                 </div>
               ))}
-              <ListRow onClick={() => undefined}>
-                <Text variant="body" tone="accent">
-                  Nova refeição
-                </Text>
-              </ListRow>
+              {acao ? null : (
+                <ListRow onClick={() => undefined}>
+                  <Text variant="body" tone="accent">
+                    Nova refeição
+                  </Text>
+                </ListRow>
+              )}
             </Group>
           </Stack>
         </Screen>
       </div>
 
-      <TabBar
-        label="Seções do Basalto"
-        items={ABAS}
-        value={aba}
-        onChange={trocarAba}
-        position="absolute"
-      />
+      {acao ? null : abas}
 
       {iphone ? <AreaDoSistema /> : null}
     </div>
@@ -270,4 +293,32 @@ export const Diário: Story = {
 export const NoIPhone: Story = {
   name: "No iPhone",
   render: () => <TelaDoDiario iphone />,
+};
+
+/**
+ * A mesma tela com a barra de ação da 1.8.0 (ADR-013): "Nova refeição" sai do
+ * fim da lista e fica fixa acima da barra de abas, à mão do polegar com o dia
+ * rolado até o fim.
+ *
+ * - A barra tem a altura de UMA fileira (65px), e um botão sozinho ocupa a
+ *   largura inteira; dois dividiriam meio a meio, na mesma altura.
+ * - A reserva da tela cresce essa fileira: role até o fim, e a última linha
+ *   para 31px acima da barra de ação, e não atrás dela.
+ * - A ordem do documento é a da tela: o conteúdo, a barra de ação, as abas. É
+ *   a ordem do Tab, e a do leitor de tela.
+ * - O vidro é o da barra de abas, nos dois temas.
+ */
+export const ComBarraDeAcao: Story = {
+  name: "Com a barra de ação",
+  render: () => <TelaDoDiario acao />,
+};
+
+/**
+ * A barra de ação no iPhone: ela encosta no topo da barra de abas, que já
+ * cresceu embaixo o que o indicador de início pede (20px de rodapé com os 34px
+ * de área). A última linha continua 31px acima da barra de ação.
+ */
+export const ComBarraDeAcaoNoIPhone: Story = {
+  name: "Com a barra de ação, no iPhone",
+  render: () => <TelaDoDiario iphone acao />,
 };

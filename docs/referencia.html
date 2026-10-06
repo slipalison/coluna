@@ -368,6 +368,19 @@
    * segura vale 0, e a rolagem é a da 1.7.0. No `:root` porque é dele o recuo
    * da janela: é o que o Tab, a âncora e o `scrollIntoView` respeitam. */
   scroll-padding-top: calc(var(--co-statusbar-height) * 4 / 3);
+  /* A altura de UMA fileira da barra de ação (ADR-013): o fio, o respiro de
+   * cima, o botão de 44px e o respiro de baixo — 65px. É a barra com as abas
+   * embaixo dela; sem abas, ela cresce embaixo o que a barra de abas cresceria.
+   * Um token, e não a medida do que está dentro: a reserva da tela e o recuo da
+   * rolagem leem este número, e nenhum efeito precisa medir a barra montada.
+   * Só tokens, e nada da área segura: resolvida aqui, chega igual a toda tela.
+   * Declarada SÓ aqui. */
+  --co-actionbar-height: calc(var(--co-border-width) + var(--co-space-10) + var(--co-target-min) + var(--co-space-10));
+  /* O recuo de baixo da rolagem da janela, pelo mesmo motivo do de cima: o foco
+   * do teclado não fica atrás das barras de baixo (WCAG 2.2, 2.4.11). Sem barra
+   * nenhuma vale 0; com elas, as regras `:root:has(...)` da tela trocam este
+   * zero pelo mesmo termo da reserva (ADR-013). */
+  scroll-padding-bottom: 0px;
 }
 
 /* ----------------------------------------------------------------- tela --- */
@@ -414,6 +427,58 @@
 }
 
 /*
+ * A barra de ação soma UMA fileira à reserva (ADR-013), e a última linha fica
+ * 31px acima dela, com e sem área segura:
+ *
+ * - com as abas, a barra encosta no topo delas: a reserva é a das abas mais
+ *   `--co-actionbar-height`;
+ * - sem abas, a barra fica na área segura de baixo e cresce embaixo o que a
+ *   barra de abas cresceria (o mesmo termo `max(...)`): a reserva é 31px mais a
+ *   barra.
+ *
+ * Só a barra COM CONTEÚDO reserva. "Com conteúdo" é ter um descendente que
+ * não está vazio — o botão, o texto dele —, atravessando o embrulho que o
+ * consumidor puser em volta: um hospedeiro vazio de portal não conta. É a
+ * MESMA condição que esconde a barra vazia, mais abaixo, escrita do lado de
+ * fora; e do lado de fora porque `:has()` não se aninha.
+ */
+.co-screen[data-actionbar="true"]:has(> .co-screen__actionbar :not(:empty)) {
+  --co-screen-bottom: calc(31px + var(--co-actionbar-height) - var(--co-space-10)
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14))));
+}
+
+.co-screen[data-tabbar="true"][data-actionbar="true"]:has(> .co-screen__actionbar :not(:empty)) {
+  --co-screen-bottom: calc(104px - var(--co-space-10)
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14)))
+    + var(--co-actionbar-height));
+}
+
+/*
+ * O recuo de baixo da rolagem da janela (ADR-013): com barra embaixo, o foco do
+ * teclado para acima dela, e não atrás (WCAG 2.2, 2.4.11). É o MESMO texto da
+ * reserva de cada caso — o Tab leva o controle até onde a última linha fica em
+ * repouso, 31px acima do vidro — e a mesma condição: só a barra de ação com
+ * conteúdo conta. No `:root`, porque o recuo da janela é dele; a tela não tem
+ * como subir uma custom property até ali, então o `:root` pergunta à tela.
+ * Sem barra nenhuma, fica o 0 do `:root`.
+ */
+:root:has(.co-screen[data-tabbar="true"]) {
+  scroll-padding-bottom: calc(104px - var(--co-space-10)
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14))));
+}
+
+:root:has(.co-screen[data-actionbar="true"] > .co-screen__actionbar :not(:empty)) {
+  scroll-padding-bottom: calc(31px + var(--co-actionbar-height) - var(--co-space-10)
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14))));
+}
+
+:root:has(.co-screen[data-tabbar="true"][data-actionbar="true"] > .co-screen__actionbar :not(:empty)) {
+  scroll-padding-bottom: calc(104px - var(--co-space-10)
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14)))
+    + var(--co-actionbar-height));
+}
+
+/*
  * A faixa sob o relógio (ADR-012). Com a tela rolada, o conteúdo passa por
  * baixo do relógio e da ilha, e o texto rolado atrás deles é ilegível para os
  * dois: o relógio e o texto. A `Screen` monta esta faixa SEMPRE, fixa no topo,
@@ -457,6 +522,86 @@
   -webkit-backdrop-filter: blur(22px);
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 75%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 75%, transparent 100%);
+}
+
+/*
+ * A barra de ação (ADR-013): as ações da tela, fixas embaixo, à mão do polegar
+ * em qualquer rolagem — "Calcular" enquanto se preenche, "Nova refeição" com o
+ * dia rolado até o fim.
+ *
+ * - O vidro é o da barra de abas: o mesmo fundo com alfa, o mesmo desfoque e o
+ *   mesmo fio em cima. Onde o filtro não existe, ela fica opaca, nunca ilegível.
+ * - A altura é de UMA fileira, e é token (`--co-actionbar-height`, no `:root`):
+ *   65px com as abas embaixo, de caixa a caixa, com o botão de 44px no meio.
+ *   Não é a medida do conteúdo — um botão ou dois lado a lado dão a mesma
+ *   barra, e a reserva da tela, que lê o mesmo token, nunca fica atrás dela.
+ * - Sem abas, ela é quem encosta na borda de baixo: o rodapé é o termo
+ *   `max(...)` da barra de abas, e ela cresce o que ele crescer (o botão entra
+ *   14px na área do indicador de início, como os destinos — ADR-012).
+ * - A calha lateral é a da tela, com o entalhe em paisagem: os botões começam e
+ *   terminam onde o conteúdo começa e termina.
+ * - Camada 20, a da barra de abas, dentro da pilha da tela: abaixo do véu do
+ *   `Sheet` (40), que cobre as duas.
+ * - Nada inline: posição, altura e reserva vêm daqui, e a CSP com
+ *   `style-src 'self'` de quem consome continua de pé.
+ */
+.co-screen__actionbar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-8);
+  box-sizing: border-box;
+  height: calc(var(--co-actionbar-height) - var(--co-space-10)
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14))));
+  padding: var(--co-space-10) max(var(--co-space-16), var(--co-safe-right))
+    max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14)))
+    max(var(--co-space-16), var(--co-safe-left));
+  background: var(--co-overlay);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-top: var(--co-border-width) solid var(--co-overlay-line);
+}
+
+/*
+ * Com as abas, a barra encosta no topo delas. A barra de abas mede
+ * `73px − 10px + max(...)` — o respiro de cima, o destino de 52px, o fio e o
+ * rodapé (ADR-012) — e é esse o `bottom` daqui, com o MESMO termo `max(...)`:
+ * se um mudar sem o outro, abre-se um vão entre as duas barras, ou uma cobre a
+ * outra. Embaixo, então, só o respiro de sempre: a área segura já é das abas.
+ */
+.co-screen[data-tabbar="true"] > .co-screen__actionbar {
+  bottom: calc(73px - var(--co-space-10)
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14))));
+  height: var(--co-actionbar-height);
+  padding-bottom: var(--co-space-10);
+}
+
+/*
+ * Os botões dividem a largura: um sozinho ocupa a fileira inteira, dois ficam
+ * meio a meio. O primeiro nível é o que o consumidor pôs na barra — os botões,
+ * ou o embrulho que os guarda (um hospedeiro de portal), que se estica para
+ * eles se dividirem dentro dele.
+ */
+.co-screen__actionbar > *,
+.co-screen__actionbar .co-button {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/*
+ * Vazia, a barra não existe: sem descendente com conteúdo — atravessando o
+ * embrulho que o consumidor puser em volta, um hospedeiro de portal vazio
+ * enquanto a tela não mandou ação nenhuma —, ela some da tela e da árvore de
+ * acessibilidade, e a reserva da tela não cresce (a condição é a mesma das
+ * regras da reserva, lá em cima). Um `input` solto direto na barra conta como
+ * vazio: a barra é de `Button`, que sempre tem um rótulo dentro.
+ */
+.co-screen__actionbar:not(:has(:not(:empty))) {
+  display: none;
 }
 
 /* --------------------------------------------------------------- texto ---- */
@@ -548,6 +693,30 @@
 .co-text[data-tone="subtle"] { color: var(--co-text-subtle); }
 .co-text[data-tone="accent"] { color: var(--co-accent); }
 .co-text[data-tone="status"] { color: var(--co-status); }
+
+/* ------------------------------------------------------------------ pilha -- */
+
+/*
+ * A fileira que rola de lado (`Stack scroll`, ADR-013). O `Stack` escreve o
+ * `nowrap` e o `overflow-x` no próprio `style`; o que mora aqui é o que um
+ * `style` não alcança.
+ *
+ * - Os filhos não encolhem: num `nowrap`, o flex encolheria cada um até a
+ *   palavra mais longa do rótulo, e a fileira viraria uma pilha de rótulos
+ *   quebrados em vez de rolar.
+ * - Uma caixa que rola num eixo corta nos dois, e o anel de foco (2px, a 2px
+ *   do controle) ficaria cortado em volta de cada filho. A caixa ganha 4px de
+ *   respiro em volta e devolve os mesmos 4px de margem: o anel cabe, e os
+ *   filhos ficam onde ficariam sem nada disso.
+ */
+.co-stack[data-scroll="true"] {
+  padding: var(--co-space-4);
+  margin: calc(0px - var(--co-space-4));
+}
+
+.co-stack[data-scroll="true"] > * {
+  flex-shrink: 0;
+}
 
 /* ------------------------------------------------------------- superfície -- */
 
@@ -1253,6 +1422,35 @@
   flex-shrink: 0;
   min-width: var(--co-macro-figure-width, 88px);
   text-align: right;
+}
+
+/*
+ * Compacta, para a faixa de três colunas do telefone (ADR-013): ponto e nome,
+ * o número embaixo, a barra curta embaixo dele — empilhados numa coluna de uns
+ * 104px. Sem a altura mínima da linha de lista e sem o respiro de 20px de cada
+ * lado: quem dá a calha é a grade que põe as três lado a lado. E o texto que
+ * não cabe quebra, em vez de vazar para a coluna do vizinho — "Carboidrato
+ * líquido" em duas linhas, nunca por baixo do "Gordura".
+ */
+.co-macro[data-layout="compact"] {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--co-space-4);
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+}
+
+.co-macro__label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--co-space-6);
+  min-width: 0;
+}
+
+.co-macro[data-layout="compact"] .co-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* ------------------------------------------------------------------ aviso --- */
@@ -2557,7 +2755,7 @@ pre code { background: none; border: 0; padding: 0; }
   <header class="topo">
     <div class="marca">
       <span class="marca__nome">Coluna</span>
-      <span class="co-badge" data-tone="accent">v1.7.0</span>
+      <span class="co-badge" data-tone="accent">v1.7.1</span>
     </div>
     <div class="co-segmented" role="radiogroup" aria-label="Tema" id="tema">
       <button type="button" role="radio" class="co-segmented__option" aria-checked="false" data-tema="light">Claro</button>

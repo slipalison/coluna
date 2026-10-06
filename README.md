@@ -212,7 +212,10 @@ Alguns que merecem nota:
   não aparece como acionável para o leitor de tela.
 - **`Stack`** é como **todo** grupo de irmãos deve ser espaçado. Espaço feito de
   `margin` no filho some quando alguém reordena, remove ou duplica um item;
-  `gap` é do contêiner e sobrevive.
+  `gap` é do contêiner e sobrevive. Com `scroll`, é uma fileira que não quebra
+  e rola de lado — os filhos não encolhem, e o anel de foco cabe na caixa que
+  rola. O `ref` chega ao elemento (o hospedeiro de um portal, o foco ao montar)
+  sem `forwardRef`.
 - **`Field`** amarra rótulo, controle, dica e erro. O controle chega por
   **função**, e não como filho que o `Field` clona: clonar é mágica que some no
   primeiro dia em que alguém envolve o campo num `<div>` para posicioná-lo — o
@@ -270,6 +273,29 @@ Alguns que merecem nota:
   âncora e o `scrollIntoView` param abaixo dela, e não atrás (WCAG 2.2, 2.4.11).
   Sem área segura o recuo vale 0. Quem rola dentro de um contêiner próprio põe
   o mesmo recuo nele (adendo 1.7.1 do ADR-012).
+- **A barra de ação** é a `Screen` com `actionBar`: o nó vai numa barra fixa
+  acima da barra de abas (ou na área segura de baixo, sem abas), com o vidro
+  dela, à mão do polegar em qualquer rolagem. A barra tem a altura de UMA
+  fileira de botão — `--co-actionbar-height`, 65px, declarada no `:root` —, e
+  um botão ou dois dão a mesma barra, dividindo a largura; a reserva da tela
+  cresce essa fileira, e a última linha continua 31px acima do vidro, com e sem
+  área segura. Com a `TabBar` como nó em `tabBar`, a ordem do documento — a do
+  Tab e a do leitor de tela — é a da tela: conteúdo, barra de ação, abas.
+  Vazia (nenhum descendente com conteúdo, atravessando o hospedeiro de um
+  portal), ela não pinta e não reserva. E o `:root` recua a rolagem de baixo
+  pelo mesmo termo da reserva, 0 sem barras: o Tab para o controle acima das
+  barras, e não atrás delas (WCAG 2.2, 2.4.11) — inclusive só com as abas, que
+  na 1.7.1 escondiam o foco
+  ([ADR-013](docs/adr/013-barra-de-acao.md)):
+
+  ```tsx
+  <Screen
+    tabBar={<TabBar label="Navegação" items={destinos} value={atual} onChange={ir} />}
+    actionBar={<Stack direction="row" ref={definirHospedeiro} role="group" aria-label="Ações desta tela" />}
+  >
+    {tela}
+  </Screen>
+  ```
 - **`Disclosure`** guarda a explicação até alguém pedir, e é `<details>` do
   navegador em vez de um acordeão escrito à mão: estado, teclado, anúncio, busca
   da página achando o texto fechado e impressão abrindo tudo vêm de graça. A
@@ -309,6 +335,10 @@ Alguns que merecem nota:
 - **`MacroBar layout="inline"`** põe ponto, nome, barra e número numa linha só,
   para a coluna larga. As colunas se alinham por `--co-macro-name-width` e
   `--co-macro-figure-width`, escritas uma vez no `Group`.
+- **`MacroBar layout="compact"`** empilha ponto e nome, o número e a barra
+  curta numa coluna de uns 104px — a faixa de três macros do telefone —, sem a
+  altura mínima nem o respiro da linha de lista. O texto comprido quebra
+  dentro da coluna em vez de vazar para a do vizinho.
 
 ---
 
@@ -334,7 +364,7 @@ quer um tipo carregaria a folha inteira, inclusive em teste e em Node.
 ```bash
 npm install       # o `prepare` já gera os tokens
 npm run tokens    # tokens/*.json -> src/tokens/{tokens.css,gerado.ts}
-npm test          # 213 testes, piso de 80% em linha, ramo, função e comando
+npm test          # 232 testes, piso de 80% em linha, ramo, função e comando
 npm run build     # dist/coluna.js + dist/index.d.ts + os dois CSS
 npm run referencia # docs/referencia.html, pintada pelo CSS que o pacote publica
 ```
@@ -361,3 +391,4 @@ a esteira reprova o que estiver fora.
 - [ADR-010 — o grupo de escolha amarra rótulo, nota e erro](docs/adr/010-o-grupo-amarra-rotulo-nota-e-erro.md)
 - [ADR-011 — a área segura vira token público](docs/adr/011-a-area-segura-vira-token-publico.md)
 - [ADR-012 — a faixa sob o relógio e o respiro da barra](docs/adr/012-faixa-sob-o-relogio-e-respiro-da-barra.md)
+- [ADR-013 — a barra de ação](docs/adr/013-barra-de-acao.md)
