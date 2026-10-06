@@ -63,7 +63,7 @@ export function Screen({
   className,
   children,
   ...resto
-}: ScreenProps) {
+}: Readonly<ScreenProps>) {
   const classes = ["co-screen"];
   if (grain) classes.push("co-grain");
   if (className) classes.push(className);

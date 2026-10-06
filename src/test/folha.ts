@@ -36,9 +36,9 @@ export interface Regra {
 export const normalizar = (texto: string) =>
   texto
     .replace(/\s+/g, " ")
-    .replace(/\(\s+/g, "(")
-    .replace(/\s+\)/g, ")")
-    .replace(/\s*,\s*/g, ", ")
+    .replace(/\( /g, "(")
+    .replace(/ \)/g, ")")
+    .replace(/ ?, ?/g, ", ")
     .trim();
 
 const SEM_COMENTARIO = folha.replace(/\/\*[\s\S]*?\*\//g, "");
@@ -48,16 +48,44 @@ const SEM_COMENTARIO = folha.replace(/\/\*[\s\S]*?\*\//g, "");
  * tema, numa largura —, e o regex plano abaixo a lê como se valesse sempre. A
  * profundidade de chave antes de cada posição é o que separa as duas.
  */
+const DEGRAU: Readonly<Record<string, number>> = { "{": 1, "}": -1 };
 const PROFUNDIDADE: number[] = [0];
 for (let k = 0; k < SEM_COMENTARIO.length; k++) {
-  const caractere = SEM_COMENTARIO[k];
-  PROFUNDIDADE.push((PROFUNDIDADE[k] ?? 0) + (caractere === "{" ? 1 : caractere === "}" ? -1 : 0));
+  PROFUNDIDADE.push((PROFUNDIDADE[k] ?? 0) + (DEGRAU[SEM_COMENTARIO[k] ?? ""] ?? 0));
 }
 
-export const REGRAS: Regra[] = [...SEM_COMENTARIO.matchAll(/([^{};]*)\{([^{}]*)\}/g)].map((achado) => ({
-  profundidade: PROFUNDIDADE[achado.index ?? 0] ?? 0,
-  seletores: normalizar(achado[1] ?? "").split(/\s*,\s*/),
-  declaracoes: (achado[2] ?? "")
+/**
+ * Cada bloco sem chave dentro (`seletor { declarações }`), na ordem da folha:
+ * o seletor é o texto desde a última `{`, `}` ou `;`. Uma varredura, e não o
+ * regex `([^{};]*)\{([^{}]*)\}`, que acha os mesmos blocos mas recomeça o
+ * seletor a cada posição e custa quadrático numa folha longa.
+ */
+function blocosPlanos(css: string): { inicio: number; seletor: string; corpo: string }[] {
+  const blocos: { inicio: number; seletor: string; corpo: string }[] = [];
+  let inicio = 0;
+  let k = 0;
+  while (k < css.length) {
+    const caractere = css[k];
+    if (caractere === "{") {
+      const fim = css.indexOf("}", k + 1);
+      const outra = css.indexOf("{", k + 1);
+      if (fim !== -1 && (outra === -1 || fim < outra)) {
+        blocos.push({ inicio, seletor: css.slice(inicio, k), corpo: css.slice(k + 1, fim) });
+        k = fim;
+      }
+      inicio = k + 1;
+    } else if (caractere === ";" || caractere === "}") {
+      inicio = k + 1;
+    }
+    k++;
+  }
+  return blocos;
+}
+
+export const REGRAS: Regra[] = blocosPlanos(SEM_COMENTARIO).map((achado) => ({
+  profundidade: PROFUNDIDADE[achado.inicio] ?? 0,
+  seletores: normalizar(achado.seletor).split(", "),
+  declaracoes: achado.corpo
     .split(";")
     .map(normalizar)
     .filter(Boolean)
@@ -87,7 +115,7 @@ export const paddings = (declaracoes: Declaracao[]) =>
  * O NOME da classe, e não o texto `.co-x`: casa também o seletor de atributo
  * (`[class~="co-x"]`), que alcança o mesmo elemento sem escrever o ponto.
  */
-export const classe = (...nomes: string[]) => new RegExp(`(^|[^\\w-])(${nomes.join("|")})(?![\\w-])`);
+export const classe = (...nomes: string[]) => new RegExp(String.raw`(^|[^\w-])(${nomes.join("|")})(?![\w-])`);
 
 /** Nenhuma outra regra que alcança o seletor mexe no `padding` dele. */
 export function soEstesMexemNoPadding(alcanca: RegExp, donos: string[]) {
@@ -213,9 +241,11 @@ export function avaliar(texto: string, valores: Valores): number {
     }
     if (funcao === "max" || funcao === "min") {
       const argumentos = [soma()];
-      for (pular(); texto[i] === ","; pular()) {
+      pular();
+      while (texto[i] === ",") {
         i++;
         argumentos.push(soma());
+        pular();
       }
       esperar(")");
       return funcao === "max" ? Math.max(...argumentos) : Math.min(...argumentos);
@@ -242,26 +272,26 @@ export function avaliar(texto: string, valores: Valores): number {
   // `calc(var(--co-statusbar-height) * 4 / 3)`.
   function produto(): number {
     let valor = termo();
-    for (pular(); texto[i] === "*" || texto[i] === "/"; pular()) {
+    pular();
+    while (texto[i] === "*" || texto[i] === "/") {
       const operador = texto[i];
       i++;
       const outro = termo();
       valor = operador === "*" ? valor * outro : valor / outro;
+      pular();
     }
     return valor;
   }
 
   function soma(): number {
     let valor = produto();
-    for (
-      pular();
-      (texto[i] === "+" || texto[i] === "-") && /\s/.test(texto[i + 1] ?? "");
-      pular()
-    ) {
+    pular();
+    while ((texto[i] === "+" || texto[i] === "-") && /\s/.test(texto[i + 1] ?? "")) {
       const sinal = texto[i];
       i++;
       const outro = produto();
       valor = sinal === "+" ? valor + outro : valor - outro;
+      pular();
     }
     return valor;
   }

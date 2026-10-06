@@ -31,6 +31,12 @@ export interface StackProps extends HTMLAttributes<HTMLElement> {
   ref?: Ref<HTMLElement> | undefined;
 }
 
+/** `scroll` vence `wrap`: a fileira que rola não quebra. */
+function quebra(scroll: boolean, wrap: boolean): CSSProperties["flexWrap"] {
+  if (scroll) return "nowrap";
+  return wrap ? "wrap" : undefined;
+}
+
 /**
  * Empilha filhos com `gap`, e é assim que TODO grupo de irmãos deve ser
  * espaçado neste sistema — botão ao lado de botão, chip ao lado de chip,
@@ -68,7 +74,7 @@ export function Stack({
         gap: `var(--co-space-${gap})`,
         alignItems: align,
         justifyContent: justify,
-        flexWrap: scroll ? "nowrap" : wrap ? "wrap" : undefined,
+        flexWrap: quebra(scroll, wrap),
         overflowX: scroll ? "auto" : undefined,
         flexGrow: grow ? 1 : undefined,
         minWidth: 0,
