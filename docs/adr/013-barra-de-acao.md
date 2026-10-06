@@ -370,3 +370,119 @@ colunas", nos temas claro e escuro: 0 violações.
 - **O consumidor ganha duas formas de pôr as abas**, e as duas ficam: `true`
   com a `TabBar` onde ele quiser (a 1.7.1), ou o nó, com a ordem certa de
   graça. Com a barra de ação, só o nó dá a ordem certa.
+
+## Adendo 1.8.1 (2026-10-06) — a ação recém-chegada se arma
+
+**O defeito.** A barra fica no mesmo lugar de uma tela para a outra, e a ação
+da tela seguinte nasce exatamente embaixo do dedo que tocou a da anterior. Na
+verificação da fase `telefone-em-retrato-e-sem-subir-e-descer` do Basalto
+(achado F3, [basalto#54](https://github.com/slipalison/basalto/issues/54)), com
+a 1.8.0 no app real, um toque duplo em "Calcular" (o segundo 150ms depois do
+primeiro, no mesmo ponto) caiu em "Guardar esta meta". A tela do resultado
+tinha posto esse botão no mesmo lugar da barra, e o toque guardou uma meta que
+a pessoa não pediu: um `PUT /api/v1/me/goal`. A ação nova aparece pronta para
+o toque, no ponto exato onde o dedo ainda está.
+
+**O conserto.** O controle que acabou de chegar à barra não aceita PONTEIRO
+por 400ms:
+
+```css
+.co-screen__actionbar button,
+.co-screen__actionbar a,
+.co-screen__actionbar [role="button"] {
+  animation: co-acao-armando 400ms step-end;
+}
+
+@keyframes co-acao-armando {
+  from { pointer-events: none; }
+  to { pointer-events: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* …o zero de `.co-root *`, como antes… */
+  .co-screen__actionbar button,
+  .co-screen__actionbar a,
+  .co-screen__actionbar [role="button"] {
+    animation-duration: 400ms !important;
+  }
+}
+```
+
+- **Uma animação, e não um efeito.** Ela começa quando o elemento entra no
+  documento, ou quando a barra vazia volta a pintar. Não há JS novo, nem
+  atributo `style`, nem prop. `pointer-events` anima como discreto: `step-end`
+  segura o `from` pela janela inteira (com a curva padrão, o valor viraria na
+  metade, aos 200ms). Sem atraso, sem repetição e sem `fill-mode`, o fim da
+  janela devolve o `pointer-events` da cascata.
+- **Só ponteiro.** O toque que chega dentro da janela cai no vidro da barra (no
+  hospedeiro do consumidor, ou na própria barra), que não faz nada, e não
+  atravessa para o conteúdo atrás dela. O teclado (Enter, Espaço) e o leitor de
+  tela acionam na hora: o toque duplo é coisa de dedo, e quem chegou pelo Tab
+  escolheu o botão. Nada muda na aparência: um botão que se mostrasse desligado
+  por 400ms chamaria atenção para nada.
+- **400ms** é mais que o intervalo do toque duplo medido (150ms), e é pouco
+  para quem leu o rótulo novo e quer mesmo tocar.
+- **Os controles da barra, e só eles.** O botão, o link e o `role="button"`
+  em qualquer nível dentro da barra, inclusive no hospedeiro de um portal. O
+  conteúdo da tela, as abas e o que está fora da `Screen` não mudam. Um `input`
+  solto não é pego, porque a barra é de `Button` (§4).
+- **O que JÁ estava na barra não se rearma** quando outro controle chega.
+- **Vale com movimento reduzido.** A trava não move nada, e zerá-la devolveria
+  o toque duplo justamente a quem pediu menos movimento. A exceção usa os
+  mesmos três seletores, mais específicos que o `.co-root *` do zero. Como as
+  duas declarações são `!important`, vence a especificidade.
+
+**O limite: a janela é da ENTRADA no documento.** Se o consumidor troca a
+ação de uma tela pela da outra no MESMO elemento (o mesmo portal, um `Button`
+no mesmo lugar, outro rótulo e outro clique), o React reaproveita o `<button>`,
+e nada entra no documento. Aí o toque duplo volta (medido abaixo, linha
+"mesmo `<button>`"). Uma `key` diferente para cada ação faz o React montar um
+nó novo, e a trava volta a valer. No Basalto, cada tela tem o próprio portal
+(`CalculatorForm` e `GoalResult`, este dentro de `PhoneResult`), e a troca de
+tela desmonta um e monta o outro: o "Guardar esta meta" é um nó novo.
+
+**A medição.** No Chromium e no WebKit do Playwright 1.63, com o
+`dist/styles.css` e o `dist/coluna.js` desta versão montados numa página de
+393×852 com toque. A página tem um `ThemeProvider`, uma `Screen` com a
+`TabBar` e um `Stack` hospedeiro guardado por `ref` como `actionBar`, e as
+ações chegam por portal, como no Basalto. O ponteiro vai por coordenada
+(`mouse.click` e `touchscreen.tap`), sem a espera de acionabilidade do
+Playwright, e o tempo é o do `pointerdown` contado da entrada do botão.
+
+| caso | Chromium, clique / toque | WebKit, clique / toque |
+|---|---|---|
+| (1) entra, ponteiro aos ~150ms | não dispara (160,9 / 153,2ms); cai no hospedeiro | não dispara (158 / 158ms); cai no hospedeiro |
+| (2) entra, ponteiro aos ~500ms | dispara (505,3 / 504,5ms) | dispara (507 / 507ms) |
+| (3) foco ao entrar, Enter / Espaço aos ~50ms | dispara (57,9 / 52,2ms) | dispara (52 / 57ms) |
+| (4) movimento reduzido, ~150ms | não dispara (151,2 / 154,4ms) | não dispara (155 / 155ms) |
+| (4) movimento reduzido, ~500ms | dispara (502,5 / 504,1ms) | dispara (505 / 504ms) |
+| (5) A já estava, B chega; os dois aos ~150ms de B | A dispara, B não | A dispara, B não |
+| o toque duplo do F3, segundo toque aos ~155ms | "Guardar esta meta": 0 | 0 |
+| o mesmo, terceiro toque aos ~505ms | "Guardar esta meta": 1 | 1 |
+| o F3 com o mesmo `<button>` reaproveitado | "Guardar esta meta": **1** | **1** |
+| o mesmo, com `key` | 0 | 0 |
+| a 1.8.0 (o `dist/styles.css` da tag), (1) e o F3 | dispara; "Guardar esta meta": **1** | dispara; **1** |
+
+Com o movimento reduzido emulado, a transição do botão do conteúdo cai para
+`1e-05s` no Chromium e `0.00001s` no WebKit, então o zero está valendo. O
+botão da barra continua com `co-acao-armando 0.4s`.
+
+**Consequências.** É `fix`, e por isso a versão é patch: nenhuma API nova, e a
+árvore da `Screen` é a da 1.8.0, letra por letra. A folha ganha a regra, o
+`@keyframes` e a exceção dentro do `@media` de movimento reduzido.
+
+- Uma animação própria num controle da barra precisa de um seletor mais
+  específico, e com ele desliga a trava daquele controle. Para manter as duas,
+  liste as duas: `animation: co-acao-armando 400ms step-end, a-minha …`.
+- O teste de unidade (`src/barra-de-acao.test.tsx`) prova o texto. Uma regra
+  só usa a animação, com os três seletores da barra. O `@keyframes` só mexe em
+  `pointer-events`. O atalho tem três partes (nome, 400ms, `step-end`). A
+  exceção do movimento reduzido tem os mesmos seletores, a mesma duração e mais
+  especificidade que o zero. O teste prova também a cascata do happy-dom: o
+  atalho chega aos três controles da barra e a nenhum outro, e com
+  `prefersReducedMotion: "reduce"` o resto da página fica em 0.01ms e a barra
+  em 400ms. O clique ignorado é do navegador, porque o happy-dom não testa onde
+  o ponteiro acerta.
+- `src/test/folha.ts` ganha `dentroDe()`: as regras de dentro de UMA at-rule,
+  pelo cabeçalho. `REGRAS` sabe que uma regra mora numa at-rule, mas não em
+  qual.

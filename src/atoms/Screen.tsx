@@ -24,6 +24,12 @@ export interface ScreenProps extends HTMLAttributes<HTMLDivElement> {
    * altura de UMA fileira de botões, e a tela reserva essa altura embaixo; sem
    * nada dentro (nenhum descendente com conteúdo), ela não pinta e não reserva
    * (ADR-013).
+   *
+   * O controle que acabou de chegar à barra ignora o PONTEIRO por 400ms (o
+   * teclado, não): o segundo toque de um toque duplo não cai na ação que a
+   * tela seguinte pôs no mesmo lugar. A janela é da entrada no documento — a
+   * ação de outra tela vai num elemento novo (outro portal, ou outra `key`),
+   * e não no mesmo `<button>` com outro rótulo (ADR-013, adendo 1.8.1).
    */
   actionBar?: ReactNode;
   /** Liga o grão vulcânico. Cabe aqui, na tela inteira — não em cada cartão. */

@@ -339,6 +339,43 @@
   display: none;
 }
 
+/*
+ * A ação que ACABOU de chegar à barra se arma antes de aceitar o toque
+ * (ADR-013, adendo 1.8.1). A barra fica no mesmo lugar de uma tela para a
+ * outra, e a ação da tela seguinte nasce exatamente embaixo do dedo que tocou
+ * a da anterior: no Basalto, um toque duplo em "Calcular" — o segundo 150ms
+ * depois do primeiro — caía em "Guardar esta meta", que a tela do resultado
+ * pôs no mesmo lugar, e guardava uma meta que a pessoa não pediu.
+ *
+ * - Por 400ms desde que o controle entra no documento (ou desde que a barra
+ *   vazia volta a pintar), ele não recebe PONTEIRO: o toque cai no vidro da
+ *   barra, que não faz nada, e não atravessa para o conteúdo atrás dela.
+ * - Só ponteiro. O teclado (Enter, Espaço) e o leitor de tela acionam na hora:
+ *   o toque duplo é coisa de dedo, e quem chegou pelo Tab escolheu o botão.
+ * - Uma animação, e não um efeito: ela começa quando o elemento entra, sem JS
+ *   e sem `style`. `step-end` segura o `from` pela janela inteira, e, sem
+ *   `fill-mode`, o fim devolve o `pointer-events` da cascata.
+ * - O controle que JÁ estava na barra não se rearma quando outro chega, nem
+ *   quando o consumidor só troca o rótulo dele no mesmo elemento: a janela é
+ *   da entrada no documento.
+ * - Vale com movimento reduzido também: não move nada, é uma trava de toque
+ *   (a exceção está no `@media` do fim da folha).
+ */
+.co-screen__actionbar button,
+.co-screen__actionbar a,
+.co-screen__actionbar [role="button"] {
+  animation: co-acao-armando 400ms step-end;
+}
+
+@keyframes co-acao-armando {
+  from {
+    pointer-events: none;
+  }
+  to {
+    pointer-events: auto;
+  }
+}
+
 /* --------------------------------------------------------------- texto ---- */
 
 .co-text {
@@ -2320,12 +2357,24 @@ fieldset.co-nav-list {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
 }
 
-/* Quem pede menos movimento não recebe transição nenhuma. */
+/* Quem pede menos movimento não recebe transição nenhuma.
+ *
+ * A trava de toque da barra de ação fica (ADR-013, adendo 1.8.1): ela não move
+ * nada, e zerada devolveria o toque duplo justamente a quem pediu menos
+ * movimento. São os MESMOS três seletores da trava, mais específicos que
+ * `.co-root *`; as duas declarações são `!important`, e nesse caso vence a
+ * especificidade. A duração é a da trava, letra por letra. */
 @media (prefers-reduced-motion: reduce) {
   .co-root *,
   .co-root *::before,
   .co-root *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+  }
+
+  .co-screen__actionbar button,
+  .co-screen__actionbar a,
+  .co-screen__actionbar [role="button"] {
+    animation-duration: 400ms !important;
   }
 }
