@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createRef } from "react";
 import { describe, expect, it, vi } from "vitest";
+import { avaliar, bloco, paddingQueVale } from "../test/folha";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
 import { Chip } from "./Chip";
@@ -121,6 +123,65 @@ describe("primitivas de layout", () => {
     );
     expect(container.firstElementChild?.getAttribute("style")).toContain("gap: var(--co-space-16)");
     expect(container.firstElementChild).toHaveStyle({ display: "flex" });
+  });
+
+  it("o ref do Stack chega ao elemento, de objeto e de função, e solta ao desmontar", () => {
+    // É o hospedeiro de um portal guardado em `useState` pela `ref`, sem efeito
+    // (ADR-013): no React 19 o `ref` chega pelo resto das props, e o tipo o
+    // deixa passar sem `forwardRef`.
+    const objeto = createRef<HTMLElement>();
+    const recebidos: (HTMLElement | null)[] = [];
+    const { container, unmount } = render(
+      <>
+        <Stack as="section" ref={objeto}>
+          a
+        </Stack>
+        <Stack direction="row" ref={(no) => void recebidos.push(no)}>
+          b
+        </Stack>
+      </>,
+    );
+    expect(objeto.current).toBe(container.querySelector("section"));
+    expect(recebidos).toEqual([container.children[1]]);
+
+    unmount();
+    expect(objeto.current).toBeNull();
+    expect(recebidos.at(-1)).toBeNull();
+  });
+
+  it("Stack scroll põe a fileira numa linha só, que rola de lado, e os filhos não encolhem", () => {
+    const { container, rerender } = render(
+      <Stack direction="row" gap={8} scroll wrap>
+        <span>1 colher de sopa</span>
+        <span>1 xícara</span>
+      </Stack>,
+    );
+    const fileira = container.firstElementChild as HTMLElement;
+    // No `style` (CSSOM), como o resto do `Stack`; e o `scroll` vence o `wrap`.
+    expect(fileira).toHaveAttribute("data-scroll", "true");
+    expect(fileira.style.flexWrap).toBe("nowrap");
+    expect(fileira.style.overflowX).toBe("auto");
+    expect(fileira.style.flexDirection).toBe("row");
+
+    // O que o `style` não alcança mora na folha: os filhos não encolhem, e o
+    // respiro do anel de foco volta como margem — os filhos ficam no lugar.
+    expect(bloco('.co-stack[data-scroll="true"] > *')).toEqual([["flex-shrink", "0"]]);
+    // (A folha não está carregada aqui: o token entra na conta pelo nome.)
+    const caixa = bloco('.co-stack[data-scroll="true"]');
+    const token = { "--co-space-4": "4px" };
+    const respiro = paddingQueVale(caixa, token);
+    expect(respiro).toEqual({ topo: 4, direita: 4, baixo: 4, esquerda: 4 });
+    expect(avaliar(Object.fromEntries(caixa)["margin"] ?? "", token)).toBe(-respiro.topo);
+
+    // Sem `scroll`, nada disso: o `wrap` volta a valer e nada rola.
+    rerender(
+      <Stack direction="row" gap={8} wrap>
+        <span>1 colher de sopa</span>
+      </Stack>,
+    );
+    expect(fileira).not.toHaveAttribute("data-scroll");
+    expect(fileira.style.flexWrap).toBe("wrap");
+    expect(fileira.style.overflowX).toBe("");
   });
 
   it("Grid usa minmax(0, 1fr) para não estourar com texto comprido", () => {
