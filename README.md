@@ -286,7 +286,11 @@ Alguns que merecem nota:
   pelo mesmo termo da reserva, 0 sem barras: o Tab para o controle acima das
   barras, e não atrás delas (WCAG 2.2, 2.4.11) — inclusive só com as abas, que
   na 1.7.1 escondiam o foco
-  ([ADR-013](docs/adr/013-barra-de-acao.md)):
+  ([ADR-013](docs/adr/013-barra-de-acao.md)). Desde a 1.8.1, o controle que
+  acabou de chegar à barra ignora o ponteiro por 400ms (o teclado, não), para
+  o segundo toque de um toque duplo não cair na ação da tela seguinte — também
+  com movimento reduzido; a janela é da entrada no documento, então ações de
+  telas diferentes no mesmo lugar vão em elementos diferentes (`key`):
 
   ```tsx
   <Screen

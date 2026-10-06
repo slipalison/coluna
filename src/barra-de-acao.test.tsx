@@ -7,11 +7,13 @@ import { Screen } from "./atoms/Screen";
 import { Stack } from "./atoms/Stack";
 import { TabBar } from "./molecules/TabBar";
 import "./styles.css";
+import { ThemeProvider } from "./theme/ThemeProvider";
 import {
   aparelho,
   avaliar,
   BARRA_DE_ACAO,
   bloco,
+  dentroDe,
   lugar,
   normalizar,
   paddingQueVale,
@@ -37,6 +39,12 @@ import {
  * `<button>Calcular</button>` sai vazio, e o navegador conta o texto. Onde a
  * cascata do happy-dom entra (a barra vazia escondida, a ordem do Tab), o botão
  * vai num hospedeiro, como o do portal do Basalto. O pixel é do navegador.
+ *
+ * Desde a 1.8.1, a ação que acabou de chegar à barra se arma antes do toque
+ * (adendo do ADR-013): a regra, a janela e a exceção do movimento reduzido são
+ * provadas pelo texto e pela cascata do happy-dom, que resolve o atalho
+ * `animation` e o `@media` de movimento. O clique ignorado durante a janela é
+ * do navegador, e não daqui: o happy-dom não faz teste de acerto do ponteiro.
  */
 
 const ABAS = [
@@ -233,7 +241,8 @@ it("a barra de ação é fixa, na camada das abas e abaixo do painel, com o vidr
   expect(Number(valor(bloco(".co-sheet-overlay"), "z-index"))).toBeGreaterThan(20);
 
   // Quem mais cita a classe: as regras da reserva, do recuo, da divisão e da
-  // barra vazia — e nenhuma delas mexe em onde nem em quanto ela mede.
+  // barra vazia, e, desde a 1.8.1, a trava dos controles dela e a exceção do
+  // movimento reduzido — e nenhuma delas mexe em onde nem em quanto ela mede.
   const citam = REGRAS.filter((r) => r.seletores.some((s) => s.includes("co-screen__actionbar")))
     .map(lugar)
     .sort();
@@ -247,6 +256,8 @@ it("a barra de ação é fixa, na camada das abas e abaixo do painel, com o vidr
       BARRA_DE_ACAO.reservaComAbas,
       BARRA_DE_ACAO.recuo,
       BARRA_DE_ACAO.recuoComAmbas,
+      BARRA_DE_ACAO.arma,
+      `@ ${BARRA_DE_ACAO.arma}`,
     ].sort(),
   );
   // A divisão tem dois seletores (o primeiro nível e o botão em qualquer
@@ -557,4 +568,166 @@ it("o recuo de baixo da rolagem é 0 sem barras e o mesmo termo da reserva com e
     [96, 106],
     [169, 179],
   ]);
+});
+
+// ------------------------------------------- a ação que chega se arma (1.8.1) --
+
+const TRAVA = "co-acao-armando";
+const MENOS_MOVIMENTO = "@media (prefers-reduced-motion: reduce)";
+
+/** A regra da trava: uma só, no nível de cima, com os três seletores da barra. */
+function regraDaTrava(): Declaracao[] {
+  const achadas = REGRAS.filter((r) => lugar(r) === BARRA_DE_ACAO.arma);
+  expect(achadas, "regras da trava").toHaveLength(1);
+  return achadas[0]?.declaracoes ?? [];
+}
+
+/**
+ * O que a cascata dá a cada controle da página: na barra, um botão do sistema,
+ * um link e um `role="button"`, num hospedeiro como o do portal; fora dela, o
+ * botão do conteúdo, os destinos das abas e um botão fora da tela. O tema em
+ * volta é o que põe o `.co-root`, onde mora o zero do movimento reduzido.
+ */
+function cascataDosControles(propriedade: string): [string, string][] {
+  const { container } = render(
+    <ThemeProvider>
+      <Screen
+        tabBar={abas}
+        actionBar={hospedeiro(
+          <>
+            <Button>Guardar esta meta</Button>
+            <a href="#conta">Ver a conta</a>
+            <span role="button" tabIndex={0}>
+              Desfazer
+            </span>
+          </>,
+        )}
+      >
+        <Button>Calcular</Button>
+      </Screen>
+      <Button>Fora da tela</Button>
+    </ThemeProvider>,
+  );
+  const controles = [...container.querySelectorAll('button, a, [role="button"]')].map(
+    (controle): [string, string] => [
+      controle.textContent ?? "",
+      normalizar(getComputedStyle(controle).getPropertyValue(propriedade)),
+    ],
+  );
+  cleanup();
+  return controles;
+}
+
+/** Onde mora o `prefers-reduced-motion` que a cascata do happy-dom lê. */
+const dispositivo = () =>
+  (window as unknown as { happyDOM: { settings: { device: { prefersReducedMotion: string } } } })
+    .happyDOM.settings.device;
+
+/**
+ * A especificidade de um seletor desta folha: ids; classes, atributos e
+ * pseudo-classes; tipos e pseudo-elementos. Sem pseudo-classe funcional
+ * (`:is()`, `:not()`, `:where()`, `:has()`), que esta conta não sabe pesar e
+ * por isso recusa.
+ */
+function especificidade(seletor: string): [number, number, number] {
+  expect(seletor, "seletor sem pseudo-classe funcional").not.toMatch(/:(is|not|where|has)\(/);
+  const ids = seletor.match(/#[\w-]+/g)?.length ?? 0;
+  const classes = seletor.match(/\.[\w-]+|\[[^\]]*\]|(?<!:):[\w-]+/g)?.length ?? 0;
+  const tipos =
+    (seletor.match(/(?:^|[\s>+~])[a-z][\w-]*/gi)?.length ?? 0) +
+    (seletor.match(/::[\w-]+/g)?.length ?? 0);
+  return [ids, classes, tipos];
+}
+
+const maisEspecifico = (a: number[], b: number[]) => {
+  const diferente = a.findIndex((parte, k) => parte !== b[k]);
+  return diferente !== -1 && (a[diferente] ?? 0) > (b[diferente] ?? 0);
+};
+
+it("a ação que chega à barra se arma por uma regra que só os controles da barra recebem", () => {
+  // Uma regra só usa a animação, no nível de cima da folha, com os três
+  // seletores debaixo da barra — e ela só declara a animação.
+  const usam = REGRAS.filter((r) => r.declaracoes.some(([, v]) => v.includes(TRAVA)));
+  expect(usam.map(lugar)).toEqual([BARRA_DE_ACAO.arma]);
+  expect(usam[0]?.seletores).toEqual([
+    `${BARRA_DE_ACAO.barra} button`,
+    `${BARRA_DE_ACAO.barra} a`,
+    `${BARRA_DE_ACAO.barra} [role="button"]`,
+  ]);
+  expect(regraDaTrava().map(([p]) => p)).toEqual(["animation"]);
+
+  // Na cascata: o botão, o link e o `role="button"` da barra recebem a trava;
+  // o botão do conteúdo, os destinos das abas e o botão fora da tela, não.
+  const trava = `${TRAVA} 400ms step-end`;
+  expect(cascataDosControles("animation")).toEqual([
+    ["Calcular", ""],
+    ["Guardar esta meta", trava],
+    ["Ver a conta", trava],
+    ["Desfazer", trava],
+    ["Diário", ""],
+    ["Gasto", ""],
+    ["Fora da tela", ""],
+  ]);
+});
+
+it("a janela da ação recém-chegada tem 400ms e só desliga o ponteiro", () => {
+  // De `none` a `auto`, e nada mais: nem opacidade, nem cor, nem posição — o
+  // botão aparece inteiro e no lugar, só não aceita o dedo.
+  expect(dentroDe(`@keyframes ${TRAVA}`).map((r) => [lugar(r), r.declaracoes])).toEqual([
+    ["@ from", [["pointer-events", "none"]]],
+    ["@ to", [["pointer-events", "auto"]]],
+  ]);
+
+  // Três partes, e só três: o nome, a duração e `step-end`, que segura o `from`
+  // até o fim da janela (com a curva padrão, um valor discreto vira na metade,
+  // aos 200ms). Sem atraso, sem repetição e sem `fill-mode`: no fim, o ponteiro
+  // volta a ser o da cascata.
+  const animacao = Object.fromEntries(regraDaTrava())["animation"] ?? "";
+  expect(partes(animacao)).toEqual([TRAVA, "400ms", "step-end"]);
+});
+
+it("o movimento reduzido não zera a janela da ação que chega à barra", () => {
+  // O zero de sempre, para tudo dentro do tema, e depois dele a exceção: os
+  // mesmos três seletores da trava, só com a duração, a MESMA da trava.
+  const duracao = partes(Object.fromEntries(regraDaTrava())["animation"] ?? "")[1];
+  const zero = [".co-root *", ".co-root *::before", ".co-root *::after"];
+  expect(dentroDe(MENOS_MOVIMENTO).map((r) => [r.seletores.join(", "), r.declaracoes])).toEqual([
+    [
+      zero.join(", "),
+      [
+        ["transition-duration", "0.01ms !important"],
+        ["animation-duration", "0.01ms !important"],
+      ],
+    ],
+    [BARRA_DE_ACAO.arma, [["animation-duration", `${duracao} !important`]]],
+  ]);
+
+  // As duas são `!important`, e vence a mais específica: cada seletor da
+  // exceção pesa mais que o do zero que alcança o elemento (`.co-root *`; os
+  // outros dois são pseudo-elementos).
+  const doZero = especificidade(".co-root *");
+  expect(doZero).toEqual([0, 1, 0]);
+  const perdem = BARRA_DE_ACAO.arma
+    .split(", ")
+    .filter((seletor) => !maisEspecifico(especificidade(seletor), doZero));
+  expect(perdem, "seletores da exceção que não vencem o zero").toEqual([]);
+
+  // Na cascata, com o aparelho pedindo menos movimento: o resto da página fica
+  // sem duração (o zero vale, então o `@media` foi lido), e os controles da
+  // barra ficam com a janela inteira.
+  const antes = dispositivo().prefersReducedMotion;
+  dispositivo().prefersReducedMotion = "reduce";
+  try {
+    expect(cascataDosControles("animation-duration")).toEqual([
+      ["Calcular", "0.01ms"],
+      ["Guardar esta meta", "400ms"],
+      ["Ver a conta", "400ms"],
+      ["Desfazer", "400ms"],
+      ["Diário", "0.01ms"],
+      ["Gasto", "0.01ms"],
+      ["Fora da tela", "0.01ms"],
+    ]);
+  } finally {
+    dispositivo().prefersReducedMotion = antes;
+  }
 });

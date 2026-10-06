@@ -82,10 +82,10 @@ function blocosPlanos(css: string): { inicio: number; seletor: string; corpo: st
   return blocos;
 }
 
-export const REGRAS: Regra[] = blocosPlanos(SEM_COMENTARIO).map((achado) => ({
-  profundidade: PROFUNDIDADE[achado.inicio] ?? 0,
-  seletores: normalizar(achado.seletor).split(", "),
-  declaracoes: achado.corpo
+const paraRegra = (seletor: string, corpo: string, profundidade: number): Regra => ({
+  profundidade,
+  seletores: normalizar(seletor).split(", "),
+  declaracoes: corpo
     .split(";")
     .map(normalizar)
     .filter(Boolean)
@@ -93,7 +93,38 @@ export const REGRAS: Regra[] = blocosPlanos(SEM_COMENTARIO).map((achado) => ({
       const doisPontos = linha.indexOf(":");
       return [linha.slice(0, doisPontos).trim(), normalizar(linha.slice(doisPontos + 1))] as const;
     }),
-}));
+});
+
+export const REGRAS: Regra[] = blocosPlanos(SEM_COMENTARIO).map((achado) =>
+  paraRegra(achado.seletor, achado.corpo, PROFUNDIDADE[achado.inicio] ?? 0),
+);
+
+/**
+ * As regras de DENTRO de uma at-rule do nível de cima — `@keyframes x`,
+ * `@media (...)` —, na ordem da folha, pelo cabeçalho normalizado. `REGRAS`
+ * sabe que uma regra mora numa at-rule, e não em qual: o `from` de um
+ * `@keyframes` é igual ao de outro, e a regra de um `@media` de movimento é
+ * igual à de um `@media` de largura.
+ *
+ * Uma só at-rule com esse cabeçalho: um segundo `@keyframes` com o mesmo nome
+ * venceria o primeiro em silêncio, e um segundo `@media` igual seria a mesma
+ * condição escrita em dois lugares.
+ */
+export function dentroDe(cabecalho: string): Regra[] {
+  const achados = [...SEM_COMENTARIO.matchAll(/@[^{};@]+\{/g)].filter(
+    (achado) => PROFUNDIDADE[achado.index] === 0 && normalizar(achado[0].slice(0, -1)) === cabecalho,
+  );
+  expect(
+    achados.map((achado) => normalizar(achado[0].slice(0, -1))),
+    `at-rules ${cabecalho}`,
+  ).toEqual([cabecalho]);
+  const abre = (achados[0]?.index ?? 0) + (achados[0]?.[0].length ?? 0);
+  let fecha = abre;
+  while (fecha < SEM_COMENTARIO.length && (PROFUNDIDADE[fecha + 1] ?? 0) > 0) fecha++;
+  return blocosPlanos(SEM_COMENTARIO.slice(abre, fecha)).map((achado) =>
+    paraRegra(achado.seletor, achado.corpo, 1),
+  );
+}
 
 /** Onde a regra vale: o seletor, com `@ ` na frente quando ela mora numa at-rule. */
 export const lugar = (regra: Regra) => `${regra.profundidade ? "@ " : ""}${regra.seletores.join(", ")}`;
@@ -375,7 +406,8 @@ export function paddingQueVale(declaracoes: Declaracao[], valores: Valores): Cai
  * Os seletores que a barra de ação escreve (ADR-013), na forma normalizada da
  * leitura acima. A condição "com conteúdo" é a mesma nos cinco que a usam: a
  * barra vazia não pinta (`vazia`), e a tela não reserva nem recua a rolagem
- * por ela (`reserva*`, `recuo*`).
+ * por ela (`reserva*`, `recuo*`). Desde a 1.8.1, a ação que acabou de chegar
+ * se arma antes do toque (`arma`).
  */
 export const BARRA_DE_ACAO = {
   barra: ".co-screen__actionbar",
@@ -389,4 +421,9 @@ export const BARRA_DE_ACAO = {
   recuo: ':root:has(.co-screen[data-actionbar="true"] > .co-screen__actionbar :not(:empty))',
   recuoComAmbas:
     ':root:has(.co-screen[data-tabbar="true"][data-actionbar="true"] > .co-screen__actionbar :not(:empty))',
+  /**
+   * Os controles da barra, que se armam antes do toque (ADR-013, adendo
+   * 1.8.1): a mesma lista na regra da trava e na exceção do movimento reduzido.
+   */
+  arma: '.co-screen__actionbar button, .co-screen__actionbar a, .co-screen__actionbar [role="button"]',
 } as const;
