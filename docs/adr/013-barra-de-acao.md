@@ -486,3 +486,324 @@ botão da barra continua com `co-acao-armando 0.4s`.
 - `src/test/folha.ts` ganha `dentroDe()`: as regras de dentro de UMA at-rule,
   pelo cabeçalho. `REGRAS` sabe que uma regra mora numa at-rule, mas não em
   qual.
+
+## Adendo 1.8.2 (2026-10-06) — a folha se arma ao abrir, e as abas e a barra ao fechar
+
+**Os defeitos.** A 1.8.1 arma só o que ENTRA na barra de ação. Na iteração 3
+da verificação da mesma fase do Basalto
+([basalto#54](https://github.com/slipalison/basalto/issues/54)), com a 1.8.1
+no app real, o reviewer mediu dois toques duplos que atravessam camadas e que
+ela não alcança:
+
+- **DEF-A, regressão da fase.** Toque duplo em "Nova refeição", na barra de
+  ação: o primeiro abre uma `Sheet` `overlay` que sobe por baixo do dedo, e o
+  segundo, 150ms depois, cai num `Chip` da folha ("Quebra de jejum") e
+  preenche o nome da refeição. Medido em 16 configurações de telefone
+  (Chromium e WebKit; 393×659, 375×667, 360×640 e 360×780; com e sem
+  movimento reduzido).
+- **DEF-C, de antes da fase.** Toque duplo em "Registrar", no rodapé da folha
+  de registrar: com a resposta rápida, a folha fecha antes do segundo toque,
+  que cai na aba "Calculadora" da `TabBar` — o rodapé da folha fica em cima da
+  aba do meio — e troca de tela.
+
+Nos dois casos, o que recebe o segundo toque não acabou de entrar na barra. No
+DEF-A é a folha que entrou, por cima de tudo; no DEF-C é a aba que já estava
+lá e voltou a ficar descoberta.
+
+**O conserto.** Mais quatro regras e um `@keyframes`:
+
+```css
+div.co-sheet-overlay {
+  animation: co-folha-armando 400ms step-end;
+}
+
+.co-sheet-overlay__veil,
+.co-sheet-overlay > .co-sheet {
+  pointer-events: var(--co-sheet-pointer-events, auto);
+}
+
+@keyframes co-folha-armando {
+  from { --co-sheet-pointer-events: none; }
+  to { --co-sheet-pointer-events: auto; }
+}
+
+.co-tabbar .co-tabbar__item {
+  animation: co-acao-armando 400ms step-end;
+}
+
+:root:has(.co-sheet-overlay) .co-tabbar .co-tabbar__item,
+:root:has(.co-sheet-overlay) .co-screen__actionbar button,
+:root:has(.co-sheet-overlay) .co-screen__actionbar a,
+:root:has(.co-sheet-overlay) .co-screen__actionbar [role="button"] {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* …o zero de `.co-root *`, e a exceção da 1.8.1 com os seletores das três
+     regras que armam: a barra, a camada da folha e os destinos das abas… */
+}
+```
+
+- **A folha se arma pelo relógio dela.** Quem anima é a camada
+  (`.co-sheet-overlay`), que só a `overlay` monta e que entra no documento
+  quando a folha abre. O que ela anima é uma propriedade personalizada, e não
+  o ponteiro: `--co-sheet-pointer-events` fica `none` por 400ms. O véu e o
+  painel a leem no `pointer-events`, e o conteúdo do painel herda o do painel.
+  O segundo toque cai na camada, que cobre a tela inteira e não faz nada.
+- **O que entra depois não ganha janela própria.** Um controle que entra na
+  folha já aberta herda o valor da hora. Se entrar antes dos 400ms, fica
+  travado só até os 400ms da folha; se entrar depois, é tocável na hora. No
+  Basalto, os resultados da busca aparecem enquanto a pessoa digita, e um
+  toque num resultado recém-chegado não pode ser ignorado. Uma primeira versão
+  deste conserto, que não chegou a ser publicada, animava cada controle, e
+  cada um que entrava ganhava os próprios 400ms: medido abaixo (tabela da
+  inserção, coluna "por controle"), o resultado que entra aos 600ms da folha
+  não aceitava o toque aos 650ms.
+- **O `to` é obrigatório.** O WebKit não anima uma propriedade personalizada só
+  com o `from`, nem com ela registrada por `@property`. Com o `from` e o `to`,
+  os dois motores a animam como discreta, sem registro (medido abaixo, linha
+  "a propriedade"). Fora da janela, nenhuma regra a declara, e o `var()` cai
+  no `auto` do fallback.
+- **O painel lê a trava, e não cada controle.** Uma declaração só pega todo o
+  conteúdo, de qualquer papel (um `div` com `role="radio"` também), sem lista
+  de seletores. E não pisa num `pointer-events` que o consumidor declarar num
+  controle, que continua valendo (ver os limites).
+- **O véu também lê a trava.** A proposta deixava o véu livre, para ele
+  absorver o toque. Quem absorve é a camada, que cobre a mesma área. O véu
+  livre receberia o segundo toque e fecharia a folha: aberta por um botão do
+  alto da tela, a folha sobe lá embaixo, e o segundo toque cai no véu (medido
+  abaixo, linha "véu", na 1.8.1, em que nada se arma). Com o véu travado, o
+  toque cai na camada, a folha fica aberta, e nada embaixo dispara.
+- **O nome da propriedade segue a folha**: em inglês e com o nome da peça,
+  como `--co-group-inset`, `--co-slat-color` e `--co-screen-bottom`. Os
+  `@keyframes` continuam em português (`co-acao-armando`, `co-folha-armando`).
+- **As abas e a barra se rearmam quando a folha fecha.** Os destinos das abas
+  ganham a animação da 1.8.1, e uma quarta regra a tira deles e dos controles
+  da barra de ação enquanto houver uma folha `overlay` no documento. Quando
+  ela sai, o nome da animação volta de `none` para `co-acao-armando`, e o
+  navegador começa uma animação nova: 400ms sem ponteiro, contados do
+  fechamento. Sem JS: a condição é o `:has()`, e o recomeço é o da própria
+  animação.
+- **`:root:has()`, e não `.co-screen:has()`.** O reviewer propôs a condição
+  na tela. Ela pega o caso do Basalto, em que a `Sheet` fica na coluna de
+  conteúdo, dentro da `Screen` (medido). Não pega uma folha num portal no
+  `body`, fora da tela: aí o DEF-C volta (medido, linha "na tela, em
+  portal"). No `:root`, a mesma regra cobre os dois casos, e também a
+  `TabBar` posta fora da `Screen` (`tabBar={true}`).
+- **Os destinos das abas se armam também na montagem.** Uma vez, quando a
+  casca monta: um toque nos primeiros 400ms da barra de abas não troca de aba
+  (medido). Trocar de aba muda o `aria-current` e não remonta os destinos,
+  então a navegação normal não muda (medido: três trocas seguidas, a ~140ms
+  uma da outra, passam todas).
+- **Só a `overlay`.** A `inline` não arma nada e não rearma as barras. Ela abre
+  no fluxo, embaixo de quem a chamou, e não põe camada entre o dedo e a tela.
+  Medido no desktop: o segundo clique no botão que a abre cai no mesmo botão,
+  e nada novo aparece embaixo do ponteiro. (O fechamento dela tem outro
+  problema; ver os limites.)
+- **Só ponteiro**, como na 1.8.1: o teclado aciona na hora (medido).
+- **Com movimento reduzido também.** A exceção do fim da folha passa a ter os
+  seletores das três regras que armam, e cada um pesa mais que o `.co-root *`
+  (0,1,0) do zero: `div.co-sheet-overlay` (0,1,1) e
+  `.co-tabbar .co-tabbar__item` (0,2,0). A classe sozinha empataria, e o
+  empate seria decidido pela ordem da folha. Onde a quarta regra desligou a
+  trava, o nome é `none`, e a duração de 400ms não acende nada.
+- **Seletores simples**, e não `:is()`, como os da 1.8.1: `src/test/folha.ts`
+  corta a lista em `", "` sem olhar parênteses, e o peso de cada seletor fica
+  à vista.
+
+**Os limites.**
+
+- **O conteúdo embaixo da folha que fecha não se rearma**, só as barras. Com
+  as duas barras, o botão do rodapé fica sempre em cima delas. O rodapé tem o
+  fio, 12px, o botão de 44px, 16px e a área de baixo. Sem área segura, o botão
+  fica de 60 a 16px da borda, em cima das abas (73px). Com o indicador de
+  34px, fica de 94 a 50px, em cima da barra de ação (de 148 a 83px) e das abas
+  (83px). O segundo toque cai no conteúdo em três casos: sem barras; só com as
+  abas e o indicador de 34px (o botão passa 11px acima delas); ou no "Fechar"
+  no alto de uma folha alta. Armar todo controle do conteúdo atrasaria cada um
+  que entra numa tela, e isso fica de fora.
+- **A `inline` que fecha mexe no conteúdo.** No desktop, o "Registrar" do
+  rodapé de uma folha `inline` a fecha, e o que estava embaixo sobe para o
+  lugar dela. Na página medida, o segundo clique caiu num botão que subiu
+  ("Outra ação 2") e o acionou, igual na 1.8.1 e na 1.8.2. Não há camada: é o
+  fluxo da página andando, e a coluna não sabe o que o consumidor pôs embaixo
+  da folha. Fica registrado aqui, e não consertado.
+- **Uma ação que entra na barra com a folha aberta** não se arma ao entrar,
+  porque está debaixo do véu. Ela se arma quando a folha fecha.
+- **Qualquer folha `overlay` no documento** desliga a trava das barras, até uma
+  que não tenha nada a ver com a tela. O documento tem uma tela.
+- **Um `pointer-events` declarado num controle da folha escapa da trava.** O
+  conteúdo do painel herda o ponteiro dele, e uma declaração vence a herança:
+  um `pointer-events: auto` posto pelo consumidor num controle o deixa tocável
+  na janela. Nenhuma regra da coluna faz isso (o teste fecha a lista de quem
+  declara `pointer-events` na folha), e o Basalto não declara `pointer-events`
+  em lugar nenhum.
+- **Na janela, o painel não rola pelo toque.** Por 400ms o toque cai na
+  camada, e não no corpo do painel.
+- **Sem `:has()`** (Safari antes da 15.4, Chrome antes do 105, Firefox antes do
+  121), a quarta regra cai inteira: as barras ficam só com a trava da
+  montagem, e o DEF-C volta. A folha não depende de `:has()`.
+- **Uma animação própria** num destino das abas precisa de um seletor mais
+  específico, e com ele desliga a trava. Para manter as duas, liste as duas,
+  como na 1.8.1. Os controles da folha não têm animação: a trava é da camada.
+
+**A medição.** No Chromium e no WebKit do Playwright 1.63, com o
+`dist/styles.css` e o `dist/coluna.js` de cada versão (o `dist` da 1.8.1, feito
+da tag, é idêntico byte a byte ao publicado), numa página com toque que imita a
+casca do Basalto:
+
+- um `ThemeProvider`, e dentro dele uma `Screen` com a `TabBar` como nó
+  (Hoje, Calculadora e Ajustes) e um `Stack` hospedeiro, guardado por `ref`,
+  como `actionBar`;
+- "Nova refeição" chega à barra por portal e abre uma `Sheet` `overlay` com um
+  `Stepper`, um `Field` com `Input` e uma fileira de seis `Chip`, que fica
+  onde o dedo estava;
+- "Registrar alimento", no conteúdo, abre uma `Sheet` com `footer`, e o botão
+  "Registrar" do rodapé a fecha, na hora ou 60ms depois (uma resposta rápida);
+- a folha fica no conteúdo da tela, como no Basalto, ou num portal no `body`.
+
+O ponteiro vai por coordenada (`touchscreen.tap` e `mouse.click`), sem a espera
+de acionabilidade do Playwright. O tempo é o do `pointerdown`, e um
+`MutationObserver` registra a entrada e a saída da folha. Cada linha junta as
+quatro telas do DEF-A, com e sem movimento reduzido, com toque e com clique.
+
+| DEF-A: toque duplo em "Nova refeição" | Chromium | WebKit |
+|---|---|---|
+| configurações, por versão | 16 | 16 |
+| 1.8.1: o 2º toque, do 1º (da folha entrar) | 143–170ms (122–153ms) | 144–147ms (136–141ms) |
+| 1.8.2: o 2º toque, do 1º (da folha entrar) | 140–162ms (131–155ms) | 142–147ms (121–143ms) |
+| 1.8.1: o 2º toque cai num chip e preenche o nome | **16** de 16 | **16** de 16 |
+| 1.8.2: o 2º toque cai na camada (`div.co-sheet-overlay`), e o nome fica vazio | 16 de 16 | 16 de 16 |
+| 1.8.2: um 3º toque no mesmo ponto, aos ~500ms da folha, preenche | 16 de 16 (501–516ms) | 16 de 16 (501–505ms) |
+
+| DEF-C: toque duplo em "Registrar" | Chromium, fecha na hora | Chromium, fecha em 60ms | WebKit, fecha na hora | WebKit, fecha em 60ms |
+|---|---|---|---|---|
+| configurações, por versão | 16 | 16 | 16 | 16 |
+| 1.8.1: o 2º toque, do fecho da folha | 129–170ms | 70–88ms | 139–145ms | 79–87ms |
+| 1.8.2: o 2º toque, do fecho da folha | 129–163ms | 70–88ms | 141–143ms | 80–84ms |
+| 1.8.1: o 2º toque cai na aba e troca de tela | **16** de 16 | **16** de 16 | **16** de 16 | **16** de 16 |
+| 1.8.2: o 2º toque cai no `nav`, e a tela fica | 16 de 16 | 16 de 16 | 16 de 16 | 16 de 16 |
+| 1.8.2: a aba tocada aos ~500ms do fecho troca de tela | 16 de 16 | 16 de 16 | 16 de 16 | 16 de 16 |
+
+Na página medida, o chip embaixo do dedo é "Almoço"; no Basalto era "Quebra
+de jejum", porque o painel de lá tem outras alturas. Em todas as telas, a aba
+embaixo do botão do rodapé é a do meio ("Calculadora").
+
+**O que entra na folha aberta.** A mesma página, com 393×852, e dois botões
+que entram na folha aberta, aos 200ms e aos 600ms dela, cada um numa vaga de
+altura fixa (nada se mexe em volta). A linha do tempo é o `pointer-events`
+computado de cada um, amostrado a cada quadro desde a folha entrar; os toques
+vão por coordenada, no centro de cada vaga. Cada célula junta com e sem
+movimento reduzido, com toque e com clique (4 configurações). "Por controle" é
+a primeira versão do conserto, que animava cada controle.
+
+| | Chromium, 1.8.2 | Chromium, por controle | WebKit, 1.8.2 | WebKit, por controle |
+|---|---|---|---|---|
+| um chip que já estava lá: sem ponteiro até | 392–407ms da folha | 390–400ms | 412–427ms | 412–421ms |
+| o que entra aos ~200ms: sem ponteiro até | 392–407ms **da folha** | 584–597ms (os 400ms dele) | 412–427ms **da folha** | 589–600ms (os dele) |
+| o que entra aos ~600ms: sem ponteiro | **nunca** | até 900–914ms | **nunca** | até 908–912ms |
+| toque no de 200ms aos 252–267ms da folha (55–70ms dele) | não dispara (cai na camada) | não dispara | não dispara (251–255ms) | não dispara |
+| toque no de 200ms aos 451–467ms da folha (254–270ms dele) | **dispara** | não dispara | **dispara** (450–452ms) | não dispara |
+| toque no de 600ms aos 651–667ms da folha (52–70ms dele) | **dispara** | não dispara | **dispara** | não dispara |
+
+Na 1.8.1, que não arma a folha, os três toques disparam nos dois motores. O
+fim da janela passa um pouco dos 400ms porque a animação começa no primeiro
+quadro da folha, e o `MutationObserver` marca a entrada antes dele.
+
+**A propriedade.** Uma sonda sem React, com a camada animando
+`--co-sheet-pointer-events` e um botão dentro de um painel que a lê, amostrada
+a cada quadro:
+
+| `@keyframes` | Chromium | WebKit |
+|---|---|---|
+| só o `from` | `none` até 400ms, `auto` aos 416ms | **nunca `none`** |
+| só o `from`, registrada (`@property`, `syntax: "*"`) | `none` até 392ms | **nunca `none`** |
+| `from` e `to` | `none` até 404ms | `none` até 389ms, `auto` aos 405ms |
+| `from` e `to`, registrada | `none` até 395ms | `none` até 396ms |
+
+Em todas, um botão que entra aos 200ms fica `none` só até o fim da janela da
+camada, e um que entra aos 600ms nunca fica.
+
+| caso (393×659, toque, salvo dito) | Chromium | WebKit |
+|---|---|---|
+| teclado: Enter / Espaço num chip, logo depois de a folha entrar (com e sem movimento reduzido) | dispara (5–9ms) | dispara (36–47ms) |
+| teclado: Enter / Espaço na aba "Calculadora", logo depois de a folha sair (idem) | dispara (2–3ms) | dispara (1–3ms) |
+| folha num portal no `body`, DEF-A e DEF-C | nome vazio; a tela fica | nome vazio; a tela fica |
+| a condição na tela (`.co-screen:has()`), folha no conteúdo | nome vazio; a tela fica | nome vazio; a tela fica |
+| a condição na tela, folha num portal no `body` | **troca de tela** | **troca de tela** |
+| véu: toque duplo num botão do alto do conteúdo (393×852), toque e clique | 1.8.1: o 2º cai no véu e **fecha a folha**; 1.8.2: cai na camada, a folha fica, e o botão embaixo não dispara de novo | o mesmo |
+| abas sem folha: três trocas seguidas, uma logo depois da outra, toque e clique | as três trocam, a 134–150ms uma da outra, nas duas versões | as três trocam, a 85–156ms uma da outra, nas duas versões |
+| abas na montagem: toque aos 39–221ms da barra de abas entrar | 1.8.1 troca; 1.8.2 não | 1.8.1 troca; 1.8.2 não |
+| desktop (1280×800, clique, `inline`): 2º clique no botão que a abre | cai no mesmo botão; a folha fica aberta, nas duas versões | o mesmo |
+| desktop: 2º clique no "Registrar" da `inline`, que a fecha | cai em "Outra ação 2", que subiu, e **a aciona**, nas duas versões | o mesmo |
+
+Com movimento reduzido emulado, a camada fica com `co-folha-armando 0.4s`, e o
+painel que sobe com `1e-05s` no Chromium e `0.00001s` no WebKit (o zero vale).
+Com a folha aberta, as abas e a barra ficam com `none`, e voltam a
+`co-acao-armando 0.4s` quando ela fecha.
+
+**Consequências.** É `fix`, e a versão é patch. Não há API nova, a árvore de
+nenhuma peça mudou, e o `dist/coluna.js` sai idêntico ao da 1.8.1, byte a
+byte. O `index.d.ts` só muda nos comentários: a `Sheet`, a `TabBar` e a
+`actionBar` da `Screen` contam a trava. A folha ganha as quatro regras, o
+`@keyframes co-folha-armando` e os seletores novos na exceção do movimento
+reduzido.
+
+- Os destinos das abas, que até aqui não tinham animação, passam a ter uma.
+  Quem pôs uma animação própria neles precisa do seletor mais específico (ver
+  os limites).
+- O painel e o véu da `overlay` passam a declarar `pointer-events`, e o
+  conteúdo do painel a herdá-lo.
+- O teste de unidade (`src/barra-de-acao.test.tsx`) prova o texto e a
+  cascata. Pelo texto, prova seis coisas:
+  - três regras armam, nesta ordem: a da barra, a da camada e a das abas;
+  - cada uma só declara o atalho de três partes;
+  - o `@keyframes` da camada leva a propriedade de `none` a `auto`, com o
+    `from` e o `to`;
+  - só o véu e o painel a leem, com o fallback `auto`, e só o `@keyframes` a
+    declara;
+  - a lista de quem declara `pointer-events` na folha é fechada: um `auto` a
+    mais soltaria um controle da herança;
+  - a regra que rearma é cada seletor que arma as barras, com
+    `:root:has(.co-sheet-overlay)` na frente, só com `animation: none`; e a
+    exceção do movimento reduzido é a união das três, cada seletor mais
+    pesado que o zero.
+- Pela cascata do happy-dom, que acerta esse `:has()` (o argumento é um
+  seletor simples, e não composto), o teste prova o resto:
+  - na `overlay`, só a camada anima, e o painel continua só subindo;
+  - com a propriedade em `none` na camada, o véu e o painel ficam sem
+    ponteiro, e a camada não;
+  - um controle que entra na folha aberta (dois resultados de busca) não
+    ganha animação nenhuma;
+  - na `inline`, nada anima, e o painel não lê a propriedade nem com ela em
+    `none` em volta;
+  - com a `overlay` aberta, as abas e a barra ficam em `none` e voltam à
+    trava quando ela fecha, também com a folha num portal no `body`, e a
+    `inline` não mexe nelas;
+  - com movimento reduzido, a camada, as abas e a barra ficam em 400ms, e o
+    resto da página no zero.
+
+  A herança do ponteiro, a animação da propriedade e o recomeço da animação
+  são do navegador: o happy-dom não os faz, e eles estão medidos acima.
+- `src/test/folha.ts` ganha `TRAVA_DE_TOQUE`, com os seletores das três regras
+  que armam, a propriedade, quem a lê, a regra que rearma e a exceção, na
+  forma normalizada da leitura. As listas fechadas da 1.8.1 ganharam as regras
+  novas: quem cita a barra, quem usa a trava e o que mora no `@media`.
+- As iscas foram aplicadas e desfeitas uma a uma, e o teste caiu (`rc=1`) em
+  todas:
+  - a trava por controle, que arma o que entra depois (cai, entre outros, em
+    "o que entra na folha já aberta não ganha janela própria", pela cascata);
+  - sem a regra da camada;
+  - sem quem lê a propriedade;
+  - o `@keyframes` sem o `to`;
+  - o véu livre;
+  - um controle com `pointer-events: auto` declarado;
+  - a trava em toda folha (a `inline` também);
+  - sem a trava das abas;
+  - sem a regra que rearma (a animação sempre ligada);
+  - a exceção do movimento reduzido sem as regras novas;
+  - a condição na tela (`.co-screen:has()`).
+
+  Quatro delas rodaram também com o teste sem as expectativas de texto (ou com
+  elas mudadas junto), para só a cascata poder morder: sem quem lê, o véu
+  livre, a `inline` e o portal. As quatro cascatas mordem sozinhas.

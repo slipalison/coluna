@@ -38,6 +38,11 @@ export interface TabBarProps<T extends string> {
  * São botões dentro de um `<nav>`, e não links, porque aqui a troca de aba é
  * estado do aplicativo. Num app com rotas de verdade, troque por `<a>` — o
  * `aria-current` continua valendo igual.
+ *
+ * Os destinos ignoram o PONTEIRO por 400ms ao entrar no documento e quando uma
+ * `Sheet` `overlay` fecha (o teclado, não): o rodapé da folha fica em cima das
+ * abas, e o segundo toque de um toque duplo nele não troca de aba (ADR-013,
+ * adendo 1.8.2). Trocar de aba não os remonta, e não os arma.
  */
 export function TabBar<T extends string>({
   label,

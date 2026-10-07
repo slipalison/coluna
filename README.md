@@ -226,7 +226,9 @@ Alguns que merecem nota:
   regra **"largura nunca vira modal"** escrita como código — trocar a porção de
   uma refeição não pode escurecer a tela e esconder a conta do dia, que é
   justamente o número que faz a pessoa escolher a porção. Em `overlay` o foco
-  entra, dá a volta no Tab, sai no Esc e **volta para quem abriu**.
+  entra, dá a volta no Tab, sai no Esc e **volta para quem abriu**; e ela passa
+  os primeiros 400ms sem receber ponteiro, contra o toque duplo (adendo 1.8.2
+  do [ADR-013](docs/adr/013-barra-de-acao.md)).
 - **`Rail`** é a contraparte da `TabBar`, e as duas existem porque a diferença
   entre telefone e desktop não é de tamanho, é de quantidade: embaixo cabem
   quatro destinos e o resto vira gaveta; na lateral cabem os sete. Os grupos são
@@ -290,7 +292,13 @@ Alguns que merecem nota:
   acabou de chegar à barra ignora o ponteiro por 400ms (o teclado, não), para
   o segundo toque de um toque duplo não cair na ação da tela seguinte — também
   com movimento reduzido; a janela é da entrada no documento, então ações de
-  telas diferentes no mesmo lugar vão em elementos diferentes (`key`):
+  telas diferentes no mesmo lugar vão em elementos diferentes (`key`). Desde a
+  1.8.2, uma `Sheet` `overlay` passa os primeiros 400ms sem receber ponteiro
+  (o painel, o que está nele e o véu; o que entra depois disso é tocável na
+  hora), e as abas e a barra de ação se rearmam quando ela fecha: o toque
+  duplo no botão que abre a folha não cai no que subiu embaixo do dedo, e o
+  toque duplo no rodapé dela não troca de aba (a `inline` não arma nada). A
+  casca monta a barra assim:
 
   ```tsx
   <Screen
