@@ -29,7 +29,10 @@ export interface ScreenProps extends HTMLAttributes<HTMLDivElement> {
    * teclado, não): o segundo toque de um toque duplo não cai na ação que a
    * tela seguinte pôs no mesmo lugar. A janela é da entrada no documento — a
    * ação de outra tela vai num elemento novo (outro portal, ou outra `key`),
-   * e não no mesmo `<button>` com outro rótulo (ADR-013, adendo 1.8.1).
+   * e não no mesmo `<button>` com outro rótulo (ADR-013, adendo 1.8.1). Ele
+   * se rearma, junto com as abas, quando uma `Sheet` `overlay` fecha: o
+   * segundo toque no rodapé dela não cai na barra que estava embaixo (adendo
+   * 1.8.2).
    */
   actionBar?: ReactNode;
   /** Liga o grão vulcânico. Cabe aqui, na tela inteira — não em cada cartão. */

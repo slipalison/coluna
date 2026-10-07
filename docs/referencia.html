@@ -622,7 +622,8 @@
  *   `fill-mode`, o fim devolve o `pointer-events` da cascata.
  * - O controle que JÁ estava na barra não se rearma quando outro chega, nem
  *   quando o consumidor só troca o rótulo dele no mesmo elemento: a janela é
- *   da entrada no documento.
+ *   da entrada no documento. Desde a 1.8.2 ele se rearma, sim, quando uma
+ *   folha `overlay` fecha (as regras logo abaixo).
  * - Vale com movimento reduzido também: não move nada, é uma trava de toque
  *   (a exceção está no `@media` do fim da folha).
  */
@@ -639,6 +640,79 @@
   to {
     pointer-events: auto;
   }
+}
+
+/*
+ * A folha que abre por cima se arma ao abrir, e as barras de baixo se rearmam
+ * quando ela fecha (ADR-013, adendo 1.8.2). É a mesma trava, nos dois toques
+ * duplos que a 1.8.1 não cobria, medidos no Basalto:
+ *
+ * - "Nova refeição", na barra de ação, abre uma folha `overlay` por baixo do
+ *   dedo, e o segundo toque, 150ms depois, caía num chip da folha e preenchia
+ *   o nome da refeição. Agora a folha passa os primeiros 400ms sem receber
+ *   ponteiro — o painel, tudo o que está nele e o véu —, e o toque cai na
+ *   camada da folha, que não faz nada.
+ * - "Registrar", no rodapé da folha, a fecha antes do segundo toque quando a
+ *   resposta chega rápido, e o segundo toque caía na aba que estava embaixo do
+ *   rodapé. Enquanto há uma folha `overlay` no documento, os destinos das abas
+ *   e os controles da barra de ação ficam sem animação; quando ela sai, a
+ *   animação volta e recomeça: 400ms sem ponteiro, contados do fechamento.
+ *
+ * O RELÓGIO É O DA FOLHA, e não o de cada controle. Quem anima é a camada
+ * (`co-folha-armando`), e o que ela anima é uma propriedade personalizada, que
+ * o véu e o painel leem no `pointer-events` e que o conteúdo do painel herda.
+ * O que já estava na folha quando ela abriu fica travado até os 400ms dela; o
+ * que entra depois herda o valor da hora: travado só até os 400ms da folha, se
+ * entrar antes, e livre na hora, se entrar depois. O resultado de uma busca
+ * que aparece enquanto a pessoa digita é tocável assim que aparece.
+ *
+ * - O `to` é obrigatório: só com o `from`, o WebKit não anima a propriedade
+ *   (medido), e a folha não se armaria no iPhone.
+ * - O véu também lê a trava. Com ele travado, o toque cai na camada, que cobre
+ *   a mesma área e não faz nada; com ele livre, o toque o acertaria e fecharia
+ *   a folha. Nada atravessa até as barras ou o conteúdo embaixo.
+ * - Só a `overlay`. A `inline` (o desktop) abre no fluxo, embaixo de quem a
+ *   chamou, e não põe camada nenhuma entre o dedo e a tela.
+ * - O painel ganha `pointer-events` declarado, e não cada controle: um
+ *   `pointer-events` que o consumidor declarar num controle continua valendo.
+ * - Os destinos das abas também se armam ao entrar no documento: uma vez, na
+ *   montagem da casca. Trocar de aba muda o `aria-current`, e não os remonta.
+ * - `:root:has()`, e não `.co-screen:has()`: a folha pode estar no conteúdo
+ *   da tela ou num portal no `body`, e as abas, dentro ou fora da tela.
+ * - Os seletores que armam levam um peso a mais (`div.co-sheet-overlay`,
+ *   `.co-tabbar .co-tabbar__item`) para vencer `.co-root *` na exceção do
+ *   movimento reduzido, como os da barra; a classe sozinha empataria com ele,
+ *   e o empate seria decidido pela ordem da folha.
+ * - Só ponteiro, como a trava da barra; e com movimento reduzido também, pela
+ *   mesma exceção do fim da folha.
+ */
+div.co-sheet-overlay {
+  animation: co-folha-armando 400ms step-end;
+}
+
+.co-sheet-overlay__veil,
+.co-sheet-overlay > .co-sheet {
+  pointer-events: var(--co-sheet-pointer-events, auto);
+}
+
+@keyframes co-folha-armando {
+  from {
+    --co-sheet-pointer-events: none;
+  }
+  to {
+    --co-sheet-pointer-events: auto;
+  }
+}
+
+.co-tabbar .co-tabbar__item {
+  animation: co-acao-armando 400ms step-end;
+}
+
+:root:has(.co-sheet-overlay) .co-tabbar .co-tabbar__item,
+:root:has(.co-sheet-overlay) .co-screen__actionbar button,
+:root:has(.co-sheet-overlay) .co-screen__actionbar a,
+:root:has(.co-sheet-overlay) .co-screen__actionbar [role="button"] {
+  animation: none;
 }
 
 /* --------------------------------------------------------------- texto ---- */
@@ -2624,11 +2698,14 @@ fieldset.co-nav-list {
 
 /* Quem pede menos movimento não recebe transição nenhuma.
  *
- * A trava de toque da barra de ação fica (ADR-013, adendo 1.8.1): ela não move
- * nada, e zerada devolveria o toque duplo justamente a quem pediu menos
- * movimento. São os MESMOS três seletores da trava, mais específicos que
- * `.co-root *`; as duas declarações são `!important`, e nesse caso vence a
- * especificidade. A duração é a da trava, letra por letra. */
+ * A trava de toque fica (ADR-013, adendos 1.8.1 e 1.8.2): ela não move nada, e
+ * zerada devolveria o toque duplo justamente a quem pediu menos movimento. São
+ * os MESMOS seletores das três regras que armam — os controles da barra de
+ * ação, a camada da folha `overlay` e os destinos das abas —, cada um mais
+ * específico que `.co-root *`; as duas declarações são `!important`, e nesse
+ * caso vence a especificidade. A duração é a da trava, letra por letra. Onde
+ * a trava está desligada (as barras com uma folha aberta), o nome é `none`, e
+ * a duração não acende nada. */
 @media (prefers-reduced-motion: reduce) {
   .co-root *,
   .co-root *::before,
@@ -2639,7 +2716,9 @@ fieldset.co-nav-list {
 
   .co-screen__actionbar button,
   .co-screen__actionbar a,
-  .co-screen__actionbar [role="button"] {
+  .co-screen__actionbar [role="button"],
+  div.co-sheet-overlay,
+  .co-tabbar .co-tabbar__item {
     animation-duration: 400ms !important;
   }
 }
@@ -2804,7 +2883,7 @@ pre code { background: none; border: 0; padding: 0; }
   <header class="topo">
     <div class="marca">
       <span class="marca__nome">Coluna</span>
-      <span class="co-badge" data-tone="accent">v1.8.0</span>
+      <span class="co-badge" data-tone="accent">v1.8.1</span>
     </div>
     <div class="co-segmented" role="radiogroup" aria-label="Tema" id="tema">
       <button type="button" role="radio" class="co-segmented__option" aria-checked="false" data-tema="light">Claro</button>

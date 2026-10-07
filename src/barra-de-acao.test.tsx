@@ -1,10 +1,18 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { CSSProperties, ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { expect, it } from "vitest";
 import { Button } from "./atoms/Button";
+import { Chip } from "./atoms/Chip";
+import { Input } from "./atoms/Input";
 import { Screen } from "./atoms/Screen";
 import { Stack } from "./atoms/Stack";
+import { Disclosure } from "./molecules/Disclosure";
+import { Field } from "./molecules/Field";
+import { Group } from "./molecules/Group";
+import { ListRow } from "./molecules/ListRow";
+import { Sheet } from "./molecules/Sheet";
 import { TabBar } from "./molecules/TabBar";
 import "./styles.css";
 import { ThemeProvider } from "./theme/ThemeProvider";
@@ -20,6 +28,7 @@ import {
   partes,
   REGRAS,
   SEM_AREA,
+  TRAVA_DE_TOQUE,
   type Declaracao,
 } from "./test/folha";
 
@@ -45,6 +54,13 @@ import {
  * provadas pelo texto e pela cascata do happy-dom, que resolve o atalho
  * `animation` e o `@media` de movimento. O clique ignorado durante a janela é
  * do navegador, e não daqui: o happy-dom não faz teste de acerto do ponteiro.
+ *
+ * Desde a 1.8.2, a mesma trava arma o que entra com a folha `overlay`, e as
+ * abas e a barra se rearmam quando ela fecha (adendo do ADR-013). O happy-dom
+ * acerta o `:root:has(.co-sheet-overlay)` da regra que rearma — o argumento é
+ * um seletor simples, e não composto —, então a cascata prova que a animação
+ * sai com a folha aberta e volta com ela fechada. O recomeço da animação, e o
+ * toque que cai no contêiner, são do navegador.
  */
 
 const ABAS = [
@@ -241,8 +257,9 @@ it("a barra de ação é fixa, na camada das abas e abaixo do painel, com o vidr
   expect(Number(valor(bloco(".co-sheet-overlay"), "z-index"))).toBeGreaterThan(20);
 
   // Quem mais cita a classe: as regras da reserva, do recuo, da divisão e da
-  // barra vazia, e, desde a 1.8.1, a trava dos controles dela e a exceção do
-  // movimento reduzido — e nenhuma delas mexe em onde nem em quanto ela mede.
+  // barra vazia; desde a 1.8.1, a trava dos controles dela e a exceção do
+  // movimento reduzido; e, desde a 1.8.2, a regra que a rearma quando a folha
+  // fecha — e nenhuma delas mexe em onde nem em quanto ela mede.
   const citam = REGRAS.filter((r) => r.seletores.some((s) => s.includes("co-screen__actionbar")))
     .map(lugar)
     .sort();
@@ -257,7 +274,8 @@ it("a barra de ação é fixa, na camada das abas e abaixo do painel, com o vidr
       BARRA_DE_ACAO.recuo,
       BARRA_DE_ACAO.recuoComAmbas,
       BARRA_DE_ACAO.arma,
-      `@ ${BARRA_DE_ACAO.arma}`,
+      TRAVA_DE_TOQUE.rearma,
+      `@ ${TRAVA_DE_TOQUE.excecao}`,
     ].sort(),
   );
   // A divisão tem dois seletores (o primeiro nível e o botão em qualquer
@@ -573,12 +591,22 @@ it("o recuo de baixo da rolagem é 0 sem barras e o mesmo termo da reserva com e
 // ------------------------------------------- a ação que chega se arma (1.8.1) --
 
 const TRAVA = "co-acao-armando";
+const ATALHO = `${TRAVA} 400ms step-end`;
+/** A trava da folha (1.8.2): a mesma janela, no relógio da camada. */
+const TRAVA_DA_FOLHA = "co-folha-armando";
+const ATALHO_DA_FOLHA = `${TRAVA_DA_FOLHA} 400ms step-end`;
 const MENOS_MOVIMENTO = "@media (prefers-reduced-motion: reduce)";
 
-/** A regra da trava: uma só, no nível de cima, com os três seletores da barra. */
-function regraDaTrava(): Declaracao[] {
-  const achadas = REGRAS.filter((r) => lugar(r) === BARRA_DE_ACAO.arma);
-  expect(achadas, "regras da trava").toHaveLength(1);
+/** As regras que usam uma das duas travas, na ordem da folha. */
+const usamATrava = () =>
+  REGRAS.filter((r) =>
+    r.declaracoes.some(([, v]) => v.includes(TRAVA) || v.includes(TRAVA_DA_FOLHA)),
+  );
+
+/** A regra de um lugar: uma só, no nível de cima, com essa lista de seletores. */
+function regraEm(seletores: string): Declaracao[] {
+  const achadas = REGRAS.filter((r) => lugar(r) === seletores);
+  expect(achadas, `regras em ${seletores}`).toHaveLength(1);
   return achadas[0]?.declaracoes ?? [];
 }
 
@@ -623,6 +651,17 @@ const dispositivo = () =>
   (window as unknown as { happyDOM: { settings: { device: { prefersReducedMotion: string } } } })
     .happyDOM.settings.device;
 
+/** Roda `medir` com o aparelho pedindo menos movimento, e devolve o de antes. */
+function comMenosMovimento<T>(medir: () => T): T {
+  const antes = dispositivo().prefersReducedMotion;
+  dispositivo().prefersReducedMotion = "reduce";
+  try {
+    return medir();
+  } finally {
+    dispositivo().prefersReducedMotion = antes;
+  }
+}
+
 /**
  * A especificidade de um seletor desta folha: ids; classes, atributos e
  * pseudo-classes; tipos e pseudo-elementos. Sem pseudo-classe funcional
@@ -645,51 +684,422 @@ const maisEspecifico = (a: number[], b: number[]) => {
 };
 
 it("a ação que chega à barra se arma por uma regra que só os controles da barra recebem", () => {
-  // Uma regra só usa a animação, no nível de cima da folha, com os três
-  // seletores debaixo da barra — e ela só declara a animação.
-  const usam = REGRAS.filter((r) => r.declaracoes.some(([, v]) => v.includes(TRAVA)));
-  expect(usam.map(lugar)).toEqual([BARRA_DE_ACAO.arma]);
-  expect(usam[0]?.seletores).toEqual([
+  // Três regras armam, no nível de cima da folha e nesta ordem: a dos
+  // controles da barra (a da 1.8.1) e, desde a 1.8.2, a da camada da folha
+  // `overlay` e a dos destinos das abas. A da barra tem os três seletores
+  // debaixo dela, e só declara a animação.
+  expect(usamATrava().map(lugar)).toEqual([
+    TRAVA_DE_TOQUE.barra,
+    TRAVA_DE_TOQUE.folha,
+    TRAVA_DE_TOQUE.abas,
+  ]);
+  expect(usamATrava()[0]?.seletores).toEqual([
     `${BARRA_DE_ACAO.barra} button`,
     `${BARRA_DE_ACAO.barra} a`,
     `${BARRA_DE_ACAO.barra} [role="button"]`,
   ]);
-  expect(regraDaTrava().map(([p]) => p)).toEqual(["animation"]);
+  expect(regraEm(BARRA_DE_ACAO.arma).map(([p]) => p)).toEqual(["animation"]);
 
-  // Na cascata: o botão, o link e o `role="button"` da barra recebem a trava;
-  // o botão do conteúdo, os destinos das abas e o botão fora da tela, não.
-  const trava = `${TRAVA} 400ms step-end`;
+  // Na cascata: o botão, o link e o `role="button"` da barra recebem a trava; o
+  // botão do conteúdo e o botão fora da tela, não. Os destinos das abas a
+  // recebem desde a 1.8.2, pela regra deles (o teste das abas, embaixo).
   expect(cascataDosControles("animation")).toEqual([
     ["Calcular", ""],
-    ["Guardar esta meta", trava],
-    ["Ver a conta", trava],
-    ["Desfazer", trava],
-    ["Diário", ""],
-    ["Gasto", ""],
+    ["Guardar esta meta", ATALHO],
+    ["Ver a conta", ATALHO],
+    ["Desfazer", ATALHO],
+    ["Diário", ATALHO],
+    ["Gasto", ATALHO],
     ["Fora da tela", ""],
   ]);
 });
 
-it("a janela da ação recém-chegada tem 400ms e só desliga o ponteiro", () => {
+it("a janela da trava tem 400ms e só desliga o ponteiro, nas três regras que a usam", () => {
   // De `none` a `auto`, e nada mais: nem opacidade, nem cor, nem posição — o
-  // botão aparece inteiro e no lugar, só não aceita o dedo.
+  // controle aparece inteiro e no lugar, só não aceita o dedo.
   expect(dentroDe(`@keyframes ${TRAVA}`).map((r) => [lugar(r), r.declaracoes])).toEqual([
     ["@ from", [["pointer-events", "none"]]],
     ["@ to", [["pointer-events", "auto"]]],
   ]);
+  // A da folha anima a propriedade que o véu e o painel leem no ponteiro, de
+  // `none` a `auto`. O `to` é obrigatório: só com o `from`, o WebKit não anima
+  // uma propriedade personalizada (medido no adendo 1.8.2).
+  expect(
+    dentroDe(`@keyframes ${TRAVA_DA_FOLHA}`).map((r) => [lugar(r), r.declaracoes]),
+  ).toEqual([
+    ["@ from", [[TRAVA_DE_TOQUE.propriedade, "none"]]],
+    ["@ to", [[TRAVA_DE_TOQUE.propriedade, "auto"]]],
+  ]);
 
-  // Três partes, e só três: o nome, a duração e `step-end`, que segura o `from`
-  // até o fim da janela (com a curva padrão, um valor discreto vira na metade,
-  // aos 200ms). Sem atraso, sem repetição e sem `fill-mode`: no fim, o ponteiro
-  // volta a ser o da cascata.
-  const animacao = Object.fromEntries(regraDaTrava())["animation"] ?? "";
-  expect(partes(animacao)).toEqual([TRAVA, "400ms", "step-end"]);
+  // Cada regra só declara o atalho, e ele tem três partes, e só três: o nome,
+  // a duração e `step-end`, que segura o `from` até o fim da janela (com a
+  // curva padrão, um valor discreto vira na metade, aos 200ms). Sem atraso,
+  // sem repetição e sem `fill-mode`: no fim, o ponteiro volta a ser o da
+  // cascata.
+  const atalhos = usamATrava().map((r) => [
+    lugar(r),
+    r.declaracoes.map(([p, v]) => [p, partes(v)]),
+  ]);
+  expect(atalhos).toEqual([
+    [TRAVA_DE_TOQUE.barra, [["animation", [TRAVA, "400ms", "step-end"]]]],
+    [TRAVA_DE_TOQUE.folha, [["animation", [TRAVA_DA_FOLHA, "400ms", "step-end"]]]],
+    [TRAVA_DE_TOQUE.abas, [["animation", [TRAVA, "400ms", "step-end"]]]],
+  ]);
 });
 
-it("o movimento reduzido não zera a janela da ação que chega à barra", () => {
+// ---------------------------- a folha se arma, e as barras ao fechar (1.8.2) --
+
+/**
+ * O que a cascata mostra numa folha aberta, na ordem do documento: a camada
+ * (só na `overlay`), o véu (idem), o painel, o botão de fechar e, no corpo, um
+ * botão, um rótulo com o campo dele, um `select`, um `textarea`, o `summary`
+ * de um `Disclosure`, um link, um `role="button"` e dois `Chip`; no rodapé, o
+ * botão que confirma.
+ */
+const NA_FOLHA = [
+  "camada",
+  "véu",
+  "painel",
+  "Fechar",
+  "Aumentar",
+  "Nome",
+  "campo do nome",
+  "Porção",
+  "Nota",
+  "Por quê",
+  "Ver a tabela",
+  "Desfazer",
+  "Almoço",
+  "Quebra de jejum",
+  "Registrar",
+];
+
+/** O nome do elemento na lista acima: o papel dele na folha, ou o rótulo. */
+function nomeNaFolha(elemento: Element): string {
+  if (elemento.classList.contains("co-sheet-overlay")) return "camada";
+  if (elemento.classList.contains("co-sheet-overlay__veil")) return "véu";
+  if (elemento.classList.contains("co-sheet")) return "painel";
+  if (elemento.tagName === "INPUT") return "campo do nome";
+  return elemento.getAttribute("aria-label") ?? elemento.textContent?.trim() ?? "";
+}
+
+/** Uma folha aberta no conteúdo da tela — como a de "Nova refeição" no Basalto. */
+function FolhaAberta({
+  modo,
+  depois,
+}: Readonly<{ modo: "overlay" | "inline"; depois?: ReactNode }>) {
+  return (
+    <ThemeProvider>
+      <Screen tabBar={abas} actionBar={hospedeiro(<Button>Nova refeição</Button>)}>
+        <Sheet
+          open
+          onClose={() => undefined}
+          title="Nova refeição"
+          mode={modo}
+          footer={<Button>Registrar</Button>}
+        >
+          <Button>Aumentar</Button>
+          <Field label="Nome">{(controle) => <Input {...controle} />}</Field>
+          <select aria-label="Porção">
+            <option>1</option>
+          </select>
+          <textarea aria-label="Nota" />
+          <Disclosure summary="Por quê">porque sim</Disclosure>
+          <a href="#tabela">Ver a tabela</a>
+          <span role="button" tabIndex={0}>
+            Desfazer
+          </span>
+          <Stack direction="row" gap={8} wrap>
+            <Chip label="Almoço" onClick={() => undefined} />
+            <Chip label="Quebra de jejum" onClick={() => undefined} />
+          </Stack>
+          {depois}
+        </Sheet>
+      </Screen>
+    </ThemeProvider>
+  );
+}
+
+/** O valor de `propriedade` em cada elemento de `NA_FOLHA` que a árvore montada tem. */
+function naFolha(raiz: Element, propriedade: string): [string, string][] {
+  const folha = raiz.querySelector(".co-sheet-overlay") ?? raiz.querySelector(".co-sheet");
+  expect(folha, "a folha").not.toBeNull();
+  const elementos = [
+    folha as Element,
+    ...(folha as Element).querySelectorAll(
+      '.co-sheet-overlay__veil, .co-sheet, button, a, input, select, textarea, label, summary, [role="button"]',
+    ),
+  ];
+  return [...new Set(elementos)].map((elemento): [string, string] => [
+    nomeNaFolha(elemento),
+    normalizar(getComputedStyle(elemento).getPropertyValue(propriedade)),
+  ]);
+}
+
+/** A cascata de uma folha aberta, em `overlay` ou `inline`. */
+function cascataDaFolha(modo: "overlay" | "inline", propriedade: string): [string, string][] {
+  const { container } = render(<FolhaAberta modo={modo} />);
+  const valores = naFolha(container, propriedade);
+  cleanup();
+  return valores;
+}
+
+it("a folha overlay se arma pelo relógio da camada, com o véu e o painel, e a inline não arma nada", () => {
+  // A camada é quem anima, e o que ela anima é a propriedade; o véu e o painel
+  // a leem no ponteiro, com `auto` quando ela não está declarada — fora da
+  // janela, ela não existe: só a animação a declara.
+  expect(regraEm(TRAVA_DE_TOQUE.folha)).toEqual([["animation", ATALHO_DA_FOLHA]]);
+  const leem = REGRAS.filter((r) =>
+    r.declaracoes.some(([, v]) => v.includes(TRAVA_DE_TOQUE.propriedade)),
+  );
+  expect(leem.map((r) => [lugar(r), r.declaracoes])).toEqual([
+    [TRAVA_DE_TOQUE.lida, [["pointer-events", `var(${TRAVA_DE_TOQUE.propriedade}, auto)`]]],
+  ]);
+  expect(leem[0]?.seletores).toEqual([".co-sheet-overlay__veil", ".co-sheet-overlay > .co-sheet"]);
+  const declaram = REGRAS.filter((r) =>
+    r.declaracoes.some(([p]) => p === TRAVA_DE_TOQUE.propriedade),
+  ).map(lugar);
+  expect(declaram, "quem declara a propriedade").toEqual(["@ from", "@ to"]);
+
+  // O conteúdo do painel herda o ponteiro dele: nenhuma regra desta folha
+  // declara `pointer-events` em outro lugar, a não ser o `none` de pintura
+  // (a faixa, o fio do grupo, o grão) e as duas travas. Um `auto` declarado
+  // num controle o soltaria da trava da folha.
+  const ponteiro = REGRAS.filter((r) => r.declaracoes.some(([p]) => p === "pointer-events")).map(
+    (r) => `${lugar(r)}: ${Object.fromEntries(r.declaracoes)["pointer-events"]}`,
+  );
+  expect(ponteiro).toEqual([
+    ".co-screen__statusbar: none",
+    "@ from: none",
+    "@ to: auto",
+    `${TRAVA_DE_TOQUE.lida}: var(${TRAVA_DE_TOQUE.propriedade}, auto)`,
+    ".co-group > * + *::before: none",
+    ".co-grain::after: none",
+  ]);
+
+  // Na cascata da `overlay`: a camada leva a animação, e só ela; o painel
+  // continua só subindo, e nada dentro dele anima.
+  expect(cascataDaFolha("overlay", "animation")).toEqual(
+    NA_FOLHA.map((nome) => [
+      nome,
+      nome === "camada"
+        ? ATALHO_DA_FOLHA
+        : nome === "painel"
+          ? expect.stringMatching(/^co-sheet-subir \d/)
+          : "",
+    ]),
+  );
+
+  // E o ponteiro: com a propriedade em `none` na camada — o que a animação faz
+  // na janela —, o véu e o painel ficam sem ponteiro, e a camada não: é nela
+  // que o toque cai. Sem a propriedade, os dois voltam a `auto`.
+  const { container } = render(<FolhaAberta modo="overlay" />);
+  const camada = container.querySelector(".co-sheet-overlay") as HTMLElement;
+  const ponteiros = () =>
+    naFolha(container, "pointer-events").filter(([nome]) =>
+      ["camada", "véu", "painel"].includes(nome),
+    );
+  const fora = ponteiros();
+  camada.style.setProperty(TRAVA_DE_TOQUE.propriedade, "none");
+  const naJanela = ponteiros();
+  cleanup();
+  expect([fora, naJanela]).toEqual([
+    [
+      ["camada", ""],
+      ["véu", "auto"],
+      ["painel", "auto"],
+    ],
+    [
+      ["camada", ""],
+      ["véu", "none"],
+      ["painel", "none"],
+    ],
+  ]);
+
+  // A `inline` abre no fluxo, embaixo de quem a chamou: não tem camada nem
+  // véu, nada nela anima, e o painel não lê a propriedade nem com ela em
+  // `none` em volta.
+  expect(cascataDaFolha("inline", "animation")).toEqual(
+    NA_FOLHA.filter((nome) => !["camada", "véu"].includes(nome)).map((nome) => [
+      nome,
+      nome === "painel" ? "none" : "",
+    ]),
+  );
+  const inline = render(
+    <div style={{ [TRAVA_DE_TOQUE.propriedade]: "none" } as CSSProperties}>
+      <FolhaAberta modo="inline" />
+    </div>,
+  );
+  const painelInline = inline.container.querySelector(".co-sheet") as Element;
+  expect(getComputedStyle(painelInline).getPropertyValue("pointer-events")).toBe("");
+  cleanup();
+});
+
+it("o que entra na folha já aberta não ganha janela própria: só a camada anima", () => {
+  // Um resultado de busca que chega enquanto a pessoa digita é um elemento
+  // novo dentro do painel. Ele não tem animação nenhuma — nem ele, nem nada
+  // ao lado dele —: o ponteiro dele é o que o painel lhe passa, e o painel
+  // segue o relógio da camada. Entrou depois dos 400ms da folha, é tocável na
+  // hora; entrou antes, fica travado só até os 400ms dela (medido no adendo).
+  const { container, rerender } = render(<FolhaAberta modo="overlay" />);
+  const antes = naFolha(container, "animation");
+  rerender(
+    <FolhaAberta
+      modo="overlay"
+      depois={
+        <Group role="group" label="Resultados">
+          <ListRow onClick={() => undefined}>Arroz branco</ListRow>
+          <ListRow onClick={() => undefined}>Arroz integral</ListRow>
+        </Group>
+      }
+    />,
+  );
+  const depois = naFolha(container, "animation");
+  cleanup();
+
+  const soACamada = (nomes: string[]) =>
+    nomes.map((nome) => [
+      nome,
+      nome === "camada"
+        ? ATALHO_DA_FOLHA
+        : nome === "painel"
+          ? expect.stringMatching(/^co-sheet-subir \d/)
+          : "",
+    ]);
+  expect(antes).toEqual(soACamada(NA_FOLHA));
+  expect(depois).toEqual(
+    soACamada([...NA_FOLHA.slice(0, -1), "Arroz branco", "Arroz integral", "Registrar"]),
+  );
+
+  // E nenhuma regra que arma alcança algo dentro da camada: a da folha é a
+  // camada, e as outras duas são da barra e das abas.
+  const alcancamDentro = usamATrava()
+    .flatMap((r) => r.seletores)
+    .filter((seletor) => /\.co-sheet(-overlay)?[\s>+~]|\.co-sheet\b(?!-)/.test(seletor));
+  expect(alcancamDentro).toEqual([]);
+});
+
+/** As abas e os controles da barra de ação, com uma folha aberta (ou fechada) no conteúdo. */
+function TelaComFolha({ folha }: Readonly<{ folha: "fechada" | "overlay" | "inline" }>) {
+  return (
+    <ThemeProvider>
+      <Screen
+        tabBar={abas}
+        actionBar={hospedeiro(
+          <>
+            <Button>Nova refeição</Button>
+            <a href="#dia">Ver o dia</a>
+            <span role="button" tabIndex={0}>
+              Desfazer
+            </span>
+          </>,
+        )}
+      >
+        <Button>Registrar alimento</Button>
+        <Sheet
+          open={folha !== "fechada"}
+          onClose={() => undefined}
+          title="Registrar alimento"
+          mode={folha === "inline" ? "inline" : "overlay"}
+          footer={<Button>Registrar</Button>}
+        >
+          conteúdo da folha
+        </Sheet>
+      </Screen>
+    </ThemeProvider>
+  );
+}
+
+const DAS_BARRAS = ["Nova refeição", "Ver o dia", "Desfazer", "Diário", "Gasto"];
+
+it("as abas e a barra de ação se rearmam quando a folha overlay fecha, e só por ela", () => {
+  // Os destinos das abas se armam ao entrar, com a mesma animação da barra.
+  expect(regraEm(TRAVA_DE_TOQUE.abas)).toEqual([["animation", ATALHO]]);
+
+  // A regra que rearma tira a animação de cada seletor que arma as abas e a
+  // barra — e só deles: nada da folha, nada do conteúdo —, com a condição de
+  // haver uma folha `overlay` no documento. É o seletor que arma, inteiro, com
+  // a condição na frente: pesa mais que ele, e vence onde quer que ele esteja.
+  const rearma = REGRAS.filter((r) => lugar(r) === TRAVA_DE_TOQUE.rearma);
+  expect(rearma.map((r) => r.declaracoes)).toEqual([[["animation", "none"]]]);
+  expect(rearma[0]?.seletores).toEqual(
+    [TRAVA_DE_TOQUE.abas, ...BARRA_DE_ACAO.arma.split(", ")].map(
+      (seletor) => `:root:has(.co-sheet-overlay) ${seletor}`,
+    ),
+  );
+  const tiramAAnimacao = REGRAS.filter((r) =>
+    r.declaracoes.some(([p, v]) => /^animation(-name)?$/.test(p) && /^none\b/.test(v)),
+  ).map(lugar);
+  expect(tiramAAnimacao, "regras que tiram a animação").toEqual([
+    TRAVA_DE_TOQUE.rearma,
+    '.co-sheet[data-mode="inline"]',
+  ]);
+
+  // Na cascata, a mesma tela numa sequência: sem folha, as barras armam (é a
+  // montagem); com a `overlay` aberta, ficam sem animação; fechada, a animação
+  // volta — e o navegador a recomeça, porque o nome passou de `none` à trava.
+  // A `inline` aberta não mexe nelas.
+  const { container, rerender } = render(<TelaComFolha folha="fechada" />);
+  const dasBarras = () =>
+    [
+      ...container.querySelectorAll(
+        '.co-screen__actionbar :is(button, a, [role="button"]), .co-tabbar__item',
+      ),
+    ].map((controle): [string, string] => [
+      controle.textContent ?? "",
+      normalizar(getComputedStyle(controle).getPropertyValue("animation")),
+    ]);
+  const sequencia = (["fechada", "overlay", "fechada", "inline", "fechada"] as const).map((folha) => {
+    rerender(<TelaComFolha folha={folha} />);
+    return [folha, dasBarras()];
+  });
+  cleanup();
+  const todas = (valor: string) => DAS_BARRAS.map((nome) => [nome, valor]);
+  expect(sequencia).toEqual([
+    ["fechada", todas(ATALHO)],
+    ["overlay", todas("none")],
+    ["fechada", todas(ATALHO)],
+    ["inline", todas(ATALHO)],
+    ["fechada", todas(ATALHO)],
+  ]);
+
+  // E a folha num portal no `body`, fora da tela: a condição é do documento, e
+  // não da tela, então ela vale igual.
+  function Portal({ aberta }: Readonly<{ aberta: boolean }>) {
+    return (
+      <Screen tabBar={abas} actionBar={hospedeiro(<Button>Nova refeição</Button>)}>
+        conteúdo
+        {createPortal(
+          <Sheet open={aberta} onClose={() => undefined} title="Fora da tela">
+            a
+          </Sheet>,
+          document.body,
+        )}
+      </Screen>
+    );
+  }
+  const fora = render(<Portal aberta />);
+  expect(fora.container.querySelector(".co-sheet-overlay"), "dentro da tela").toBeNull();
+  expect(document.body.querySelector(":scope > .co-sheet-overlay"), "no body").not.toBeNull();
+  const comFolhaFora = [...fora.container.querySelectorAll(".co-screen button")].map((b) =>
+    normalizar(getComputedStyle(b).getPropertyValue("animation")),
+  );
+  fora.rerender(<Portal aberta={false} />);
+  const semFolhaFora = [...fora.container.querySelectorAll(".co-screen button")].map((b) =>
+    normalizar(getComputedStyle(b).getPropertyValue("animation")),
+  );
+  cleanup();
+  expect([comFolhaFora, semFolhaFora]).toEqual([
+    ["none", "none", "none"],
+    [ATALHO, ATALHO, ATALHO],
+  ]);
+});
+
+it("o movimento reduzido não zera a trava da barra, das abas nem da folha", () => {
   // O zero de sempre, para tudo dentro do tema, e depois dele a exceção: os
-  // mesmos três seletores da trava, só com a duração, a MESMA da trava.
-  const duracao = partes(Object.fromEntries(regraDaTrava())["animation"] ?? "")[1];
+  // mesmos seletores das três regras que armam, só com a duração, a MESMA da
+  // trava.
+  const duracao = partes(Object.fromEntries(regraEm(BARRA_DE_ACAO.arma))["animation"] ?? "")[1];
   const zero = [".co-root *", ".co-root *::before", ".co-root *::after"];
   expect(dentroDe(MENOS_MOVIMENTO).map((r) => [r.seletores.join(", "), r.declaracoes])).toEqual([
     [
@@ -699,35 +1109,46 @@ it("o movimento reduzido não zera a janela da ação que chega à barra", () =>
         ["animation-duration", "0.01ms !important"],
       ],
     ],
-    [BARRA_DE_ACAO.arma, [["animation-duration", `${duracao} !important`]]],
+    [TRAVA_DE_TOQUE.excecao, [["animation-duration", `${duracao} !important`]]],
   ]);
+  // A exceção é a união das três regras, seletor por seletor.
+  expect(TRAVA_DE_TOQUE.excecao.split(", ").sort()).toEqual(
+    usamATrava()
+      .flatMap((r) => r.seletores)
+      .sort(),
+  );
 
   // As duas são `!important`, e vence a mais específica: cada seletor da
   // exceção pesa mais que o do zero que alcança o elemento (`.co-root *`; os
   // outros dois são pseudo-elementos).
   const doZero = especificidade(".co-root *");
   expect(doZero).toEqual([0, 1, 0]);
-  const perdem = BARRA_DE_ACAO.arma
+  const perdem = TRAVA_DE_TOQUE.excecao
     .split(", ")
     .filter((seletor) => !maisEspecifico(especificidade(seletor), doZero));
   expect(perdem, "seletores da exceção que não vencem o zero").toEqual([]);
 
   // Na cascata, com o aparelho pedindo menos movimento: o resto da página fica
   // sem duração (o zero vale, então o `@media` foi lido), e os controles da
-  // barra ficam com a janela inteira.
-  const antes = dispositivo().prefersReducedMotion;
-  dispositivo().prefersReducedMotion = "reduce";
-  try {
-    expect(cascataDosControles("animation-duration")).toEqual([
-      ["Calcular", "0.01ms"],
-      ["Guardar esta meta", "400ms"],
-      ["Ver a conta", "400ms"],
-      ["Desfazer", "400ms"],
-      ["Diário", "0.01ms"],
-      ["Gasto", "0.01ms"],
-      ["Fora da tela", "0.01ms"],
-    ]);
-  } finally {
-    dispositivo().prefersReducedMotion = antes;
-  }
+  // barra, os destinos das abas e a camada da folha `overlay` ficam com a
+  // janela inteira. O painel, que sobe, o que está dentro dele (que não anima)
+  // e a folha `inline` ficam no zero.
+  const [barra, folha, inline] = comMenosMovimento(() => [
+    cascataDosControles("animation-duration"),
+    cascataDaFolha("overlay", "animation-duration"),
+    cascataDaFolha("inline", "animation-duration"),
+  ]);
+  expect(barra).toEqual([
+    ["Calcular", "0.01ms"],
+    ["Guardar esta meta", "400ms"],
+    ["Ver a conta", "400ms"],
+    ["Desfazer", "400ms"],
+    ["Diário", "400ms"],
+    ["Gasto", "400ms"],
+    ["Fora da tela", "0.01ms"],
+  ]);
+  expect(folha).toEqual(NA_FOLHA.map((nome) => [nome, nome === "camada" ? "400ms" : "0.01ms"]));
+  expect(inline).toEqual(
+    NA_FOLHA.filter((nome) => !["camada", "véu"].includes(nome)).map((nome) => [nome, "0.01ms"]),
+  );
 });

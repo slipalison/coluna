@@ -55,6 +55,14 @@ const FOCALIZAVEIS = [
  *
  * Em `inline` nada disso acontece, e também é de propósito: prender o foco num
  * painel que a pessoa vê ao lado do resto da tela é prender sem motivo.
+ *
+ * Em `overlay`, a folha passa os primeiros 400ms sem receber PONTEIRO (o
+ * teclado, não) — o painel, o que está nele e o véu: o segundo toque de um
+ * toque duplo no botão que abriu cai na camada, e não no controle que subiu
+ * embaixo do dedo. O relógio é o da folha: o que entra nela depois dos 400ms
+ * (um resultado de busca) é tocável na hora. Quando ela fecha, as abas e a
+ * barra de ação da `Screen` se rearmam pelo mesmo tempo. Em `inline` nada se
+ * arma: o painel abre no fluxo, e não por cima (ADR-013, adendo 1.8.2).
  */
 export function Sheet({
   open,

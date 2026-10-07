@@ -427,3 +427,36 @@ export const BARRA_DE_ACAO = {
    */
   arma: '.co-screen__actionbar button, .co-screen__actionbar a, .co-screen__actionbar [role="button"]',
 } as const;
+
+/**
+ * A trava de toque além da barra de ação (ADR-013, adendo 1.8.2), na forma
+ * normalizada da leitura acima. Três regras armam, nesta ordem na folha: a dos
+ * controles da barra (`barra`, a da 1.8.1), a da camada da folha `overlay`
+ * (`folha`) e a dos destinos das abas (`abas`). A da folha anima uma
+ * propriedade personalizada, e não o ponteiro: quem a lê é o véu e o painel
+ * (`lida`), e o conteúdo do painel a herda — o relógio é o da folha, e não o
+ * de cada controle. Uma quarta regra tira a animação das abas e da barra
+ * enquanto há uma folha `overlay` no documento (`rearma`): quando ela sai, a
+ * animação volta e recomeça. A exceção do movimento reduzido repete a lista
+ * das três que armam (`excecao`).
+ *
+ * Seletores simples, e não `:is()`: a leitura corta a lista em `", "`.
+ */
+const ARMA_FOLHA = "div.co-sheet-overlay";
+const ARMA_ABAS = ".co-tabbar .co-tabbar__item";
+
+export const TRAVA_DE_TOQUE = {
+  barra: BARRA_DE_ACAO.arma,
+  folha: ARMA_FOLHA,
+  abas: ARMA_ABAS,
+  /** A propriedade que a camada anima, e o véu e o painel leem no `pointer-events`. */
+  propriedade: "--co-sheet-pointer-events",
+  lida: ".co-sheet-overlay__veil, .co-sheet-overlay > .co-sheet",
+  rearma: [
+    ":root:has(.co-sheet-overlay) .co-tabbar .co-tabbar__item",
+    ":root:has(.co-sheet-overlay) .co-screen__actionbar button",
+    ":root:has(.co-sheet-overlay) .co-screen__actionbar a",
+    ':root:has(.co-sheet-overlay) .co-screen__actionbar [role="button"]',
+  ].join(", "),
+  excecao: [BARRA_DE_ACAO.arma, ARMA_FOLHA, ARMA_ABAS].join(", "),
+} as const;
