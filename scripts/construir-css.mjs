@@ -70,7 +70,9 @@ await writeFile(resolve(dist, "tokens.css"), tokens, "utf8");
 
 // Os `.woff2` e as licenças. A OFL exige que cada cópia da fonte vá com o
 // aviso de direito autoral e a licença — o pacote publicado é uma cópia.
-const levadas = [...disponiveis].filter((nome) => /\.(woff2|txt)$/.test(nome)).sort();
+const levadas = [...disponiveis]
+  .filter((nome) => /\.(woff2|txt)$/.test(nome))
+  .sort((a, b) => a.localeCompare(b));
 await Promise.all(levadas.map((nome) => copyFile(resolve(fontes, nome), resolve(dist, "fonts", nome))));
 
 console.log(`css: styles.css e tokens.css, e ${levadas.length} arquivos em fonts/ (${dist})`);

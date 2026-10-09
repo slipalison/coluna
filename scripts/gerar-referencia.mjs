@@ -93,12 +93,13 @@ const [css, gabarito, pacote, icones] = await Promise.all([
 async function embutirFontes(folha) {
   const citadas = [...new Set([...folha.matchAll(/url\("\.\/fonts\/([^"]+\.woff2)"\)/g)].map((achado) => achado[1]))];
   if (citadas.length === 0) throw new Error("dist/styles.css não cita nenhuma fonte de ./fonts/ — o @font-face sumiu?");
-  let embutida = folha;
-  for (const nome of citadas) {
-    const bytes = await readFile(resolve(raiz, "dist/fonts", nome));
-    embutida = embutida.replaceAll(`url("./fonts/${nome}")`, `url("data:font/woff2;base64,${bytes.toString("base64")}")`);
-  }
-  return embutida;
+  // As leituras correm juntas; a troca na folha, depois, uma por uma.
+  const lidas = await Promise.all(citadas.map((nome) => readFile(resolve(raiz, "dist/fonts", nome))));
+  return citadas.reduce(
+    (embutida, nome, indice) =>
+      embutida.replaceAll(`url("./fonts/${nome}")`, `url("data:font/woff2;base64,${lidas[indice].toString("base64")}")`),
+    folha,
+  );
 }
 
 const MARCA_CSS = "/* ===================== COLUNA_CSS ===================== */";
