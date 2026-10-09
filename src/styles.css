@@ -524,9 +524,16 @@ div.co-sheet-overlay {
   line-height: var(--co-leading-normal);
 }
 
-/* A serifa dos títulos de tela. Um por tela, e ele é o nome do lugar. */
+/* A serifa dos títulos de tela. Um por tela, e ele é o nome do lugar.
+ *
+ * O peso é 400 ESCRITO, e não herdado, em toda regra que lê
+ * `--co-font-display`: a Instrument Serif só tem o 400 (ADR-014). O título
+ * sai num `<h1>`, que o navegador pinta em negrito, e sem esta linha ele pede
+ * um 700 que o arquivo não tem — e o navegador o inventa, engrossando o traço
+ * à mão. É o "negrito sintético" que as pranchas não desenham. */
 .co-text[data-variant="title-lg"] {
   font-family: var(--co-font-display);
+  font-weight: 400;
   font-size: var(--co-text-36);
   line-height: var(--co-leading-title);
   letter-spacing: var(--co-tracking-title);
@@ -537,6 +544,7 @@ div.co-sheet-overlay {
  * dígito que muda. */
 .co-text[data-variant="numeral"] {
   font-family: var(--co-font-display);
+  font-weight: 400;
   font-size: var(--co-text-68);
   line-height: var(--co-leading-numeral);
   letter-spacing: var(--co-tracking-tight);

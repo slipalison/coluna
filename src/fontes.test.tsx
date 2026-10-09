@@ -1,10 +1,18 @@
 /// <reference types="vite/client" />
+import { render } from "@testing-library/react";
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import type { ReactNode } from "react";
 import { afterAll, describe, expect, it } from "vitest";
+import { Text } from "./atoms/Text";
+import { PageHeader } from "./molecules/PageHeader";
+import { ScreenHeader } from "./molecules/ScreenHeader";
+import { Stat } from "./molecules/Stat";
+import "./styles.css";
+import { lugar, REGRAS } from "./test/folha";
 
 /**
  * As fontes moram no pacote (ADR-014).
@@ -12,7 +20,7 @@ import { afterAll, describe, expect, it } from "vitest";
  * Os tokens nomeiam a Instrument Serif e a Archivo desde a 1.0, e o pacote não
  * trazia nenhuma das duas: quem consome via a Georgia e a Helvetica, e nenhum
  * teste reclamava, porque um nome de família que não existe é CSS válido. Este
- * arquivo prova, com a isca que mostra que ele morde:
+ * arquivo prova duas coisas, cada uma com a isca que mostra que ele morde:
  *
  * - A FOLHA PUBLICADA traz o `@font-face` das duas famílias, e toda `url()`
  *   dela vale no aplicativo de quem consome: relativa, apontando para arquivo
@@ -20,6 +28,9 @@ import { afterAll, describe, expect, it } from "vitest";
  *   `font-src 'self'`. A folha é a que `scripts/construir-css.mjs` monta, num
  *   diretório temporário: o mesmo script do `npm run build`, sem depender de
  *   um `dist/` de antes.
+ * - A SERIFA FICA NO 400. A Instrument Serif só tem esse peso; o título sai
+ *   num `<h1>`, que o navegador pinta em negrito, e sem o 400 escrito o
+ *   navegador inventa o negrito engrossando o traço.
  */
 
 const raizDoRepositorio = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -242,6 +253,85 @@ describe("a folha publicada", () => {
       const licenca = readFileSync(join(saida, "fonts", arquivo), "utf8");
       expect(licenca, arquivo).toContain(autoria);
       expect(licenca, arquivo).toContain("SIL OPEN FONT LICENSE Version 1.1");
+    }
+  });
+});
+
+// ------------------------------------------------------ a serifa no 400 --
+
+describe("a serifa fica no 400", () => {
+  it("toda regra que lê --co-font-display escreve o peso 400", () => {
+    const serifadas = REGRAS.filter((regra) =>
+      regra.declaracoes.some(([propriedade, valor]) => propriedade === "font-family" && valor.includes("--co-font-display")),
+    );
+    expect(serifadas.map(lugar)).toEqual(['.co-text[data-variant="title-lg"]', '.co-text[data-variant="numeral"]']);
+    for (const regra of serifadas) {
+      expect(regra.declaracoes.filter(([propriedade]) => propriedade === "font-weight"), lugar(regra)).toEqual([
+        ["font-weight", "400"],
+      ]);
+    }
+  });
+
+  /**
+   * O happy-dom não tem a folha do navegador: lá o `<h1>` nasce no peso
+   * normal, e um teste de peso passaria sem o conserto. Esta é a regra que o
+   * Chrome, o Safari e o Firefox escrevem — `h1 { font-weight: bold }` —, e o
+   * contêiner em 700 é o ancestral em negrito (um `<th>`, um `<strong>`) de
+   * quem herda o peso.
+   */
+  function noNavegador(conteudo: ReactNode) {
+    const folhaDoNavegador = document.createElement("style");
+    folhaDoNavegador.textContent = "h1, h2, strong, b, th { font-weight: bold; } .negrito { font-weight: 700; }";
+    document.head.append(folhaDoNavegador);
+    const montado = render(<div className="negrito">{conteudo}</div>);
+    return {
+      peso: (texto: string) => getComputedStyle(montado.getByText(texto)).fontWeight,
+      desmontar: () => {
+        montado.unmount();
+        folhaDoNavegador.remove();
+      },
+    };
+  }
+
+  it("o título do ScreenHeader, do PageHeader e o title-lg num h1, e o numeral, computam 400", () => {
+    const tela = noNavegador(
+      <>
+        <ScreenHeader title="Hoje" />
+        <PageHeader title="Receitas" as="h2" />
+        <Text as="h1" variant="title-lg">
+          Calculadora
+        </Text>
+        <Text as="strong" variant="numeral">
+          995
+        </Text>
+        <Stat label="Restante" value="1.917" size="hero" />
+      </>,
+    );
+    try {
+      for (const texto of ["Hoje", "Receitas", "Calculadora", "995", "1.917"]) {
+        expect(tela.peso(texto), texto).toBe("400");
+      }
+    } finally {
+      tela.desmontar();
+    }
+  });
+
+  it("a isca: a serifa sem o 400 sai em negrito no mesmo h1", () => {
+    const isca = document.createElement("style");
+    isca.textContent = ".isca-serifa { font-family: var(--co-font-display); }";
+    document.head.append(isca);
+    const tela = noNavegador(
+      <>
+        <h1 className="isca-serifa">Ajustes</h1>
+        <span className="isca-serifa">2.371</span>
+      </>,
+    );
+    try {
+      expect(tela.peso("Ajustes")).not.toBe("400");
+      expect(tela.peso("2.371")).not.toBe("400");
+    } finally {
+      tela.desmontar();
+      isca.remove();
     }
   });
 });
