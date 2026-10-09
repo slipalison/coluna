@@ -4,7 +4,11 @@
  * A página NÃO tem cópia de nada. Ela recebe:
  *
  *   - `dist/styles.css` inteiro, o mesmo arquivo que vai no pacote. Se um
- *     token quebrar, a referência quebra junto — que é o ponto;
+ *     token quebrar, a referência quebra junto — que é o ponto. A única
+ *     troca é a `url("./fonts/...")` de cada fonte, que vira o arquivo de
+ *     `dist/fonts/` em `data:`: a página abre sem o `dist/` ao lado (do
+ *     disco, ou publicada como fragmento), e mostra as fontes que o pacote
+ *     leva, sem buscar nada fora (ADR-014);
  *   - o mapa de ícones lido de `src/atoms/Icon.tsx`, para um ícone novo
  *     aparecer aqui sem ninguém lembrar de copiar;
  *   - a versão do `package.json`.
@@ -79,6 +83,24 @@ const [css, gabarito, pacote, icones] = await Promise.all([
   lerIcones(),
 ]);
 
+/**
+ * Troca cada `url("./fonts/X")` pelo arquivo `dist/fonts/X` em `data:`.
+ *
+ * Falha alto se a folha citar uma fonte que o build não pôs em `dist/fonts/`:
+ * é o mesmo defeito que o bundler de quem consome acusaria, e a referência
+ * mostraria a fonte de reserva sem ninguém notar.
+ */
+async function embutirFontes(folha) {
+  const citadas = [...new Set([...folha.matchAll(/url\("\.\/fonts\/([^"]+\.woff2)"\)/g)].map((achado) => achado[1]))];
+  if (citadas.length === 0) throw new Error("dist/styles.css não cita nenhuma fonte de ./fonts/ — o @font-face sumiu?");
+  let embutida = folha;
+  for (const nome of citadas) {
+    const bytes = await readFile(resolve(raiz, "dist/fonts", nome));
+    embutida = embutida.replaceAll(`url("./fonts/${nome}")`, `url("data:font/woff2;base64,${bytes.toString("base64")}")`);
+  }
+  return embutida;
+}
+
 const MARCA_CSS = "/* ===================== COLUNA_CSS ===================== */";
 const MARCA_ICONES = "/* COLUNA_ICONES */ {}";
 const MARCA_VERSAO = "<!-- COLUNA_VERSAO -->";
@@ -87,8 +109,10 @@ for (const marca of [MARCA_CSS, MARCA_ICONES, MARCA_VERSAO]) {
   if (!gabarito.includes(marca)) throw new Error(`o gabarito não tem a marca ${marca}`);
 }
 
+const cssDaPagina = await embutirFontes(css.trim());
+
 const corpo = gabarito
-  .replace(MARCA_CSS, css.trim())
+  .replace(MARCA_CSS, () => cssDaPagina)
   .replace(MARCA_ICONES, JSON.stringify(icones, null, 2))
   .replace(MARCA_VERSAO, versaoPublicada(pacote.version));
 
