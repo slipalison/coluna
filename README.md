@@ -369,6 +369,35 @@ e-mail.
 ali entraria em qualquer bundle que tocasse em qualquer componente, e quem só
 quer um tipo carregaria a folha inteira, inclusive em teste e em Node.
 
+### As fontes vêm junto
+
+A **Instrument Serif** (títulos e numerais) e a **Archivo** (todo o resto)
+moram no pacote, em `dist/fonts/`, e o `styles.css` as declara com
+`@font-face` e `url()` relativa. Quem consome **não faz nada** além do
+`import "@slipalison/coluna/styles.css"`: o bundler (o Vite, no Basalto)
+resolve o caminho e serve cada `.woff2` da própria origem, então a CSP precisa
+só de `font-src 'self'` — nenhum CDN de fontes, nenhum `<link>` para o Google
+Fonts.
+
+- Dois subconjuntos por família, `latin` e `latin-ext`, com o
+  `unicode-range` de cada um: numa página só em português o navegador baixa
+  dois arquivos, 21 KB de serifa e 35 KB de Archivo.
+- A Archivo é variável no `wght` (100 a 900): os pesos 400, 500 e 600 dos
+  tokens e o 700 do `<strong>` saem do mesmo arquivo, todos desenhados.
+- A serifa só tem o peso 400, e o `title-lg` e o `numeral` o escrevem: num
+  `<h1>`, que o navegador pinta em negrito, o título não sai mais em negrito
+  sintético. Não combine `weight` com essas duas variantes.
+- `font-display: swap`: o texto aparece na fonte de reserva do token e troca
+  quando a fonte chega.
+- O `tokens.css` sozinho **não** traz as fontes: ele só as nomeia.
+- Para valer offline, o service worker do aplicativo precisa guardar `woff2`
+  (o padrão do `vite-plugin-pwa` guarda só `js`, `css` e `html`).
+
+As duas são SIL Open Font License 1.1, e a licença de cada uma vai ao lado dos
+arquivos (`dist/fonts/OFL-*.txt`). Origem, versão e o que ficou de fora
+(itálico, outros subconjuntos) estão no
+[ADR-014](docs/adr/014-as-fontes-moram-no-pacote.md).
+
 ---
 
 ## Desenvolver
@@ -376,8 +405,8 @@ quer um tipo carregaria a folha inteira, inclusive em teste e em Node.
 ```bash
 npm install       # o `prepare` já gera os tokens
 npm run tokens    # tokens/*.json -> src/tokens/{tokens.css,gerado.ts}
-npm test          # 232 testes, piso de 80% em linha, ramo, função e comando
-npm run build     # dist/coluna.js + dist/index.d.ts + os dois CSS
+npm test          # 247 testes, piso de 80% em linha, ramo, função e comando
+npm run build     # dist/coluna.js + dist/index.d.ts + os dois CSS + dist/fonts/
 npm run referencia # docs/referencia.html, pintada pelo CSS que o pacote publica
 ```
 
@@ -404,3 +433,4 @@ a esteira reprova o que estiver fora.
 - [ADR-011 — a área segura vira token público](docs/adr/011-a-area-segura-vira-token-publico.md)
 - [ADR-012 — a faixa sob o relógio e o respiro da barra](docs/adr/012-faixa-sob-o-relogio-e-respiro-da-barra.md)
 - [ADR-013 — a barra de ação](docs/adr/013-barra-de-acao.md)
+- [ADR-014 — as fontes moram no pacote](docs/adr/014-as-fontes-moram-no-pacote.md)
