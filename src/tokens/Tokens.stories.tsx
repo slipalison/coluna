@@ -27,7 +27,10 @@ type Story = StoryObj<typeof meta>;
 
 const GRUPOS: [string, SemanticToken[]][] = [
   ["Superfície", ["canvas", "surface", "surface-raised", "surface-sunken", "overlay"]],
-  ["Traço", ["border", "border-strong", "line", "track", "overlay-line"]],
+  // `control-border` é o limite do que se toca (campo, busca, chip, marca,
+  // segmentado, stepper), a 3:1 sobre o fundo; `border` e `border-strong`
+  // ficam para o que não se toca (superfície, selo).
+  ["Traço", ["border", "border-strong", "control-border", "line", "track", "overlay-line"]],
   // Cinco degraus de texto, em contraste decrescente, e `icon-muted` no fim —
   // que é o único que NÃO serve para texto: ele passa em 3:1, não em 4,5:1.
   ["Texto", ["text", "text-body", "text-secondary", "text-muted", "text-subtle", "icon-muted"]],

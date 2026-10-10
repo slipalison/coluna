@@ -193,6 +193,7 @@
   --co-overlay-line: var(--co-fio-claro);
   --co-border: var(--co-stone-400);
   --co-border-strong: var(--co-stone-500);
+  --co-control-border: var(--co-stone-600);
   --co-line: var(--co-stone-200);
   --co-track: var(--co-stone-300);
   --co-text: var(--co-stone-900);
@@ -228,6 +229,7 @@
     --co-overlay-line: var(--co-fio-escuro);
     --co-border: var(--co-basalt-600);
     --co-border-strong: var(--co-basalt-500);
+    --co-control-border: var(--co-basalt-400);
     --co-line: var(--co-basalt-800);
     --co-track: var(--co-basalt-700);
     --co-text: var(--co-basalt-050);
@@ -263,6 +265,7 @@
   --co-overlay-line: var(--co-fio-escuro);
   --co-border: var(--co-basalt-600);
   --co-border-strong: var(--co-basalt-500);
+  --co-control-border: var(--co-basalt-400);
   --co-line: var(--co-basalt-800);
   --co-track: var(--co-basalt-700);
   --co-text: var(--co-basalt-050);
@@ -1103,7 +1106,7 @@ div.co-sheet-overlay {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: var(--co-border-width) solid var(--co-border-strong);
+  border: var(--co-border-width) solid var(--co-control-border);
   border-radius: var(--co-radius-content);
   color: var(--co-accent-contrast);
 }
@@ -1472,11 +1475,16 @@ div.co-sheet-overlay {
  * solta: raio interno = raio externo − folga, senão o canto da opção corre
  * paralelo ao canto do trilho com espessura variável e o olho vê a diferença
  * sem saber nomear.
+ *
+ * O trilho tem contorno de controle: o fundo `surface` sobre `canvas` mede
+ * 1,14:1 no claro e 1,10:1 no escuro, e sem o contorno as opções não
+ * escolhidas viram texto solto, sem cara de opção (WCAG 1.4.11).
  */
 .co-segmented {
   display: inline-flex;
   gap: var(--co-space-2);
   padding: var(--co-space-2);
+  border: var(--co-border-width) solid var(--co-control-border);
   background: var(--co-surface);
   border-radius: var(--co-radius-control);
 }
@@ -1682,11 +1690,14 @@ div.co-sheet-overlay {
 
 /* ------------------------------------------------------------- incremento --- */
 
+/* O contorno de controle pelo mesmo motivo do segmentado: o fundo sozinho não
+ * se separa do lugar, e os botões de menos e de mais ficam soltos na página. */
 .co-stepper {
   display: inline-flex;
   align-items: center;
   gap: var(--co-space-2);
   padding: var(--co-space-2);
+  border: var(--co-border-width) solid var(--co-control-border);
   background: var(--co-surface);
   border-radius: var(--co-radius-control);
 }
@@ -1938,7 +1949,7 @@ div.co-sheet-overlay {
   gap: var(--co-space-8);
   min-height: var(--co-target-min);
   padding: 0 var(--co-space-14);
-  border: var(--co-border-width) solid var(--co-border);
+  border: var(--co-border-width) solid var(--co-control-border);
   border-radius: var(--co-radius-control);
   background: var(--co-surface);
   color: var(--co-text);
@@ -2061,10 +2072,10 @@ div.co-sheet-overlay {
 
 /*
  * A moldura da busca é a do campo — fundo de superfície, raio de controle, o
- * anel de foco em volta de TUDO —, sem o contorno: a busca mora no alto da
- * página ou da coluna, sobre o fundo do lugar, e ali o degrau de fundo já
- * separa. O contorno fica para o campo de formulário, que precisa dizer "aqui
- * se escreve" no meio de outras linhas.
+ * contorno de controle e o anel de foco em volta de TUDO. Ela já foi sem
+ * contorno, confiando no degrau de fundo, e o degrau não separa: `surface`
+ * sobre `canvas` mede 1,14:1 no claro e 1,10:1 no escuro, e dentro de uma
+ * folha de mesma superfície a busca some inteira (WCAG 1.4.11).
  */
 .co-search {
   display: inline-flex;
@@ -2072,9 +2083,11 @@ div.co-sheet-overlay {
   gap: var(--co-space-10);
   min-height: var(--co-target-min);
   padding: 0 var(--co-space-14);
+  border: var(--co-border-width) solid var(--co-control-border);
   border-radius: var(--co-radius-control);
   background: var(--co-surface);
   color: var(--co-text);
+  transition: border-color var(--co-duration-fast) var(--co-ease);
 }
 
 .co-search[data-size="lg"] {
@@ -2089,6 +2102,7 @@ div.co-sheet-overlay {
 }
 
 .co-search:focus-within {
+  border-color: var(--co-accent);
   outline: 2px solid var(--co-accent);
   outline-offset: 2px;
 }
@@ -2168,7 +2182,7 @@ div.co-sheet-overlay {
   gap: var(--co-space-6);
   min-height: var(--co-target-min);
   padding: 0 var(--co-space-14);
-  border: var(--co-border-width) solid var(--co-border);
+  border: var(--co-border-width) solid var(--co-control-border);
   border-radius: var(--co-radius-pill);
   background: transparent;
   color: var(--co-text-body);
@@ -2971,7 +2985,7 @@ pre code { background: none; border: 0; padding: 0; }
   <header class="topo">
     <div class="marca">
       <span class="marca__nome">Coluna</span>
-      <span class="co-badge" data-tone="accent">v1.9.0</span>
+      <span class="co-badge" data-tone="accent">v1.10.0</span>
     </div>
     <div class="co-segmented" role="radiogroup" aria-label="Tema" id="tema">
       <button type="button" role="radio" class="co-segmented__option" aria-checked="false" data-tema="light">Claro</button>

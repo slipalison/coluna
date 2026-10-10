@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { bloco, type Declaracao } from "../test/folha";
 
 /**
  * O piso de contraste do sistema, conferido na FONTE dos tokens.
@@ -67,6 +68,26 @@ const PISO_DESENHO = 3;
 const TEXTO = ["text", "text-body", "text-secondary", "text-muted", "text-subtle"] as const;
 const TEXTO_COLORIDO = ["accent", "status", "danger"] as const;
 const DESENHO = ["icon-muted", "macro-protein", "macro-carb", "macro-fat"] as const;
+
+/**
+ * Os controles cujo LIMITE é o que diz "aqui se toca" (WCAG 1.4.11): o
+ * contorno é desenho, então o piso é 3:1, sobre todo fundo em que um controle
+ * mora. O segmentado e o stepper entram aqui mesmo tendo fundo próprio: o
+ * fundo `surface` sobre `canvas` mede 1,14:1 no claro e 1,10:1 no escuro, e
+ * sem contorno as opções viram texto solto, sem cara de opção.
+ */
+const CONTROLES = [
+  [".co-input", "campo"],
+  [".co-search", "busca"],
+  [".co-chip", "chip"],
+  [".co-list-row__mark", "marca de radio e de checkbox"],
+  [".co-segmented", "segmentado"],
+  [".co-stepper", "stepper"],
+] as const;
+
+/** As declarações de contorno de um bloco, na ordem — sem o raio, que é forma. */
+const contorno = (declaracoes: Declaracao[]) =>
+  declaracoes.filter(([propriedade]) => /^border(?!-radius)/.test(propriedade));
 
 const TEMAS: [string, Folha][] = [
   ["claro", claro],
@@ -142,6 +163,29 @@ describe.each(TEMAS)("contraste no tema %s", (_nome, tema) => {
     // o acento suave do acento para o fundo "combinar".
     const razao = contraste(valor(tema["accent"]), valor(tema["accent-soft"]));
     expect(razao, `deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
+  });
+
+  it("o limite de controle (campo, busca, chip, radio, checkbox, segmentado e stepper) passa em 3:1", () => {
+    // `--co-border` e `--co-border-strong` são o traço do que NÃO se toca
+    // (superfície, selo) e ficam abaixo de 3:1 de propósito: um contorno de
+    // cartão a 3:1 pesaria a tela inteira. O limite de controle é outro papel,
+    // com token próprio, e é sobre ele que mora a conta. `surface-sunken` fica
+    // de fora: é trilho e fundo de texto, e nenhum controle mora nele.
+    const limite = valor(tema["control-border"]);
+    for (const nomeFundo of ["canvas", "surface", "surface-raised"] as const) {
+      const razao = contraste(limite, valor(tema[nomeFundo]));
+      expect(razao, `control-border sobre ${nomeFundo} deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(
+        PISO_DESENHO,
+      );
+    }
+
+    // E o token só vale se os controles o desenham: um chip que volta para
+    // `--co-border` passa na conta acima e some na tela.
+    for (const [seletor, controle] of CONTROLES) {
+      expect(contorno(bloco(seletor)), `o contorno de ${controle} (${seletor})`).toEqual([
+        ["border", "var(--co-border-width) solid var(--co-control-border)"],
+      ]);
+    }
   });
 
   it("text-subtle é o piso, e icon-muted fica abaixo dele", () => {
