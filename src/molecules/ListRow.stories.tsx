@@ -213,3 +213,67 @@ export const Marcar: Story = {
     );
   },
 };
+
+const REFEICOES = [
+  {
+    hora: "07:20",
+    nome: "Café da manhã",
+    kcal: "310 kcal",
+    resumo: "Pão francês · Manteiga · Café com leite",
+  },
+  {
+    hora: "12:40",
+    nome: "Almoço",
+    kcal: "612 kcal",
+    resumo:
+      "Arroz, tipo 1, cozido · Feijão, carioca, cozido · Frango, peito, sem pele, grelhado · Alface, crespa, crua · Azeite de oliva, extra virgem",
+  },
+  { hora: "16:10", nome: "Lanche", kcal: "0 kcal", resumo: undefined },
+];
+
+/**
+ * A refeição do diário no telefone: o nome em cima, o resumo dos alimentos
+ * embaixo, em `description` (ADR-015).
+ *
+ * A moldura tem 361px — um telefone de 393px menos a calha de 16px de cada
+ * lado. O resumo do almoço é comprido de propósito: ele fica numa linha só, o
+ * que passa vira reticências, e a linha do almoço tem a mesma altura que a do
+ * café, de resumo curto. Como segundo filho, o mesmo texto quebrava em três ou
+ * quatro linhas.
+ *
+ * As reticências são desenho: o texto inteiro está no DOM, e o nome do botão
+ * é a linha inteira, na ordem da tela ("12:40 Almoço Arroz, tipo 1, cozido ·
+ * … 612 kcal") — o nome contém o que se lê nele. Sem alimento, não há resumo,
+ * e a linha do lanche é a de antes.
+ */
+export const ComDescricaoNoTelefone: Story = {
+  name: "Com descrição comprida, no telefone",
+  render: () => (
+    <div style={{ width: "361px" }}>
+      <Group label="Refeições" labelTrailing="922 kcal registrados">
+        {REFEICOES.map((refeicao) => (
+          <ListRow
+            key={refeicao.nome}
+            expanded={false}
+            onClick={() => undefined}
+            leading={
+              <Text as="span" variant="subhead" tone="muted" numeric>
+                {refeicao.hora}
+              </Text>
+            }
+            trailing={
+              <Text as="span" variant="subhead" tone="secondary" numeric>
+                {refeicao.kcal}
+              </Text>
+            }
+            description={refeicao.resumo}
+          >
+            <Text as="span" variant="headline">
+              {refeicao.nome}
+            </Text>
+          </ListRow>
+        ))}
+      </Group>
+    </div>
+  ),
+};
