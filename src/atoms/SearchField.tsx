@@ -15,7 +15,8 @@ export interface SearchFieldProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "size" | "type" | "aria-label"> {
   /**
    * O nome do campo, obrigatório, e ele aparece ESCRITO, em cima da moldura,
-   * num `<label>` amarrado ao campo — o mesmo rótulo do `Field`.
+   * num `<label>` amarrado ao campo, na letra de corpo do rótulo do `Field` em
+   * linha — e não no versalete do rótulo de seção.
    *
    * Já foi só para o leitor de tela, confiando na lupa e no texto de exemplo
    * para quem enxerga. Não bastam: o exemplo some na primeira letra, e a lupa
@@ -152,7 +153,12 @@ export function SearchField({
   return (
     <div className="co-search-field" role="search" data-full={full ? "true" : undefined}>
       <label className="co-search-field__label" htmlFor={idCampo}>
-        <Text as="span" variant="label" tone="subtle">
+        {/* Letra de corpo, e não o versalete de 11px do rótulo de seção: o
+            nome do campo e o título da lista que ele filtra ("ALIMENTOS
+            ACHADOS", logo embaixo) são funções diferentes, e com a mesma cara
+            a pessoa lê os dois como títulos. É o rótulo do `Field` em linha
+            (`ux.md` §1, 12px no mínimo; Similaridade). */}
+        <Text as="span" variant="body">
           {label}
         </Text>
       </label>

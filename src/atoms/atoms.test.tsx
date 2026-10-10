@@ -808,6 +808,31 @@ describe("SearchField dentro da folha", () => {
     expect(screen.getByRole("search")).toContainElement(rotulo);
   });
 
+  it("o nome da busca sai na letra de corpo, sem caixa-alta, e nao com a cara do rotulo de secao", () => {
+    render(<SearchField label="Buscar alimento" />);
+    const nome = screen.getByText("Buscar alimento");
+    const variante = nome.getAttribute("data-variant") ?? "";
+
+    // Medido na folha, e não pelo nome da variante: 12px é o piso de rótulo
+    // (`ux.md` §1), e a caixa-alta espaçada é a face do título de seção que
+    // fica logo embaixo da busca ("ALIMENTOS ACHADOS").
+    const face = Object.fromEntries(bloco(`.co-text[data-variant="${variante}"]`));
+    expect(avaliar(face["font-size"] ?? "", TOKENS)).toBeGreaterThanOrEqual(12);
+    expect(face["text-transform"] ?? "none").toBe("none");
+    expect(face["letter-spacing"]).toBeUndefined();
+    // O `text-transform` herda: nem o `<label>` nem o marco em volta põem a
+    // caixa-alta de volta, nem mudam a letra que a variante deu.
+    const LETRA = /^(font(-size|-weight|-variant.*)?|text-transform|letter-spacing)$/;
+    expect([
+      ...declaradas("co-search-field", LETRA),
+      ...declaradas("co-search-field__label", LETRA),
+    ]).toEqual([]);
+
+    // A face é a do rótulo do `Field` em linha — mesma função, mesma cara.
+    expect(variante).toBe("body");
+    expect(nome).toHaveAttribute("data-tone", "default");
+  });
+
   it("um id vindo de fora é o do campo, e o rótulo aponta para ele", () => {
     render(<SearchField label="Buscar alimento" id="busca-do-diario" />);
     const campo = screen.getByRole("searchbox", { name: "Buscar alimento" });

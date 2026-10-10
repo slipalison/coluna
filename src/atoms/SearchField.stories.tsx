@@ -14,7 +14,9 @@ import { Text } from "./Text";
  *
  * O nome (`label`) é obrigatório e aparece escrito em cima da moldura, num
  * rótulo amarrado ao campo: o `placeholder` some na primeira letra e não é
- * nome. Tocar na lupa ou em qualquer ponto da moldura leva ao campo.
+ * nome. Ele sai na letra de corpo, a do rótulo do `Field` em linha, e não no
+ * versalete do título de seção. Tocar na lupa ou em qualquer ponto da moldura
+ * leva ao campo.
  */
 const meta = {
   title: "Átomos/SearchField",
@@ -141,4 +143,49 @@ export const ComLimparEscuro: Story = {
   name: "Com o × de limpar — escuro",
   globals: { tema: "dark" },
   render: () => <BuscaComTexto />,
+};
+
+function BuscaSobreALista() {
+  const [termo, setTermo] = useState("arroz");
+  const achados = TACO.filter((nome) => nome.toLowerCase().includes(termo.trim().toLowerCase()));
+  return (
+    <Stack gap={24} style={{ maxWidth: "360px" }}>
+      <SearchField
+        label="Buscar alimento"
+        placeholder="arroz, feijão, banana"
+        value={termo}
+        onChange={(evento) => setTermo(evento.target.value)}
+        full
+      />
+      <Stack as="section" gap={8} aria-labelledby="busca-sobre-a-lista">
+        <Text id="busca-sobre-a-lista" as="h2" variant="label">
+          Alimentos achados
+        </Text>
+        {achados.map((nome) => (
+          <Text key={nome} variant="callout" tone="body">
+            {nome}
+          </Text>
+        ))}
+      </Stack>
+    </Stack>
+  );
+}
+
+/**
+ * O nome da busca e o título da lista que ela filtra, um embaixo do outro: o
+ * nome em letra de corpo, de caixa normal, e o título no versalete de seção.
+ * Função diferente, cara diferente — com a mesma face, a pessoa lê os dois
+ * como títulos, e o nome do campo fica em 11px, abaixo do piso de 12px do
+ * rótulo (`ux.md` §1). No claro e no escuro.
+ */
+export const SobreAListaClaro: Story = {
+  name: "Sobre a lista — claro",
+  globals: { tema: "light" },
+  render: () => <BuscaSobreALista />,
+};
+
+export const SobreAListaEscuro: Story = {
+  name: "Sobre a lista — escuro",
+  globals: { tema: "dark" },
+  render: () => <BuscaSobreALista />,
 };
