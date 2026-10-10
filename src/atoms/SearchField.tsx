@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { Icon } from "./Icon";
-import { levarAoCampo } from "./Input";
+import { reservarFim } from "./Input";
 import { Text } from "./Text";
 
 export interface SearchFieldProps
@@ -88,9 +88,10 @@ function esvaziar(campo: HTMLInputElement) {
  * demais para o dedo, não têm nome para o leitor de tela e cada um tem uma
  * cara. O desta peça tem 44px, nome (`clearLabel`) e só existe com texto.
  *
- * A moldura inteira leva ao campo, pela mesma função do `Input`: a lupa, o
- * espaço em volta e a contagem mandam o foco para o texto, sem tirá-lo de lá
- * no meio do toque, e a moldura mede pelo menos 44 × 44px.
+ * A moldura inteira é o campo, como a do `Input`: o controle a ocupa inteira,
+ * e a lupa, a contagem e a tecla ficam por cima do respiro dele sem receber o
+ * toque — o dedo nelas cai no texto, pelo navegador. O ×, que é outro
+ * controle, fica por cima dele no fim. A moldura mede pelo menos 44 × 44px.
  *
  * O texto tem 16px nos dois tamanhos, pela mesma regra do `Input`: abaixo
  * disso o Safari do iPhone dá zoom ao focar, e a tela salta no meio da busca.
@@ -112,7 +113,7 @@ export function SearchField({
   const idCampo = id ?? gerado;
   // O que o campo tem escrito quando ninguém o controla. Controlado, quem diz
   // é o `value` de fora.
-  const [escritoLivre, definirEscritoLivre] = useState(
+  const [escritoLivre, setEscritoLivre] = useState(
     () => String(resto.defaultValue ?? "") !== "",
   );
   const temTexto = resto.value === undefined ? escritoLivre : String(resto.value) !== "";
@@ -133,7 +134,7 @@ export function SearchField({
   }, [shortcut]);
 
   function aoMudar(evento: ChangeEvent<HTMLInputElement>) {
-    definirEscritoLivre(evento.target.value !== "");
+    setEscritoLivre(evento.target.value !== "");
     onChange?.(evento);
   }
 
@@ -155,18 +156,11 @@ export function SearchField({
           {label}
         </Text>
       </label>
-      {/*
-        Os ouvintes de ponteiro da moldura não fazem dela um controle: o
-        caminho do teclado até o campo é o próprio campo, e quem toca na
-        moldura já tem o campo inteiro a um toque.
-      */}
       <div
         className={classe}
         data-size={size === "md" ? undefined : size}
         data-full={full ? "true" : undefined}
         data-clearable={temTexto ? "true" : undefined}
-        onMouseDown={levarAoCampo}
-        onClick={levarAoCampo}
       >
         <Icon className="co-search__icon" name="search" size={size === "lg" ? 20 : 17} />
         <input
@@ -178,18 +172,22 @@ export function SearchField({
           onChange={aoMudar}
           {...resto}
         />
-        {count === undefined ? null : (
-          <span className="co-search__count" aria-live="polite" aria-atomic="true">
-            {count}
+        {count === undefined && !shortcut ? null : (
+          <span className="co-search__end" ref={reservarFim}>
+            {count === undefined ? null : (
+              <span className="co-search__count" aria-live="polite" aria-atomic="true">
+                {count}
+              </span>
+            )}
+            {shortcut ? (
+              // O desenho da tecla é para quem enxerga; quem usa leitor de tela
+              // recebe o mesmo atalho pelo `aria-keyshortcuts` do campo.
+              <kbd className="co-search__key" aria-hidden="true">
+                {shortcut}
+              </kbd>
+            ) : null}
           </span>
         )}
-        {shortcut ? (
-          // O desenho da tecla é para quem enxerga; quem usa leitor de tela
-          // recebe o mesmo atalho pelo `aria-keyshortcuts` do campo.
-          <kbd className="co-search__key" aria-hidden="true">
-            {shortcut}
-          </kbd>
-        ) : null}
         {temTexto ? (
           <button
             type="button"

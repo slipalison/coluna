@@ -171,8 +171,8 @@ const ALIMENTOS = [
 ];
 
 function FolhaComBusca() {
-  const [aberto, definir] = useState(true);
-  const [termo, definirTermo] = useState("arroz");
+  const [aberto, setAberto] = useState(true);
+  const [termo, setTermo] = useState("arroz");
   const achados = ALIMENTOS.filter((a) => a.nome.toLowerCase().includes(termo.trim().toLowerCase()));
 
   return (
@@ -188,12 +188,12 @@ function FolhaComBusca() {
     >
       <Stack gap={12} style={{ padding: "20px" }}>
         <Text variant="title-lg">Almoço</Text>
-        <Button onClick={() => definir(true)}>Registrar alimento</Button>
+        <Button onClick={() => setAberto(true)}>Registrar alimento</Button>
       </Stack>
 
       <Sheet
         open={aberto}
-        onClose={() => definir(false)}
+        onClose={() => setAberto(false)}
         title="Registrar alimento"
         position="absolute"
         initialFocus="first-field"
@@ -203,13 +203,13 @@ function FolhaComBusca() {
             label="Buscar alimento"
             placeholder="arroz, feijão, banana"
             value={termo}
-            onChange={(evento) => definirTermo(evento.target.value)}
+            onChange={(evento) => setTermo(evento.target.value)}
             count={achados.length === 1 ? "1 resultado" : `${achados.length} resultados`}
             full
           />
           <Group inset="text" label="Resultados">
             {achados.map((a) => (
-              <ListRow key={a.nome} trailing={a.kcal} onClick={() => definir(false)}>
+              <ListRow key={a.nome} trailing={a.kcal} onClick={() => setAberto(false)}>
                 {a.nome}
               </ListRow>
             ))}

@@ -358,7 +358,9 @@ Alguns que merecem nota:
   visível, a busca também ([ADR-016](docs/adr/016-o-piso-de-ux-mora-no-sistema.md));
   o `placeholder` é só exemplo. A moldura tem o contorno de controle parado,
   e não só com o foco, para não sumir dentro de uma folha da mesma superfície;
-  a lupa e o resto da moldura levam o foco ao campo. Com texto, aparece o ×
+  o campo ocupa a moldura inteira, e a lupa, a contagem e a tecla ficam por
+  cima dele sem receber o toque — qualquer ponto da moldura é o campo, pelo
+  navegador, sem tratador de clique. Com texto, aparece o ×
   de limpar da coluna (44px, nome em `clearLabel`, "Limpar a busca" por
   padrão), que esvazia pelo `onChange` de quem usa e devolve o foco ao campo;
   o × do navegador fica escondido. O atalho (`/`) traz o foco de qualquer

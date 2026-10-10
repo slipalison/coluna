@@ -650,26 +650,62 @@ describe("SearchField dentro da folha", () => {
   });
 
   it("a lupa leva o foco ao campo", async () => {
+    // A lupa não tem ouvinte: ela fica por cima do controle, na célula dele, e
+    // não recebe o toque — o dedo nela cai no controle, pelo navegador. O que se
+    // prova é que ela mora ali e deixa o toque passar, e que o controle a
+    // contém no respiro do começo, nos dois tamanhos.
+    expect(oControleOcupaAMoldura(MOLDURA_DA_BUSCA)).toEqual([]);
+    expect(declaradas("co-search__icon", LUGAR_DE_CIMA)).toEqual([
+      ".co-search__icon { grid-area: 1 / 1 }",
+      ".co-search__icon { pointer-events: none }",
+    ]);
+
     const usuario = userEvent.setup();
     const { container } = render(
       <>
         <button type="button">Registrar</button>
         <SearchField label="Buscar alimento" />
+        <SearchField label="Buscar receita" size="lg" />
       </>,
     );
-    const campo = screen.getByRole("searchbox", { name: "Buscar alimento" });
-    const lupa = container.querySelector(".co-search__icon");
-    expect(lupa).not.toBeNull();
+    const borda = avaliar("var(--co-border-width)", TOKENS);
+    for (const [tamanho, variante] of [
+      ["md", []],
+      ["lg", ['.co-search[data-size="lg"]']],
+    ] as const) {
+      const lupa = container.querySelector(
+        tamanho === "md" ? '.co-search:not([data-size]) .co-search__icon' : '.co-search[data-size="lg"] .co-search__icon',
+      );
+      expect(lupa, `a lupa do ${tamanho}`).not.toBeNull();
+      expect(lupa?.closest(".co-search")?.firstElementChild, `a lupa do ${tamanho} na moldura`).toBe(lupa);
+      const largura = Number(lupa?.getAttribute("width"));
+      const margem = avaliar(
+        [".co-search__icon", ...variante.map((v) => `${v} .co-search__icon`)]
+          .map((seletor) => Object.fromEntries(bloco(seletor))["margin-left"])
+          .filter((valor) => valor !== undefined)
+          .at(-1) ?? "",
+        TOKENS,
+      );
+      const respiro = paddingQueVale(
+        [".co-search__control", ...variante.map((v) => `${v} .co-search__control`)].flatMap((seletor) =>
+          bloco(seletor),
+        ),
+        TOKENS,
+      ).esquerda;
+      // O controle começa por baixo da borda; a lupa, dentro dela.
+      expect(respiro - borda, `respiro do começo do ${tamanho}`).toBeGreaterThan(margem + largura);
+    }
 
+    const campo = screen.getByRole("searchbox", { name: "Buscar alimento" });
     screen.getByRole("button", { name: "Registrar" }).focus();
-    await usuario.click(lupa as Element);
+    await usuario.click(campo);
     expect(document.activeElement).toBe(campo);
 
-    // Com o foco já no campo, o toque na lupa não o tira de lá no aperto para
-    // devolver no clique: o anel não pisca e o teclado do telefone não desce.
+    // Com o foco já no campo, o toque não o tira de lá no aperto para devolver
+    // no clique: o anel não pisca e o teclado do telefone não desce.
     const saiu = vi.fn();
     campo.addEventListener("blur", saiu);
-    await usuario.click(lupa as Element);
+    await usuario.click(campo);
     expect(saiu).not.toHaveBeenCalled();
     expect(document.activeElement).toBe(campo);
 
@@ -784,6 +820,123 @@ const TAMANHO = /^(min-|max-)?(height|width|block-size|inline-size)$/;
 /** O que não é uma medida em pixel: relativo ao contêiner, ou sem limite. */
 const SEM_MEDIDA = /^(auto|none|\d+(\.\d+)?%)$/;
 
+/**
+ * Uma moldura de campo, o controle que a ocupa e o que fica por cima dele.
+ *
+ * O toque em qualquer ponto da moldura é o toque no controle porque é ele que
+ * está ali, e não por um tratador de clique (ADR-016). O happy-dom não faz
+ * layout nem acha o elemento sob um ponto, então o que se prova aqui é a
+ * geometria pela folha, na ordem da cascata: a moldura sem respiro próprio e
+ * em grade; o controle esticado na sua área e por baixo da borda; e cada peça
+ * de cima numa célula dessa área, transparente ao toque. O ponto a ponto, num
+ * navegador de verdade, foi medido no Chromium e no WebKit.
+ */
+interface Moldura {
+  moldura: string;
+  controle: string;
+  /** A área do controle na grade da moldura: a moldura inteira. */
+  area: string;
+  porCima: readonly string[];
+}
+
+const MOLDURA_DO_CAMPO: Moldura = {
+  moldura: "co-input",
+  controle: "co-input__control",
+  area: "1 / 1",
+  porCima: ["co-input__unit"],
+};
+const MOLDURA_DA_BUSCA: Moldura = {
+  moldura: "co-search",
+  controle: "co-search__control",
+  area: "1 / 1 / 2 / 3",
+  porCima: ["co-search__icon", "co-search__end"],
+};
+
+/** O que decide onde o controle fica e se ele recebe o toque. */
+const LUGAR_DO_CONTROLE =
+  /^(display|grid(-area|-column|-row)(-start|-end)?|(place|align|justify)-self|width|height|max-(width|height)|margin.*|position|inset.*|top|right|bottom|left|transform|translate|pointer-events)$/;
+/** O que decide em que célula a peça de cima mora e se ela recebe o toque. */
+const LUGAR_DE_CIMA =
+  /^(grid(-area|-column|-row)(-start|-end)?|position|inset.*|top|right|bottom|left|transform|translate|pointer-events)$/;
+
+/**
+ * As regras que pintam a caixa do elemento da classe: é dela o último composto
+ * do seletor, sem pseudo-elemento (`::placeholder` é outra caixa).
+ */
+const pintam = (nome: string) =>
+  REGRAS.filter((r) =>
+    r.seletores.some((s) => classe(nome).test(ultimoComposto(s)) && !ultimoComposto(s).includes("::")),
+  );
+
+/** Cada declaração das `propriedades` nas regras que pintam a classe. */
+const declaradas = (nome: string, propriedades: RegExp) =>
+  pintam(nome).flatMap((r) =>
+    r.declaracoes.filter(([p]) => propriedades.test(p)).map(([p, v]) => `${lugar(r)} { ${p}: ${v} }`),
+  );
+
+const oValorDe = (seletor: string, propriedade: string) =>
+  Object.fromEntries(bloco(seletor))[propriedade] ?? "";
+
+/** O que separa o controle da moldura inteira: vazio quando ele a ocupa. */
+function oControleOcupaAMoldura({ moldura, controle, area, porCima }: Moldura): string[] {
+  const faltas: string[] = [];
+  const m = `.${moldura}`;
+  const c = `.${controle}`;
+
+  // A moldura não tem respiro próprio: o respiro é do controle.
+  const respiro = declaradas(moldura, /^padding/);
+  if (respiro.join() !== `${m} { padding: 0 }`) faltas.push(`respiro da moldura: ${respiro.join("; ")}`);
+  for (const display of declaradas(moldura, /^display$/)) {
+    if (!/: (inline-)?grid \}$/.test(display)) faltas.push(`moldura fora da grade: ${display}`);
+  }
+
+  // O controle ocupa a área inteira e passa por baixo da borda dela: a
+  // margem negativa é a borda da moldura, e nenhuma outra regra o tira dali.
+  const lugarDoControle = declaradas(controle, LUGAR_DO_CONTROLE);
+  const esperado = [
+    `${c} { grid-area: ${area} }`,
+    `${c} { place-self: stretch }`,
+    `${c} { width: auto }`,
+    `${c} { margin: calc(-1 * var(--co-border-width)) }`,
+  ];
+  if (lugarDoControle.join() !== esperado.join()) faltas.push(`lugar do controle: ${lugarDoControle.join("; ")}`);
+  if (partes(oValorDe(m, "border"))[0] !== "var(--co-border-width)") faltas.push("borda da moldura");
+
+  // O que fica por cima mora numa célula da área do controle e deixa o toque
+  // passar para ele.
+  for (const peca of porCima) {
+    const lugarDaPeca = declaradas(peca, LUGAR_DE_CIMA);
+    const daPeca = [`.${peca} { grid-area: 1 / 1 }`, `.${peca} { pointer-events: none }`];
+    if (lugarDaPeca.join() !== daPeca.join()) faltas.push(`${peca}: ${lugarDaPeca.join("; ")}`);
+  }
+  return faltas;
+}
+
+/**
+ * Os ouvintes que o React pôs no elemento: as props `on*` que ele guarda no nó.
+ * O React não escreve `onclick` no HTML (ele ouve na raiz), então é ali que um
+ * tratador de toque na moldura apareceria. Sem a chave, falha alto: uma versão
+ * do React que guarde as props em outro lugar não pode passar calada.
+ */
+function ouvintes(elemento: Element): string[] {
+  const chave = Object.keys(elemento).find((nome) => nome.startsWith("__reactProps$"));
+  expect(chave, `as props do React em ${elemento.getAttribute("class")}`).toBeDefined();
+  const props = (elemento as unknown as Record<string, Record<string, unknown> | undefined>)[chave ?? ""];
+  return Object.keys(props ?? {}).filter((nome) => /^on[A-Z]/.test(nome));
+}
+
+/** O que mora na moldura e não é o controle, nem peça de cima, nem um botão. */
+function oQueSobra(elemento: Element, { controle, porCima }: Moldura): string[] {
+  return Array.from(elemento.children)
+    .filter(
+      (filho) =>
+        !filho.classList.contains(controle) &&
+        !porCima.some((peca) => filho.classList.contains(peca)) &&
+        filho.tagName !== "BUTTON",
+    )
+    .map((filho) => `${filho.tagName.toLowerCase()}.${filho.getAttribute("class") ?? ""}`);
+}
+
 describe("a moldura do campo", () => {
   it("tocar em qualquer ponto da moldura foca o campo, e a area mede ao menos 44x44 px", async () => {
     const usuario = userEvent.setup();
@@ -791,48 +944,71 @@ describe("a moldura do campo", () => {
       <>
         <button type="button">Registrar</button>
         <Input aria-label="Peso" unit="kg" defaultValue="83,1" />
-        <SearchField label="Buscar alimento" count="6 resultados" />
+        <SearchField label="Buscar alimento" count="6 resultados" shortcut="/" defaultValue="arroz" />
       </>,
     );
     const fora = screen.getByRole("button", { name: "Registrar" });
     const peso = screen.getByRole("textbox", { name: "Peso" });
     const busca = screen.getByRole("searchbox", { name: "Buscar alimento" });
-    const pedaco = (seletor: string) => {
-      const achado = container.querySelector(seletor);
-      expect(achado, seletor).not.toBeNull();
-      return achado as Element;
-    };
 
-    // O alvo de cada toque é a própria moldura (o respiro de 14px dos lados,
-    // onde não há controle nenhum), a unidade e a lupa: a pessoa vê uma caixa
-    // só, e qualquer ponto dela é o campo.
-    const toques: [string, Element, HTMLElement][] = [
-      ["respiro da moldura do campo", pedaco(".co-input"), peso],
-      ["unidade do campo", pedaco(".co-input__unit"), peso],
-      ["respiro da moldura da busca", pedaco(".co-search"), busca],
-      ["lupa da busca", pedaco(".co-search__icon"), busca],
-      ["contagem da busca", pedaco(".co-search__count"), busca],
-    ];
-    for (const [onde, alvo, controle] of toques) {
-      fora.focus();
-      await usuario.click(alvo);
-      expect(document.activeElement, `toque no ${onde}`).toBe(controle);
+    // O controle é a moldura: sem respiro próprio, ele esticado na área inteira
+    // e por baixo da borda, e a unidade, a lupa, a contagem e a tecla por cima
+    // dele, sem receber o toque. O respiro dos lados é do controle.
+    for (const [moldura, controle] of [
+      [MOLDURA_DO_CAMPO, peso],
+      [MOLDURA_DA_BUSCA, busca],
+    ] as const) {
+      expect(oControleOcupaAMoldura(moldura), `.${moldura.moldura}`).toEqual([]);
+      const elemento = controle.closest(`.${moldura.moldura}`);
+      expect(elemento, `.${moldura.moldura}`).not.toBeNull();
+      expect(oQueSobra(elemento as Element, moldura), `o que sobra em .${moldura.moldura}`).toEqual([]);
+      for (const peca of moldura.porCima) {
+        expect(elemento?.querySelector(`:scope > .${peca}`), `.${peca} renderizada`).not.toBeNull();
+      }
 
-      // Com o foco já no campo, o toque não o tira de lá no aperto para
-      // devolver no clique: o anel não pisca e o teclado do telefone não desce.
-      const saiu = vi.fn();
-      controle.addEventListener("blur", saiu);
-      await usuario.click(alvo);
-      controle.removeEventListener("blur", saiu);
-      expect(saiu, `toque no ${onde} com o foco já no campo`).not.toHaveBeenCalled();
-      expect(document.activeElement, `toque no ${onde} com o foco já no campo`).toBe(controle);
+      // O respiro dos lados é do controle, e o do fim é o que a peça de cima
+      // ocupa: sem a medida, o da moldura; com ela, a medida inteira.
+      const c = `.${moldura.controle}`;
+      const borda = avaliar("var(--co-border-width)", TOKENS);
+      const semFim = paddingQueVale(bloco(c), TOKENS);
+      expect(semFim.esquerda - borda, `${c} respiro do começo`).toBeGreaterThanOrEqual(14);
+      expect(semFim.direita - borda, `${c} respiro do fim`).toBeGreaterThanOrEqual(14);
+      const comFim = paddingQueVale(bloco(c), { ...TOKENS, "--co-field-end": "36px" });
+      expect(comFim.direita - borda, `${c} com a medida do fim`).toBe(36);
     }
 
-    // O toque no próprio controle segue com o navegador: nada intercepta o
-    // aperto, e arrastar seleciona o texto, como em qualquer campo.
+    // O × é o único que mora na moldura sem ser o controle nem peça de cima, e
+    // é um botão de verdade, por cima do controle, na célula do fim.
+    const limpar = screen.getByRole("button", { name: "Limpar a busca" });
+    expect(limpar.parentElement).toBe(busca.closest(".co-search"));
+    expect(declaradas("co-search__clear", LUGAR_DE_CIMA)).toEqual([".co-search__clear { grid-area: 1 / 2 }"]);
+
+    // O toque cai no controle, e ele faz o que um campo faz: foca, e com o foco
+    // já nele não o tira de lá no aperto para devolver no clique — o anel não
+    // pisca e o teclado do telefone não desce.
     for (const controle of [peso, busca]) {
+      fora.focus();
+      await usuario.click(controle);
+      expect(document.activeElement, `toque em ${controle.getAttribute("type") ?? "text"}`).toBe(controle);
+      const saiu = vi.fn();
+      controle.addEventListener("blur", saiu);
+      await usuario.click(controle);
+      controle.removeEventListener("blur", saiu);
+      expect(saiu, "toque com o foco já no campo").not.toHaveBeenCalled();
+      expect(document.activeElement).toBe(controle);
+
+      // Nada intercepta o aperto: o cursor e a seleção são do navegador.
       expect(fireEvent.mouseDown(controle), "o aperto no controle segue").toBe(true);
       expect(fireEvent.click(controle), "o clique no controle segue").toBe(true);
+    }
+
+    // E o toque é do navegador, e não de um tratador: nem a moldura nem as
+    // peças de cima têm ouvinte — só o controle e o ×, que são controles.
+    for (const elemento of container.querySelectorAll(".co-input, .co-search")) {
+      for (const parte of [elemento, ...Array.from(elemento.children)]) {
+        if (parte.tagName === "INPUT" || parte.tagName === "BUTTON") continue;
+        expect(ouvintes(parte), `ouvintes em ${parte.getAttribute("class")}`).toEqual([]);
+      }
     }
     fora.focus();
     await usuario.pointer([
@@ -870,5 +1046,89 @@ describe("a moldura do campo", () => {
         .map(([p, v]) => `${lugar(r)} { ${p}: ${v} }`),
     );
     expect(encolhem, "regras que encolhem a moldura abaixo de 44px").toEqual([]);
+  });
+
+  it("o controle reserva no fim a largura da unidade e da contagem, e a devolve quando elas saem", () => {
+    // O texto não corre por baixo do que fica por cima do fim: a largura dele
+    // vira o respiro do fim do controle (`--co-field-end` na moldura), medida
+    // ao montar e de novo a cada mudança de tamanho. O happy-dom não mede, então
+    // a largura e o observador são os deste teste.
+    const larguras = new Map<string, number>([
+      ["co-input__unit", 36],
+      ["co-search__end", 122],
+    ]);
+    const medida = vi
+      .spyOn(HTMLElement.prototype, "getBoundingClientRect")
+      .mockImplementation(function (this: HTMLElement) {
+        const largura = [...larguras].find(([nome]) => this.classList.contains(nome))?.[1] ?? 0;
+        return { width: largura, height: 0, top: 0, left: 0, right: largura, bottom: 0, x: 0, y: 0, toJSON: () => ({}) };
+      });
+    const observados: { aviso: () => void; alvos: Element[]; desligado: boolean }[] = [];
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        private readonly registro: { aviso: () => void; alvos: Element[]; desligado: boolean };
+        constructor(aviso: () => void) {
+          this.registro = { aviso, alvos: [], desligado: false };
+          observados.push(this.registro);
+        }
+        observe(alvo: Element) {
+          this.registro.alvos.push(alvo);
+        }
+        unobserve() {}
+        disconnect() {
+          this.registro.desligado = true;
+        }
+      },
+    );
+
+    try {
+      const { container, rerender } = render(
+        <>
+          <Input aria-label="Peso" unit="kg" />
+          <Input aria-label="Nome" />
+          <SearchField label="Buscar alimento" count="6 resultados" />
+        </>,
+      );
+      const [peso, nome] = Array.from(container.querySelectorAll<HTMLElement>(".co-input"));
+      const busca = container.querySelector<HTMLElement>(".co-search");
+      const fim = (moldura: HTMLElement | null | undefined) =>
+        moldura?.style.getPropertyValue("--co-field-end");
+
+      expect(fim(peso), "a unidade medida ao montar").toBe("36px");
+      expect(fim(busca), "a contagem medida ao montar").toBe("122px");
+      expect(fim(nome), "sem unidade, sem medida").toBe("");
+      expect(observados.flatMap((o) => o.alvos.map((alvo) => alvo.className))).toEqual([
+        "co-input__unit",
+        "co-search__end",
+      ]);
+
+      // A contagem cresce ("12 resultados"), e o respiro cresce junto.
+      larguras.set("co-search__end", 130);
+      observados[1]?.aviso();
+      expect(fim(busca)).toBe("130px");
+
+      // Sem largura (fora da tela, ou só a tecla, que sai com o foco), a medida
+      // sai, e o controle volta ao respiro da moldura.
+      larguras.set("co-input__unit", 0);
+      observados[0]?.aviso();
+      expect(fim(peso)).toBe("");
+
+      // A peça de cima sai, e leva a medida e o observador com ela.
+      rerender(
+        <>
+          <Input aria-label="Peso" />
+          <Input aria-label="Nome" />
+          <SearchField label="Buscar alimento" />
+        </>,
+      );
+      expect(fim(peso)).toBe("");
+      expect(fim(busca)).toBe("");
+      expect(container.querySelector(".co-search__end")).toBeNull();
+      expect(observados.map((o) => o.desligado)).toEqual([true, true]);
+    } finally {
+      medida.mockRestore();
+      vi.unstubAllGlobals();
+    }
   });
 });

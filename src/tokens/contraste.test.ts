@@ -186,6 +186,24 @@ describe.each(TEMAS)("contraste no tema %s", (_nome, tema) => {
         ["border", "var(--co-border-width) solid var(--co-control-border)"],
       ]);
     }
+
+    // O chip escolhido troca o contorno de controle por outra cor, sobre o
+    // acento suave, e o limite dele continua passando em 3:1 contra o que está
+    // atrás. Com a borda transparente, o limite seria o próprio acento suave —
+    // 1,19:1 no claro e 1,08:1 no escuro —, e o escolhido sumia junto com o
+    // controle.
+    const escolhido = contorno(bloco('.co-chip[data-selected="true"]'));
+    expect(escolhido.map(([propriedade]) => propriedade), "o contorno do chip escolhido").toEqual([
+      "border-color",
+    ]);
+    const token = /^var\(--co-([\w-]+)\)$/.exec(escolhido[0]?.[1] ?? "")?.[1];
+    expect(token, `o chip escolhido pinta a borda com um token (${escolhido[0]?.[1]})`).toBeDefined();
+    for (const nomeFundo of ["canvas", "surface", "surface-raised"] as const) {
+      const razao = contraste(valor(tema[token ?? ""]), valor(tema[nomeFundo]));
+      expect(razao, `o chip escolhido (${token}) sobre ${nomeFundo} deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(
+        PISO_DESENHO,
+      );
+    }
   });
 
   it("text-subtle é o piso, e icon-muted fica abaixo dele", () => {
