@@ -787,6 +787,14 @@ div.co-sheet-overlay {
   align-items: center;
 }
 
+/*
+ * A linha de baixo (`description`) é o último item do corpo, e é a do
+ * `NavList`, na mesma regra (`.co-nav-list__description,
+ * .co-list-row__description`, mais abaixo): uma linha, e o que passa vira
+ * reticências. Ser item do corpo em coluna é o que faz dela um bloco, que o
+ * `text-overflow` exige; o `min-width: 0` daqui é o que a deixa encolher em
+ * vez de empurrar o `trailing` para fora da linha.
+ */
 .co-list-row__body {
   flex-grow: 1;
   display: flex;
@@ -2446,8 +2454,10 @@ fieldset.co-nav-list {
 }
 
 /* A linha de baixo é uma linha: o que passa vira reticências, e a lista não
- * muda de altura porque uma seção guardou um valor comprido. */
-.co-nav-list__description {
+ * muda de altura porque uma seção guardou um valor comprido. A da `ListRow`
+ * (`description`) é a mesma linha, e mora na mesma regra para não divergir. */
+.co-nav-list__description,
+.co-list-row__description {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

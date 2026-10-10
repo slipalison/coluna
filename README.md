@@ -209,7 +209,11 @@ Alguns que merecem nota:
   grupo que ninguém atravessa.
 - **`ListRow`** vira `<button>` quando recebe `onClick`, e `<div>` quando não
   recebe. Nunca um `<div>` com `onClick`: não pega foco, não responde a Enter,
-  não aparece como acionável para o leitor de tela.
+  não aparece como acionável para o leitor de tela. A `description` é a linha
+  de baixo — o resumo da refeição sob o nome —, numa linha só, como a do
+  `NavList`: o que passa vira reticências, e a linha não muda de altura. O
+  texto inteiro continua no DOM e no nome do botão
+  ([ADR-015](docs/adr/015-a-linha-de-baixo-da-lista.md)).
 - **`Stack`** é como **todo** grupo de irmãos deve ser espaçado. Espaço feito de
   `margin` no filho some quando alguém reordena, remove ou duplica um item;
   `gap` é do contêiner e sobrevive. Com `scroll`, é uma fileira que não quebra
@@ -405,7 +409,7 @@ arquivos (`dist/fonts/OFL-*.txt`). Origem, versão e o que ficou de fora
 ```bash
 npm install       # o `prepare` já gera os tokens
 npm run tokens    # tokens/*.json -> src/tokens/{tokens.css,gerado.ts}
-npm test          # 247 testes, piso de 80% em linha, ramo, função e comando
+npm test          # 266 testes, piso de 80% em linha, ramo, função e comando
 npm run build     # dist/coluna.js + dist/index.d.ts + os dois CSS + dist/fonts/
 npm run referencia # docs/referencia.html, pintada pelo CSS que o pacote publica
 ```
@@ -434,3 +438,4 @@ a esteira reprova o que estiver fora.
 - [ADR-012 — a faixa sob o relógio e o respiro da barra](docs/adr/012-faixa-sob-o-relogio-e-respiro-da-barra.md)
 - [ADR-013 — a barra de ação](docs/adr/013-barra-de-acao.md)
 - [ADR-014 — as fontes moram no pacote](docs/adr/014-as-fontes-moram-no-pacote.md)
+- [ADR-015 — a linha de baixo da `ListRow`](docs/adr/015-a-linha-de-baixo-da-lista.md)

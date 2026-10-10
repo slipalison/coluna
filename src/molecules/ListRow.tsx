@@ -1,9 +1,25 @@
 import type { ReactNode } from "react";
 import { Icon } from "../atoms/Icon";
+import { Text } from "../atoms/Text";
 
 export interface ListRowProps {
   /** Conteúdo principal: nome, horário, o que a linha é. */
   children: ReactNode;
+  /**
+   * A linha de baixo, sob o `children`: o resumo da refeição ("Arroz, tipo 1,
+   * cozido · Feijão, carioca, cozido · …"), o que um item guarda. Uma linha
+   * só, como a descrição do `NavList` — o que não cabe vira reticências, e a
+   * linha não muda de altura porque o texto é comprido.
+   *
+   * As reticências são desenho: o texto inteiro fica no DOM, e com `onClick`
+   * ele entra no nome do botão, depois do `leading` e do `children` ("12:40
+   * Almoço Arroz, tipo 1, cozido · …"). Aqui a linha difere do `NavList`, que
+   * tira a descrição do nome (ADR-015): quem enxerga lê a linha inteira no
+   * botão, e o nome tem de conter o que se lê (WCAG 2.5.3).
+   *
+   * Sem ela, a árvore é a de antes, nó por nó.
+   */
+  description?: ReactNode;
   /** O que abre a linha: um ponto de macro, um horário, uma quantidade. */
   leading?: ReactNode;
   /** O que aparece à direita: valor, unidade, estado. */
@@ -34,6 +50,19 @@ export interface ListRowProps {
 }
 
 /**
+ * A linha de baixo, na tipografia da descrição do `NavList`. Sem texto, nada:
+ * nenhum nó a mais no corpo.
+ */
+function LinhaDeBaixo({ children }: Readonly<{ children: ReactNode }>) {
+  if (children === undefined) return null;
+  return (
+    <Text as="span" className="co-list-row__description" variant="caption" tone="subtle">
+      {children}
+    </Text>
+  );
+}
+
+/**
  * A linha repetida do sistema: refeição no diário, alimento na busca, fórmula
  * na calculadora.
  *
@@ -49,6 +78,7 @@ export interface ListRowProps {
  */
 export function ListRow({
   children,
+  description,
   leading,
   trailing,
   mark = false,
@@ -75,7 +105,10 @@ export function ListRow({
         </span>
       )}
       {leading === undefined ? null : <span className="co-list-row__leading">{leading}</span>}
-      <span className="co-list-row__body">{children}</span>
+      <span className="co-list-row__body">
+        {children}
+        <LinhaDeBaixo>{description}</LinhaDeBaixo>
+      </span>
       {trailing === undefined ? null : <span className="co-list-row__trailing">{trailing}</span>}
       {expanded === undefined ? null : (
         <span className="co-list-row__chevron">
