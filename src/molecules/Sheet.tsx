@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import { Icon } from "../atoms/Icon";
 import { Text } from "../atoms/Text";
 
@@ -26,8 +26,34 @@ export interface SheetProps {
   position?: "fixed" | "absolute";
   /** A faixa de ações no rodapé do painel. */
   footer?: ReactNode;
+  /**
+   * Onde o foco pousa ao abrir. Sem isso, pousa no próprio painel, e o leitor
+   * de tela lê o título.
+   *
+   * - `"first-field"`: o primeiro campo do corpo (`input`, `select` ou
+   *   `textarea` ligado) — a folha que existe para buscar ou digitar, em que a
+   *   pessoa abre e já escreve.
+   * - um `ref`: o elemento dele, para o alvo que não é campo.
+   *
+   * Sem alvo na hora de abrir (o `ref` vazio, o corpo sem campo), o foco fica
+   * no painel.
+   *
+   * É a ÚNICA forma de focar algo dentro da folha ao abrir. Quem foca sozinho
+   * (`autoFocus`, um `ref` que chama `focus()`, um efeito do filho) roda antes
+   * do efeito da folha, que então grava o próprio campo como quem abriu — e o
+   * foco cai no começo da página ao fechar. Aqui a folha grava quem abriu
+   * PRIMEIRO, e só então move o foco.
+   */
+  initialFocus?: RefObject<HTMLElement | null> | "first-field" | undefined;
   className?: string | undefined;
 }
+
+/** Os campos que `initialFocus="first-field"` procura no corpo, na ordem do documento. */
+const CAMPOS = [
+  'input:not([disabled]):not([type="hidden"])',
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+].join(", ");
 
 const FOCALIZAVEIS = [
   "a[href]",
@@ -48,13 +74,15 @@ const FOCALIZAVEIS = [
  * — e a que diverge é sempre a que menos gente testa.
  *
  * Em `overlay` ele é um diálogo de verdade: `aria-modal`, foco que entra ao
- * abrir, Tab que dá a volta dentro do painel, Esc que fecha e foco que VOLTA
- * para quem abriu. Esse último é o que mais falta por aí: sem ele, fechar o
+ * abrir (no painel, ou no `initialFocus`), Tab que dá a volta dentro do painel,
+ * Esc que fecha e foco que VOLTA para quem abriu. Esse último é o que mais falta por aí: sem ele, fechar o
  * painel joga o teclado no começo da página, e quem navega sem mouse perde o
  * lugar que levou vinte teclas para alcançar.
  *
- * Em `inline` nada disso acontece, e também é de propósito: prender o foco num
- * painel que a pessoa vê ao lado do resto da tela é prender sem motivo.
+ * Em `inline` não há `aria-modal`, véu nem Tab que dá a volta, e também é de
+ * propósito: prender o foco num painel que a pessoa vê ao lado do resto da tela
+ * é prender sem motivo. O foco entra e volta do mesmo jeito — quem abriu o
+ * painel pelo teclado continua de onde estava ao fechá-lo.
  *
  * Em `overlay`, a folha passa os primeiros 400ms sem receber PONTEIRO (o
  * teclado, não) — o painel, o que está nele e o véu: o segundo toque de um
@@ -72,19 +100,31 @@ export function Sheet({
   mode = "overlay",
   position = "fixed",
   footer,
+  initialFocus,
   className,
 }: SheetProps) {
   const painel = useRef<HTMLDivElement>(null);
+  const corpo = useRef<HTMLDivElement>(null);
   const quemAbriu = useRef<HTMLElement | null>(null);
   const idTitulo = useId();
   const sobreposto = mode === "overlay";
 
+  // Só `open` dispara: o alvo é lido na hora de abrir. Reabrir o efeito
+  // porque o `initialFocus` mudou de identidade devolveria o foco a quem abriu
+  // no meio da folha aberta.
   useEffect(() => {
     if (!open) return;
 
+    // A ordem é o contrato: grava quem abriu ANTES de mover o foco. Ao
+    // contrário, quem abriu passa a ser o próprio alvo, que some ao fechar.
     const anterior = document.activeElement;
     quemAbriu.current = anterior instanceof HTMLElement ? anterior : null;
-    painel.current?.focus();
+
+    const alvo =
+      initialFocus === "first-field"
+        ? corpo.current?.querySelector<HTMLElement>(CAMPOS)
+        : initialFocus?.current;
+    (alvo ?? painel.current)?.focus();
 
     return () => {
       quemAbriu.current?.focus();
@@ -138,7 +178,9 @@ export function Sheet({
         </button>
       </div>
 
-      <div className="co-sheet__body">{children}</div>
+      <div ref={corpo} className="co-sheet__body">
+        {children}
+      </div>
 
       {footer ? <div className="co-sheet__footer">{footer}</div> : null}
     </div>

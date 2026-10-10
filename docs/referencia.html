@@ -193,6 +193,7 @@
   --co-overlay-line: var(--co-fio-claro);
   --co-border: var(--co-stone-400);
   --co-border-strong: var(--co-stone-500);
+  --co-control-border: var(--co-stone-600);
   --co-line: var(--co-stone-200);
   --co-track: var(--co-stone-300);
   --co-text: var(--co-stone-900);
@@ -228,6 +229,7 @@
     --co-overlay-line: var(--co-fio-escuro);
     --co-border: var(--co-basalt-600);
     --co-border-strong: var(--co-basalt-500);
+    --co-control-border: var(--co-basalt-400);
     --co-line: var(--co-basalt-800);
     --co-track: var(--co-basalt-700);
     --co-text: var(--co-basalt-050);
@@ -263,6 +265,7 @@
   --co-overlay-line: var(--co-fio-escuro);
   --co-border: var(--co-basalt-600);
   --co-border-strong: var(--co-basalt-500);
+  --co-control-border: var(--co-basalt-400);
   --co-line: var(--co-basalt-800);
   --co-track: var(--co-basalt-700);
   --co-text: var(--co-basalt-050);
@@ -1021,6 +1024,10 @@ div.co-sheet-overlay {
  * Ela NÃO desenha a própria separação — quem separa é o grupo. Uma linha que
  * carrega `border-bottom` sobra com um fio solto na última posição e obriga
  * todo consumidor a apagá-lo com `:last-child`.
+ *
+ * A linha tocável é um `<button>`, e o do navegador traz 13,33px: só a família
+ * herdada deixava a refeição com letra menor que a do vizinho. O tamanho vem
+ * de quem a contém, e não o atalho `font`, que levaria peso e entrelinha junto.
  */
 .co-list-row {
   display: flex;
@@ -1034,6 +1041,7 @@ div.co-sheet-overlay {
   border-radius: var(--co-radius-content);
   color: inherit;
   font-family: inherit;
+  font-size: inherit;
   text-align: left;
 }
 
@@ -1103,7 +1111,7 @@ div.co-sheet-overlay {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: var(--co-border-width) solid var(--co-border-strong);
+  border: var(--co-border-width) solid var(--co-control-border);
   border-radius: var(--co-radius-content);
   color: var(--co-accent-contrast);
 }
@@ -1179,7 +1187,7 @@ div.co-sheet-overlay {
   background: var(--co-accent);
   color: var(--co-accent-contrast);
 }
-.co-button[data-variant="primary"]:hover:not(:disabled) { background: var(--co-accent-hover); }
+.co-button[data-variant="primary"]:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--co-accent-hover); }
 
 /* Sem borda: a separação vem do fundo, que é o degrau que este sistema usa em
  * todo lugar. Contorno num botão dentro de um cartão desenha duas caixas onde
@@ -1189,7 +1197,7 @@ div.co-sheet-overlay {
   color: var(--co-text-body);
   font-weight: var(--co-weight-medium);
 }
-.co-button[data-variant="secondary"]:hover:not(:disabled) { background: var(--co-surface-raised); }
+.co-button[data-variant="secondary"]:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--co-surface-raised); }
 
 /* A ação inline de uma lista: "Adicionar a esta refeição", "Nova refeição".
  * Sem caixa nenhuma, porque ela pertence ao grupo e não flutua sobre ele. */
@@ -1199,10 +1207,10 @@ div.co-sheet-overlay {
   font-weight: var(--co-weight-regular);
   padding: 0;
 }
-.co-button[data-variant="ghost"]:hover:not(:disabled) { color: var(--co-accent-hover); }
+.co-button[data-variant="ghost"]:hover:not(:disabled):not([aria-disabled="true"]) { color: var(--co-accent-hover); }
 
 .co-button[data-variant="ghost"][data-tone="neutral"] { color: var(--co-text-secondary); }
-.co-button[data-variant="ghost"][data-tone="neutral"]:hover:not(:disabled) { color: var(--co-text); }
+.co-button[data-variant="ghost"][data-tone="neutral"]:hover:not(:disabled):not([aria-disabled="true"]) { color: var(--co-text); }
 
 /* `danger` existe por uma razão concreta: apagar a conta apaga os dados de
  * verdade. A cor sobe o custo de errar o alvo; ela não substitui a confirmação. */
@@ -1211,11 +1219,16 @@ div.co-sheet-overlay {
   border-color: var(--co-danger);
   color: var(--co-danger);
 }
-.co-button[data-variant="danger"]:hover:not(:disabled) {
+.co-button[data-variant="danger"]:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--co-danger-soft);
 }
 
-.co-button:disabled {
+/* `aria-disabled` é o desligado que guarda o foco (o motivo fica ao lado e o
+ * leitor de tela chega nele); `disabled` tira o botão do Tab. Os dois se
+ * veem iguais, e nenhum clareia no hover: um controle que reage ao mouse
+ * parece ligado, por mais apagado que esteja. */
+.co-button:disabled,
+.co-button[aria-disabled="true"] {
   opacity: 0.45;
   cursor: not-allowed;
 }
@@ -1254,7 +1267,7 @@ div.co-sheet-overlay {
   height: 52px;
 }
 
-.co-icon-button:hover:not(:disabled) {
+.co-icon-button:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--co-surface-raised);
   color: var(--co-text-body);
 }
@@ -1264,24 +1277,25 @@ div.co-sheet-overlay {
   color: var(--co-text-muted);
 }
 
-.co-icon-button[data-variant="ghost"]:hover:not(:disabled) {
+.co-icon-button[data-variant="ghost"]:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--co-surface);
 }
 
 .co-icon-button[data-tone="accent"],
-.co-icon-button[data-tone="accent"]:hover:not(:disabled) {
+.co-icon-button[data-tone="accent"]:hover:not(:disabled):not([aria-disabled="true"]) {
   color: var(--co-accent);
 }
 
 /* Ligado muda de cor E de fundo: o ícone é traço, não tem como encher, e a
  * cor sozinha não é sinal (ADR-005). */
 .co-icon-button[aria-pressed="true"],
-.co-icon-button[aria-pressed="true"]:hover:not(:disabled) {
+.co-icon-button[aria-pressed="true"]:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--co-accent-soft);
   color: var(--co-accent);
 }
 
-.co-icon-button:disabled {
+.co-icon-button:disabled,
+.co-icon-button[aria-disabled="true"] {
   opacity: 0.45;
   cursor: not-allowed;
 }
@@ -1472,11 +1486,16 @@ div.co-sheet-overlay {
  * solta: raio interno = raio externo − folga, senão o canto da opção corre
  * paralelo ao canto do trilho com espessura variável e o olho vê a diferença
  * sem saber nomear.
+ *
+ * O trilho tem contorno de controle: o fundo `surface` sobre `canvas` mede
+ * 1,14:1 no claro e 1,10:1 no escuro, e sem o contorno as opções não
+ * escolhidas viram texto solto, sem cara de opção (WCAG 1.4.11).
  */
 .co-segmented {
   display: inline-flex;
   gap: var(--co-space-2);
   padding: var(--co-space-2);
+  border: var(--co-border-width) solid var(--co-control-border);
   background: var(--co-surface);
   border-radius: var(--co-radius-control);
 }
@@ -1682,11 +1701,14 @@ div.co-sheet-overlay {
 
 /* ------------------------------------------------------------- incremento --- */
 
+/* O contorno de controle pelo mesmo motivo do segmentado: o fundo sozinho não
+ * se separa do lugar, e os botões de menos e de mais ficam soltos na página. */
 .co-stepper {
   display: inline-flex;
   align-items: center;
   gap: var(--co-space-2);
   padding: var(--co-space-2);
+  border: var(--co-border-width) solid var(--co-control-border);
   background: var(--co-surface);
   border-radius: var(--co-radius-control);
 }
@@ -1704,10 +1726,11 @@ div.co-sheet-overlay {
   cursor: pointer;
 }
 
-.co-stepper__button:hover:not(:disabled) { background: var(--co-surface-raised); }
+.co-stepper__button:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--co-surface-raised); }
 
-.co-stepper__button:disabled {
-  opacity: 0.4;
+.co-stepper__button:disabled,
+.co-stepper__button[aria-disabled="true"] {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -1830,10 +1853,12 @@ div.co-sheet-overlay {
   flex-shrink: 0;
 }
 
+/* As ações também assentam na base: a busca traz o nome escrito em cima da
+ * moldura, e é a moldura — e não o rótulo — que fica na linha do botão. */
 .co-page-header__actions {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-end;
   gap: var(--co-space-10);
 }
@@ -1926,6 +1951,18 @@ div.co-sheet-overlay {
  * no controle deixaria a unidade (`kg`) do lado de fora do foco, como se ela
  * pertencesse a outro campo.
  *
+ * A moldura inteira é o alvo do toque porque o CONTROLE a ocupa inteira: a
+ * moldura não tem respiro próprio, o respiro dos lados é o do controle, e a
+ * unidade fica por cima do respiro do fim, na mesma célula, sem receber o
+ * toque. Qualquer ponto da moldura é o controle para o navegador, sem script
+ * nenhum, e o teclado é o de sempre (ADR-016). A moldura tem os 44px de alvo
+ * nos dois eixos — o `min-width` segura o campo apertado numa coluna estreita,
+ * onde só a altura não bastaria.
+ *
+ * O respiro do fim mede o que a unidade ocupa: `--co-field-end` é a largura da
+ * unidade, escrita na moldura pelo componente (`reservarFim`), e sem ela vale o
+ * respiro de 14px.
+ *
  * (A moldura é `.co-input` e o controle é `.co-input__control`. O nome do
  * elemento HTML não aparece escrito aqui de propósito: esta folha inteira é
  * embutida na referência visual, e um analisador que leia a página encontra a
@@ -1933,12 +1970,13 @@ div.co-sheet-overlay {
  * existe.)
  */
 .co-input {
-  display: inline-flex;
+  display: inline-grid;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: var(--co-space-8);
+  min-width: var(--co-target-min);
   min-height: var(--co-target-min);
-  padding: 0 var(--co-space-14);
-  border: var(--co-border-width) solid var(--co-border);
+  padding: 0;
+  border: var(--co-border-width) solid var(--co-control-border);
   border-radius: var(--co-radius-control);
   background: var(--co-surface);
   color: var(--co-text);
@@ -1946,7 +1984,7 @@ div.co-sheet-overlay {
 }
 
 .co-input[data-full="true"] {
-  display: flex;
+  display: grid;
   width: 100%;
 }
 
@@ -1960,11 +1998,19 @@ div.co-sheet-overlay {
   border-color: var(--co-danger);
 }
 
+/*
+ * O controle ocupa a célula inteira e passa por baixo da borda da moldura (a
+ * margem negativa da largura dela): o traço que a pessoa vê também é campo. O
+ * respiro soma a borda para o texto ficar onde sempre ficou, a 14px dela.
+ */
 .co-input__control {
-  flex: 1 1 auto;
+  grid-area: 1 / 1;
+  place-self: stretch;
   min-width: 0;
-  width: 100%;
-  padding: var(--co-space-10) 0;
+  width: auto;
+  margin: calc(-1 * var(--co-border-width));
+  padding: var(--co-space-10) calc(var(--co-field-end, var(--co-space-14)) + var(--co-border-width))
+    var(--co-space-10) calc(var(--co-space-14) + var(--co-border-width));
   border: 0;
   background: transparent;
   color: inherit;
@@ -1988,10 +2034,17 @@ div.co-sheet-overlay {
   font-variant-numeric: tabular-nums;
 }
 
+/* Por cima do respiro do fim, e transparente ao toque: o dedo na unidade cai
+ * no controle embaixo dela. O espaço dela já conta o vão até o texto e o
+ * respiro até a borda, porque é a largura dela que o controle reserva. */
 .co-input__unit {
-  flex-shrink: 0;
+  grid-area: 1 / 1;
+  justify-self: end;
+  padding: 0 var(--co-space-14) 0 var(--co-space-8);
   color: var(--co-text-muted);
   font-size: var(--co-text-13);
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .co-field {
@@ -2059,43 +2112,73 @@ div.co-sheet-overlay {
 
 /* ----------------------------------------------------------------- busca ---- */
 
-/*
- * A moldura da busca é a do campo — fundo de superfície, raio de controle, o
- * anel de foco em volta de TUDO —, sem o contorno: a busca mora no alto da
- * página ou da coluna, sobre o fundo do lugar, e ali o degrau de fundo já
- * separa. O contorno fica para o campo de formulário, que precisa dizer "aqui
- * se escreve" no meio de outras linhas.
- */
-.co-search {
+/* O nome escrito em cima da moldura, com o mesmo respiro do rótulo do `Field`:
+ * todo campo tem rótulo visível, a busca também (ADR-016). */
+.co-search-field {
   display: inline-flex;
-  align-items: center;
-  gap: var(--co-space-10);
-  min-height: var(--co-target-min);
-  padding: 0 var(--co-space-14);
-  border-radius: var(--co-radius-control);
-  background: var(--co-surface);
-  color: var(--co-text);
+  flex-direction: column;
+  gap: var(--co-space-6);
 }
 
-.co-search[data-size="lg"] {
-  min-height: 52px;
-  padding: 0 var(--co-space-16);
-  gap: var(--co-space-12);
-}
-
-.co-search[data-full="true"] {
+.co-search-field[data-full="true"] {
   display: flex;
   width: 100%;
 }
 
+/*
+ * A moldura da busca é a do campo — fundo de superfície, raio de controle, o
+ * contorno de controle e o anel de foco em volta de TUDO. Ela já foi sem
+ * contorno, confiando no degrau de fundo, e o degrau não separa: `surface`
+ * sobre `canvas` mede 1,14:1 no claro e 1,10:1 no escuro, e dentro de uma
+ * folha de mesma superfície a busca some inteira (WCAG 1.4.11).
+ *
+ * E o toque é o do campo: o controle ocupa a moldura inteira, as duas
+ * células; a lupa, a contagem e a tecla ficam por cima do respiro dele sem
+ * receber o toque, e o ×, que é outro controle, fica por cima dele na segunda
+ * célula. O controle passa por baixo do × também, e não só até ele: o canto
+ * arredondado do botão não recebe o toque, e o ponto ali cairia na moldura.
+ */
+.co-search {
+  display: inline-grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: var(--co-target-min);
+  min-height: var(--co-target-min);
+  padding: 0;
+  border: var(--co-border-width) solid var(--co-control-border);
+  border-radius: var(--co-radius-control);
+  background: var(--co-surface);
+  color: var(--co-text);
+  transition: border-color var(--co-duration-fast) var(--co-ease);
+}
+
+.co-search[data-size="lg"] {
+  min-height: 52px;
+}
+
+.co-search[data-full="true"] {
+  display: grid;
+  width: 100%;
+}
+
 .co-search:focus-within {
+  border-color: var(--co-accent);
   outline: 2px solid var(--co-accent);
   outline-offset: 2px;
 }
 
+/* A lupa, por cima do respiro do começo: o respiro do controle deste lado é o
+ * da moldura, mais a lupa (17px, e 20px no `lg`), mais o vão até o texto. */
 .co-search__icon {
-  flex-shrink: 0;
+  grid-area: 1 / 1;
+  justify-self: start;
+  margin-left: var(--co-space-14);
   color: var(--co-icon-muted);
+  pointer-events: none;
+}
+
+.co-search[data-size="lg"] .co-search__icon {
+  margin-left: var(--co-space-16);
 }
 
 /* Com o foco dentro, a lupa acende: é o sinal de que o que se digita agora vai
@@ -2104,11 +2187,20 @@ div.co-sheet-overlay {
   color: var(--co-accent);
 }
 
+/*
+ * O respiro do fim mede o que a contagem e a tecla ocupam (`--co-field-end`,
+ * escrito pelo componente), e sem elas vale o da moldura. Com o ×, o respiro do
+ * fim é o vão até ele mais os 44px dele: o botão tem o alvo inteiro, como o de
+ * remover do chip, e a moldura não cresce por isso.
+ */
 .co-search__control {
-  flex: 1 1 auto;
+  grid-area: 1 / 1 / 2 / 3;
+  place-self: stretch;
   min-width: 0;
-  width: 100%;
-  padding: var(--co-space-10) 0;
+  width: auto;
+  margin: calc(-1 * var(--co-border-width));
+  padding: var(--co-space-10) calc(var(--co-field-end, var(--co-space-14)) + var(--co-border-width))
+    var(--co-space-10) calc(var(--co-space-14) + 17px + var(--co-space-10) + var(--co-border-width));
   border: 0;
   background: transparent;
   color: inherit;
@@ -2117,6 +2209,19 @@ div.co-sheet-overlay {
   line-height: var(--co-leading-snug);
   -webkit-appearance: none;
   appearance: none;
+}
+
+.co-search[data-size="lg"] .co-search__control {
+  padding-right: calc(var(--co-field-end, var(--co-space-16)) + var(--co-border-width));
+  padding-left: calc(var(--co-space-16) + 20px + var(--co-space-12) + var(--co-border-width));
+}
+
+.co-search[data-clearable="true"] .co-search__control {
+  padding-right: calc(var(--co-field-end, var(--co-space-10)) + var(--co-target-min) + var(--co-border-width));
+}
+
+.co-search[data-size="lg"][data-clearable="true"] .co-search__control {
+  padding-right: calc(var(--co-field-end, var(--co-space-12)) + var(--co-target-min) + var(--co-border-width));
 }
 
 .co-search__control:focus-visible {
@@ -2133,8 +2238,48 @@ div.co-sheet-overlay {
   -webkit-appearance: none;
 }
 
+/* O × que o navegador desenha some: é pequeno para o dedo, não tem nome e muda
+ * de cara de um navegador para outro. O da coluna é `.co-search__clear`. */
+.co-search__control::-webkit-search-cancel-button {
+  display: none;
+  -webkit-appearance: none;
+}
+
+/*
+ * A contagem e a tecla, por cima do respiro do fim e transparentes ao toque. O
+ * espaço delas já conta o vão até o texto e o respiro até a borda (ou o vão até
+ * o ×), porque é a largura delas que o controle reserva.
+ */
+.co-search__end {
+  display: flex;
+  grid-area: 1 / 1;
+  align-items: center;
+  justify-self: end;
+  gap: var(--co-space-10);
+  padding: 0 var(--co-space-14) 0 var(--co-space-10);
+  pointer-events: none;
+}
+
+.co-search[data-size="lg"] .co-search__end {
+  gap: var(--co-space-12);
+  padding: 0 var(--co-space-16) 0 var(--co-space-12);
+}
+
+.co-search[data-clearable="true"] .co-search__end {
+  padding-right: var(--co-space-10);
+}
+
+.co-search[data-size="lg"][data-clearable="true"] .co-search__end {
+  padding-right: var(--co-space-12);
+}
+
+/* Com o foco dentro e sem contagem, sobra só a tecla, que sai de cena: o fim
+ * inteiro sai junto, e o controle volta ao respiro da moldura. */
+.co-search:focus-within .co-search__end:not(:has(.co-search__count)) {
+  display: none;
+}
+
 .co-search__count {
-  flex-shrink: 0;
   color: var(--co-text-subtle);
   font-size: var(--co-text-12);
   font-variant-numeric: tabular-nums;
@@ -2144,7 +2289,6 @@ div.co-sheet-overlay {
 /* A tecla desenhada: um degrau abaixo do campo, reta porque é conteúdo. Sai de
  * cena com o foco dentro — ela ensina o caminho até aqui, e aqui já se está. */
 .co-search__key {
-  flex-shrink: 0;
   min-width: 20px;
   padding: var(--co-space-2) var(--co-space-6);
   border-radius: var(--co-radius-content);
@@ -2160,6 +2304,37 @@ div.co-sheet-overlay {
   display: none;
 }
 
+/*
+ * O × de limpar: 44px de alvo, que entram 1px na borda em cima e embaixo para
+ * a moldura seguir com os seus 44px. O anel dele fica DENTRO do botão — o da
+ * moldura já contorna tudo, e um segundo anel por fora dela se cruzaria com o
+ * primeiro.
+ */
+.co-search__clear {
+  display: flex;
+  grid-area: 1 / 2;
+  align-items: center;
+  justify-content: center;
+  width: var(--co-target-min);
+  height: var(--co-target-min);
+  margin: calc(-1 * var(--co-border-width)) 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--co-radius-control);
+  background: transparent;
+  color: var(--co-icon-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.co-search__clear:hover {
+  color: var(--co-text-body);
+}
+
+.co-search__clear:focus-visible {
+  outline-offset: -4px;
+}
+
 /* ------------------------------------------------------------------- chip --- */
 
 .co-chip {
@@ -2168,7 +2343,7 @@ div.co-sheet-overlay {
   gap: var(--co-space-6);
   min-height: var(--co-target-min);
   padding: 0 var(--co-space-14);
-  border: var(--co-border-width) solid var(--co-border);
+  border: var(--co-border-width) solid var(--co-control-border);
   border-radius: var(--co-radius-pill);
   background: transparent;
   color: var(--co-text-body);
@@ -2181,8 +2356,15 @@ button.co-chip {
   cursor: pointer;
 }
 
+/*
+ * O escolhido troca o contorno de controle pelo acento, sobre o acento suave.
+ * A borda é o limite dele: o acento suave sozinho mede 1,19:1 no claro e 1,08:1
+ * no escuro contra o que está atrás, e com a borda transparente o chip
+ * escolhido virava uma mancha sem contorno — o controle e o estado sumiam
+ * juntos (WCAG 1.4.11).
+ */
 .co-chip[data-selected="true"] {
-  border-color: transparent;
+  border-color: var(--co-accent);
   background: var(--co-accent-soft);
   color: var(--co-text);
   font-weight: var(--co-weight-semibold);
@@ -2485,7 +2667,7 @@ button.co-chip {
   align-items: center;
   justify-content: space-between;
   gap: var(--co-space-12);
-  padding: var(--co-space-14) var(--co-space-8) var(--co-space-10) var(--co-inset-text);
+  padding: var(--co-space-14) var(--co-space-8) var(--co-space-6) var(--co-inset-text);
 }
 
 .co-sheet__close {
@@ -2506,9 +2688,15 @@ button.co-chip {
   color: var(--co-text-body);
 }
 
+/*
+ * O corpo rola, e o que rola recorta na borda de dentro do respiro: o anel de
+ * foco de um campo encostado no topo (2px de largura + 2px de afastamento)
+ * sumia de cima. Os 4px de cima são do anel; o cabeçalho cede os mesmos 4px do
+ * respiro dele, e o conteúdo começa no lugar de sempre.
+ */
 .co-sheet__body {
   overflow-y: auto;
-  padding: 0 var(--co-inset-text) var(--co-space-16);
+  padding: var(--co-space-4) var(--co-inset-text) var(--co-space-16);
 }
 
 .co-sheet__footer {
@@ -2971,7 +3159,7 @@ pre code { background: none; border: 0; padding: 0; }
   <header class="topo">
     <div class="marca">
       <span class="marca__nome">Coluna</span>
-      <span class="co-badge" data-tone="accent">v1.9.0</span>
+      <span class="co-badge" data-tone="accent">v1.10.0</span>
     </div>
     <div class="co-segmented" role="radiogroup" aria-label="Tema" id="tema">
       <button type="button" role="radio" class="co-segmented__option" aria-checked="false" data-tema="light">Claro</button>
@@ -3500,7 +3688,10 @@ import "@slipalison/coluna/styles.css";</code></pre>
   // ---------------------------------------------------------------- cores --
   var GRUPOS = [
     ["Superfície", ["canvas", "surface", "surface-raised", "surface-sunken", "overlay"]],
-    ["Traço", ["border", "border-strong", "line", "track", "overlay-line"]],
+    // "control-border" e o limite do que se toca (campo, busca, chip, marca,
+    // segmentado, stepper), a 3:1 sobre o fundo; "border" e "border-strong"
+    // ficam para o que nao se toca (superficie, selo).
+    ["Traço", ["border", "border-strong", "control-border", "line", "track", "overlay-line"]],
     // Cinco degraus de texto, e "icon-muted" no fim: ele e o unico que NAO
     // serve para texto, porque passa em 3:1 e nao em 4,5:1.
     ["Texto", ["text", "text-body", "text-secondary", "text-muted", "text-subtle", "icon-muted"]],

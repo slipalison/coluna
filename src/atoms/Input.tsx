@@ -21,6 +21,45 @@ export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
   full?: boolean;
 }
 
+/** O que `reservarFim` devolve quando não mediu nada: não há o que desfazer. */
+const semLimpeza = () => undefined;
+
+/**
+ * A largura do que fica por cima do fim do controle — a unidade do `Input`, a
+ * contagem e a tecla da `SearchField` —, escrita na moldura como
+ * `--co-field-end`, que é o respiro do fim do controle na folha.
+ *
+ * O controle ocupa a moldura inteira, para o toque em qualquer ponto dela ser
+ * o toque no campo, sem tratador de clique nenhum: o navegador entrega o toque
+ * ao controle porque é ele que está ali (ADR-016). O que fica por cima dele não
+ * recebe o toque (`pointer-events: none`), mas o texto não pode correr por
+ * baixo — e a largura de "kg", de "6 resultados" ou de "Buscando…" a folha não
+ * sabe de antemão. Esta função só mede: o toque e o teclado não passam por ela.
+ *
+ * É a `ref` do elemento do fim. Mede ao montar, de novo a cada vez que ele muda
+ * de tamanho (o texto da contagem, a fonte que chega, a tecla que sai de cena),
+ * e devolve a limpeza que o React 19 chama quando ele sai. Sem largura, a
+ * propriedade sai, e o controle volta ao respiro da moldura.
+ */
+export function reservarFim(fim: HTMLElement | null): () => void {
+  const moldura = fim?.parentElement;
+  if (!fim || !moldura) return semLimpeza;
+
+  const medir = () => {
+    const largura = fim.getBoundingClientRect().width;
+    if (largura > 0) moldura.style.setProperty("--co-field-end", `${largura}px`);
+    else moldura.style.removeProperty("--co-field-end");
+  };
+
+  medir();
+  const observador = new ResizeObserver(medir);
+  observador.observe(fim);
+  return () => {
+    observador.disconnect();
+    moldura.style.removeProperty("--co-field-end");
+  };
+}
+
 /**
  * O campo de entrada. Só o controle — rótulo, dica e erro são do `Field`.
  *
@@ -29,6 +68,12 @@ export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
  * teclado numérico no celular, autopreenchimento, `Enter` que envia o
  * formulário e seleção por duplo toque vêm todos de graça, e nenhum deles volta
  * depois de ter sido jogado fora.
+ *
+ * A moldura inteira é o alvo, e não só o texto: o controle a ocupa inteira — os
+ * 14px de respiro dos lados são dele —, e a unidade fica por cima do respiro do
+ * fim sem receber o toque. O toque em qualquer ponto cai no controle pelo
+ * navegador, e a moldura mede pelo menos 44 × 44px mesmo quando quem usa a
+ * aperta numa coluna estreita.
  *
  * A unidade é desenho E é lida: ela ganha um id próprio e entra no
  * `aria-describedby` do campo. Sem isso, quem usa leitor de tela ouve "peso" e
@@ -66,7 +111,7 @@ export function Input({
         {...atributos}
       />
       {unit ? (
-        <span className="co-input__unit" id={idUnidade}>
+        <span className="co-input__unit" id={idUnidade} ref={reservarFim}>
           {unit}
         </span>
       ) : null}

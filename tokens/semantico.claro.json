@@ -32,6 +32,10 @@
       "$type": "color",
       "$value": "{stone-500}"
     },
+    "control-border": {
+      "$type": "color",
+      "$value": "{stone-600}"
+    },
     "line": {
       "$type": "color",
       "$value": "{stone-200}"
