@@ -59,7 +59,6 @@ existe bloqueia só o cartão dono dela, que apaga a linha ao ser entregue.
 
 | Defeito | Cartão (`slipalison/basalto`) |
 |---|---|
-| `--co-border` com 2,09:1 no claro e 1,47:1 no escuro em campo e chip; marca do radio com 1,92:1 no escuro; `SearchField` sem limite dentro de folha, lupa que não foca, anel cortado; `aria-disabled` sem aparência; `ListRow` em 13,33 px; os 14 px laterais da moldura do campo que não focam | #58 |
 | Escala de texto com sete degraus de 1 px entre 10 e 16 px e corpo de 15 px; escala de espaço com 13 degraus de 2 px até 40; `--co-macro-protein` igual a `--co-accent` e `--co-macro-carb` igual a `--co-status`; rótulo de campo com a cara do rótulo de seção | #59 |
 | Sem ação no fim da `ListRow`; `Stepper` que não aceita digitação nem repete ao segurar | #60 |
 | Sem aviso temporário com "Desfazer" | #61 |

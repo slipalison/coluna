@@ -12,6 +12,7 @@ import {
   partes,
   soEstesMexemNoPadding,
   ultimoComposto,
+  type Regra,
   type Valores,
 } from "../test/folha";
 import tokensCss from "../tokens/tokens.css?raw";
@@ -389,6 +390,106 @@ describe("IconButton", () => {
     expect(botao).toHaveAttribute("data-size", "lg");
     expect(botao).toHaveAttribute("data-variant", "ghost");
     expect(botao).toHaveAttribute("data-tone", "accent");
+  });
+});
+
+// ---------------------------------------- desligado com cara de desligado --
+
+const ARIA_DESLIGADO = '[aria-disabled="true"]';
+const opacidadeDe = (regra: Regra) => regra.declaracoes.find(([p]) => p === "opacity")?.[1];
+
+/** Cada `X:disabled` que apaga o controle, como `[X, opacidade]`. */
+const desligadosQueApagam = (regras: readonly Regra[]) =>
+  regras
+    .filter((r) => r.profundidade === 0)
+    .flatMap((r) => {
+      const opacidade = opacidadeDe(r);
+      return opacidade === undefined
+        ? []
+        : r.seletores
+            .filter((s) => s.endsWith(":disabled"))
+            .map((s) => [s.slice(0, -":disabled".length), opacidade] as const);
+    });
+
+/**
+ * O que faria um controle com `aria-disabled` parecer ligado: o `X:disabled`
+ * que apaga sem o `X[aria-disabled="true"]` com a mesma opacidade, e a regra
+ * de hover que poupa o `:disabled` e não poupa o `aria-disabled` — ele não é
+ * `:disabled`, e clarearia no mouse.
+ */
+function faltasDoDesligado(regras: readonly Regra[]): string[] {
+  const semPar = desligadosQueApagam(regras)
+    .filter(
+      ([base, opacidade]) =>
+        !regras.some(
+          (r) =>
+            r.profundidade === 0 &&
+            r.seletores.includes(`${base}${ARIA_DESLIGADO}`) &&
+            opacidadeDe(r) === opacidade,
+        ),
+    )
+    .map(([base, opacidade]) => `${base}${ARIA_DESLIGADO} sem opacity: ${opacidade}`);
+  const hoverQueAcende = regras.flatMap((r) =>
+    r.seletores
+      .filter((s) => s.includes(":hover") && s.includes(":not(:disabled)"))
+      .filter((s) => !s.includes(`:not(${ARIA_DESLIGADO})`))
+      .map((s) => `${s} acende no aria-disabled`),
+  );
+  return [...semPar, ...hoverQueAcende];
+}
+
+describe("desligado com cara de desligado", () => {
+  it("aria-disabled mantem o foco e nao ganha hover", async () => {
+    // `aria-disabled` é o desligado que deixa o motivo ao alcance do teclado:
+    // o controle fica no Tab. O `disabled` sai dele.
+    const usuario = userEvent.setup();
+    render(
+      <>
+        <Button aria-disabled="true">Guardar meta</Button>
+        <Button disabled>Registrar</Button>
+        <IconButton icon="plus" label="Nova receita" aria-disabled="true" />
+      </>,
+    );
+    await usuario.tab();
+    expect(screen.getByRole("button", { name: "Guardar meta" })).toHaveFocus();
+    await usuario.tab();
+    expect(screen.getByRole("button", { name: "Nova receita" })).toHaveFocus();
+
+    // Pela folha: os três que apagam no `:disabled` apagam igual no
+    // `aria-disabled`, e nenhuma regra de hover acende um deles. A lista dos
+    // três é o que impede a prova de passar sem ter medido nada.
+    expect(desligadosQueApagam(REGRAS)).toEqual([
+      [".co-button", "0.45"],
+      [".co-icon-button", "0.45"],
+      [".co-stepper__button", "0.45"],
+    ]);
+    const hovers = REGRAS.flatMap((r) => r.seletores).filter((s) => s.includes(":not(:disabled)"));
+    expect(hovers.length).toBeGreaterThan(0);
+    expect(faltasDoDesligado(REGRAS), "o que deixa o aria-disabled com cara de ligado").toEqual([]);
+  });
+
+  it("a isca: o icon-button sem o par e um hover sem a exclusão reprovam", () => {
+    const hover = '.co-icon-button:hover:not(:disabled):not([aria-disabled="true"])';
+    const isca = REGRAS.map((r) => ({
+      ...r,
+      seletores: r.seletores
+        .filter((s) => s !== `.co-icon-button${ARIA_DESLIGADO}`)
+        .map((s) => (s === hover ? ".co-icon-button:hover:not(:disabled)" : s)),
+    }));
+    expect(faltasDoDesligado(isca)).toEqual([
+      `.co-icon-button${ARIA_DESLIGADO} sem opacity: 0.45`,
+      ".co-icon-button:hover:not(:disabled) acende no aria-disabled",
+    ]);
+  });
+});
+
+describe("a ListRow herda a letra", () => {
+  it("o tamanho vem de quem a contém, e não dos 13,33px do botão do navegador", () => {
+    const letra = bloco(".co-list-row").filter(([p]) => p.startsWith("font"));
+    expect(letra).toEqual([
+      ["font-family", "inherit"],
+      ["font-size", "inherit"],
+    ]);
   });
 });
 

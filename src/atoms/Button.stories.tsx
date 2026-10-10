@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useId } from "react";
 import { Button } from "./Button";
 import { Stack } from "./Stack";
 import { Text } from "./Text";
@@ -73,6 +74,45 @@ export const Desabilitado: Story = {
       </Button>
     </Stack>
   ),
+};
+
+function Desligados() {
+  const motivo = useId();
+  return (
+    <Stack gap={12} style={{ maxWidth: "48ch" }}>
+      <Stack gap={12} direction="row" wrap align="center">
+        <Button disabled>Registrar</Button>
+        <Button aria-disabled="true" aria-describedby={motivo}>
+          Guardar meta
+        </Button>
+        <Button variant="secondary" aria-disabled="true" aria-describedby={motivo}>
+          Usar no cardápio
+        </Button>
+      </Stack>
+      <Text id={motivo} variant="footnote" tone="muted">
+        Nada para guardar: a meta é a mesma da última vez.
+      </Text>
+    </Stack>
+  );
+}
+
+/**
+ * Dois jeitos de desligar, a mesma cara. `disabled` tira o botão do Tab;
+ * `aria-disabled` o deixa no Tab, para quem usa o teclado ou o leitor de tela
+ * chegar nele e ouvir o motivo, que fica ao lado e se liga por
+ * `aria-describedby`. Nenhum dos dois clareia no hover. Com `aria-disabled` o
+ * navegador não barra o clique: quem usa ignora o toque. No claro e no escuro.
+ */
+export const DesligadoClaro: Story = {
+  name: "Desligado, com o motivo ao lado — claro",
+  globals: { tema: "light" },
+  render: () => <Desligados />,
+};
+
+export const DesligadoEscuro: Story = {
+  name: "Desligado, com o motivo ao lado — escuro",
+  globals: { tema: "dark" },
+  render: () => <Desligados />,
 };
 
 /**

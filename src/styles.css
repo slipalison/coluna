@@ -758,6 +758,10 @@ div.co-sheet-overlay {
  * Ela NÃO desenha a própria separação — quem separa é o grupo. Uma linha que
  * carrega `border-bottom` sobra com um fio solto na última posição e obriga
  * todo consumidor a apagá-lo com `:last-child`.
+ *
+ * A linha tocável é um `<button>`, e o do navegador traz 13,33px: só a família
+ * herdada deixava a refeição com letra menor que a do vizinho. O tamanho vem
+ * de quem a contém, e não o atalho `font`, que levaria peso e entrelinha junto.
  */
 .co-list-row {
   display: flex;
@@ -771,6 +775,7 @@ div.co-sheet-overlay {
   border-radius: var(--co-radius-content);
   color: inherit;
   font-family: inherit;
+  font-size: inherit;
   text-align: left;
 }
 
@@ -916,7 +921,7 @@ div.co-sheet-overlay {
   background: var(--co-accent);
   color: var(--co-accent-contrast);
 }
-.co-button[data-variant="primary"]:hover:not(:disabled) { background: var(--co-accent-hover); }
+.co-button[data-variant="primary"]:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--co-accent-hover); }
 
 /* Sem borda: a separação vem do fundo, que é o degrau que este sistema usa em
  * todo lugar. Contorno num botão dentro de um cartão desenha duas caixas onde
@@ -926,7 +931,7 @@ div.co-sheet-overlay {
   color: var(--co-text-body);
   font-weight: var(--co-weight-medium);
 }
-.co-button[data-variant="secondary"]:hover:not(:disabled) { background: var(--co-surface-raised); }
+.co-button[data-variant="secondary"]:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--co-surface-raised); }
 
 /* A ação inline de uma lista: "Adicionar a esta refeição", "Nova refeição".
  * Sem caixa nenhuma, porque ela pertence ao grupo e não flutua sobre ele. */
@@ -936,10 +941,10 @@ div.co-sheet-overlay {
   font-weight: var(--co-weight-regular);
   padding: 0;
 }
-.co-button[data-variant="ghost"]:hover:not(:disabled) { color: var(--co-accent-hover); }
+.co-button[data-variant="ghost"]:hover:not(:disabled):not([aria-disabled="true"]) { color: var(--co-accent-hover); }
 
 .co-button[data-variant="ghost"][data-tone="neutral"] { color: var(--co-text-secondary); }
-.co-button[data-variant="ghost"][data-tone="neutral"]:hover:not(:disabled) { color: var(--co-text); }
+.co-button[data-variant="ghost"][data-tone="neutral"]:hover:not(:disabled):not([aria-disabled="true"]) { color: var(--co-text); }
 
 /* `danger` existe por uma razão concreta: apagar a conta apaga os dados de
  * verdade. A cor sobe o custo de errar o alvo; ela não substitui a confirmação. */
@@ -948,11 +953,16 @@ div.co-sheet-overlay {
   border-color: var(--co-danger);
   color: var(--co-danger);
 }
-.co-button[data-variant="danger"]:hover:not(:disabled) {
+.co-button[data-variant="danger"]:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--co-danger-soft);
 }
 
-.co-button:disabled {
+/* `aria-disabled` é o desligado que guarda o foco (o motivo fica ao lado e o
+ * leitor de tela chega nele); `disabled` tira o botão do Tab. Os dois se
+ * veem iguais, e nenhum clareia no hover: um controle que reage ao mouse
+ * parece ligado, por mais apagado que esteja. */
+.co-button:disabled,
+.co-button[aria-disabled="true"] {
   opacity: 0.45;
   cursor: not-allowed;
 }
@@ -991,7 +1001,7 @@ div.co-sheet-overlay {
   height: 52px;
 }
 
-.co-icon-button:hover:not(:disabled) {
+.co-icon-button:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--co-surface-raised);
   color: var(--co-text-body);
 }
@@ -1001,24 +1011,25 @@ div.co-sheet-overlay {
   color: var(--co-text-muted);
 }
 
-.co-icon-button[data-variant="ghost"]:hover:not(:disabled) {
+.co-icon-button[data-variant="ghost"]:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--co-surface);
 }
 
 .co-icon-button[data-tone="accent"],
-.co-icon-button[data-tone="accent"]:hover:not(:disabled) {
+.co-icon-button[data-tone="accent"]:hover:not(:disabled):not([aria-disabled="true"]) {
   color: var(--co-accent);
 }
 
 /* Ligado muda de cor E de fundo: o ícone é traço, não tem como encher, e a
  * cor sozinha não é sinal (ADR-005). */
 .co-icon-button[aria-pressed="true"],
-.co-icon-button[aria-pressed="true"]:hover:not(:disabled) {
+.co-icon-button[aria-pressed="true"]:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--co-accent-soft);
   color: var(--co-accent);
 }
 
-.co-icon-button:disabled {
+.co-icon-button:disabled,
+.co-icon-button[aria-disabled="true"] {
   opacity: 0.45;
   cursor: not-allowed;
 }
@@ -1449,10 +1460,11 @@ div.co-sheet-overlay {
   cursor: pointer;
 }
 
-.co-stepper__button:hover:not(:disabled) { background: var(--co-surface-raised); }
+.co-stepper__button:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--co-surface-raised); }
 
-.co-stepper__button:disabled {
-  opacity: 0.4;
+.co-stepper__button:disabled,
+.co-stepper__button[aria-disabled="true"] {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
