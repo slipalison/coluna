@@ -32,6 +32,10 @@
       "$type": "color",
       "$value": "{basalt-500}"
     },
+    "control-border": {
+      "$type": "color",
+      "$value": "{basalt-400}"
+    },
     "line": {
       "$type": "color",
       "$value": "{basalt-800}"

@@ -670,7 +670,10 @@ import "@slipalison/coluna/styles.css";</code></pre>
   // ---------------------------------------------------------------- cores --
   var GRUPOS = [
     ["Superfície", ["canvas", "surface", "surface-raised", "surface-sunken", "overlay"]],
-    ["Traço", ["border", "border-strong", "line", "track", "overlay-line"]],
+    // "control-border" e o limite do que se toca (campo, busca, chip, marca,
+    // segmentado, stepper), a 3:1 sobre o fundo; "border" e "border-strong"
+    // ficam para o que nao se toca (superficie, selo).
+    ["Traço", ["border", "border-strong", "control-border", "line", "track", "overlay-line"]],
     // Cinco degraus de texto, e "icon-muted" no fim: ele e o unico que NAO
     // serve para texto, porque passa em 3:1 e nao em 4,5:1.
     ["Texto", ["text", "text-body", "text-secondary", "text-muted", "text-subtle", "icon-muted"]],

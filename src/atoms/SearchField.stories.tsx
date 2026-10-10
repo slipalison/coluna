@@ -12,8 +12,11 @@ import { Text } from "./Text";
  * busca" do leitor de tela pousa, e o tipo dá a tecla "buscar" no teclado do
  * telefone e o Esc que limpa no navegador.
  *
- * O nome (`label`) é obrigatório e não aparece: o `placeholder` some na
- * primeira letra e não é nome.
+ * O nome (`label`) é obrigatório e aparece escrito em cima da moldura, num
+ * rótulo amarrado ao campo: o `placeholder` some na primeira letra e não é
+ * nome. Ele sai na letra de corpo, a do rótulo do `Field` em linha, e não no
+ * versalete do título de seção. Tocar na lupa ou em qualquer ponto da moldura
+ * leva ao campo.
  */
 const meta = {
   title: "Átomos/SearchField",
@@ -104,4 +107,85 @@ export const ComAtalho: Story = {
       </Text>
     </Stack>
   ),
+};
+
+function BuscaComTexto() {
+  const [termo, setTermo] = useState("arroz");
+  return (
+    <Stack gap={16} style={{ maxWidth: "360px" }}>
+      <SearchField
+        label="Buscar alimento"
+        placeholder="arroz, feijão, banana"
+        value={termo}
+        onChange={(evento) => setTermo(evento.target.value)}
+        full
+      />
+      <Text variant="footnote" tone="muted">
+        O × só aparece com texto no campo. O toque esvazia e devolve o foco ao campo.
+      </Text>
+    </Stack>
+  );
+}
+
+/**
+ * O × de limpar é da coluna, e não o do navegador: 44px de alvo, um nome para
+ * o leitor de tela (`clearLabel`, "Limpar a busca" por padrão), e só existe
+ * com texto. O toque esvazia pelo `onChange` de quem usa e devolve o foco ao
+ * campo. No claro e no escuro, para conferir o contorno e o × nos dois temas.
+ */
+export const ComLimparClaro: Story = {
+  name: "Com o × de limpar — claro",
+  globals: { tema: "light" },
+  render: () => <BuscaComTexto />,
+};
+
+export const ComLimparEscuro: Story = {
+  name: "Com o × de limpar — escuro",
+  globals: { tema: "dark" },
+  render: () => <BuscaComTexto />,
+};
+
+function BuscaSobreALista() {
+  const [termo, setTermo] = useState("arroz");
+  const achados = TACO.filter((nome) => nome.toLowerCase().includes(termo.trim().toLowerCase()));
+  return (
+    <Stack gap={24} style={{ maxWidth: "360px" }}>
+      <SearchField
+        label="Buscar alimento"
+        placeholder="arroz, feijão, banana"
+        value={termo}
+        onChange={(evento) => setTermo(evento.target.value)}
+        full
+      />
+      <Stack as="section" gap={8} aria-labelledby="busca-sobre-a-lista">
+        <Text id="busca-sobre-a-lista" as="h2" variant="label">
+          Alimentos achados
+        </Text>
+        {achados.map((nome) => (
+          <Text key={nome} variant="callout" tone="body">
+            {nome}
+          </Text>
+        ))}
+      </Stack>
+    </Stack>
+  );
+}
+
+/**
+ * O nome da busca e o título da lista que ela filtra, um embaixo do outro: o
+ * nome em letra de corpo, de caixa normal, e o título no versalete de seção.
+ * Função diferente, cara diferente — com a mesma face, a pessoa lê os dois
+ * como títulos, e o nome do campo fica em 11px, abaixo do piso de 12px do
+ * rótulo (`ux.md` §1). No claro e no escuro.
+ */
+export const SobreAListaClaro: Story = {
+  name: "Sobre a lista — claro",
+  globals: { tema: "light" },
+  render: () => <BuscaSobreALista />,
+};
+
+export const SobreAListaEscuro: Story = {
+  name: "Sobre a lista — escuro",
+  globals: { tema: "dark" },
+  render: () => <BuscaSobreALista />,
 };
