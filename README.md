@@ -123,6 +123,15 @@ passa no desenho, some no uso, e volta como "o app é difícil de clicar no
 celular". Quem precisa de algo menor não precisa de um botão — precisa de um
 link dentro de um texto.
 
+### O piso de UX não se negocia
+
+Contraste de texto e de limite de controle, tamanho de letra, alvo de 44px e o
+comportamento de cada componente interativo têm limiar escrito em
+[`.claude/rules/ux.md`](.claude/rules/ux.md), e o limiar que depende de um
+token ou de um componente é provado aqui, com teste, nos dois temas
+([ADR-016](docs/adr/016-o-piso-de-ux-mora-no-sistema.md)). Achado do piso não
+vira aviso: o PR não entra.
+
 ### Aviso informa, nunca bloqueia
 
 O `Notice` não tem variante de erro, não tem fundo vermelho e não exige ser
@@ -439,3 +448,4 @@ a esteira reprova o que estiver fora.
 - [ADR-013 — a barra de ação](docs/adr/013-barra-de-acao.md)
 - [ADR-014 — as fontes moram no pacote](docs/adr/014-as-fontes-moram-no-pacote.md)
 - [ADR-015 — a linha de baixo da `ListRow`](docs/adr/015-a-linha-de-baixo-da-lista.md)
+- [ADR-016 — o piso de UX mora no sistema](docs/adr/016-o-piso-de-ux-mora-no-sistema.md)
