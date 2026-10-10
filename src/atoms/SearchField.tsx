@@ -5,10 +5,10 @@ import {
   useState,
   type ChangeEvent,
   type InputHTMLAttributes,
-  type MouseEvent,
   type ReactNode,
 } from "react";
 import { Icon } from "./Icon";
+import { levarAoCampo } from "./Input";
 import { Text } from "./Text";
 
 export interface SearchFieldProps
@@ -88,8 +88,9 @@ function esvaziar(campo: HTMLInputElement) {
  * demais para o dedo, não têm nome para o leitor de tela e cada um tem uma
  * cara. O desta peça tem 44px, nome (`clearLabel`) e só existe com texto.
  *
- * A moldura inteira leva ao campo: a lupa, o espaço em volta e a contagem
- * mandam o foco para o texto, sem tirá-lo de lá no meio do toque.
+ * A moldura inteira leva ao campo, pela mesma função do `Input`: a lupa, o
+ * espaço em volta e a contagem mandam o foco para o texto, sem tirá-lo de lá
+ * no meio do toque, e a moldura mede pelo menos 44 × 44px.
  *
  * O texto tem 16px nos dois tamanhos, pela mesma regra do `Input`: abaixo
  * disso o Safari do iPhone dá zoom ao focar, e a tela salta no meio da busca.
@@ -134,23 +135,6 @@ export function SearchField({
   function aoMudar(evento: ChangeEvent<HTMLInputElement>) {
     definirEscritoLivre(evento.target.value !== "");
     onChange?.(evento);
-  }
-
-  /**
-   * O toque na moldura fora do campo (a lupa, o respiro, a contagem) vai para
-   * o campo. O `preventDefault` no aperto é o que segura o foco onde está: sem
-   * ele, o campo já focado perde o foco no aperto e o recebe de volta no
-   * clique — o anel pisca e o teclado do telefone desce e sobe.
-   *
-   * O toque no próprio campo segue com o navegador (o cursor, a seleção), e o
-   * do × fica com o botão.
-   */
-  function levarAoCampo(evento: MouseEvent<HTMLDivElement>) {
-    const alvo = evento.target;
-    if (alvo === campo.current) return;
-    if (alvo instanceof Element && alvo.closest("button") !== null) return;
-    if (evento.type === "mousedown") evento.preventDefault();
-    campo.current?.focus();
   }
 
   function limpar() {

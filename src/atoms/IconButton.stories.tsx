@@ -43,11 +43,14 @@ export const Padrão: Story = {};
 /**
  * Ao lado da busca, na altura dela: a leitura do código de barras é a outra
  * porta para o mesmo registro, e por isso fica no acento — ela é uma oferta.
+ *
+ * A fileira se alinha pelo fim: a busca tem o nome escrito em cima da moldura,
+ * e o botão fica na linha da moldura, e não na do nome.
  */
 export const AoLadoDaBusca: Story = {
   name: "Ao lado da busca",
   render: () => (
-    <Stack direction="row" gap={10} style={{ maxWidth: "420px" }}>
+    <Stack direction="row" gap={10} align="end" style={{ maxWidth: "420px" }}>
       <SearchField label="Buscar alimento" placeholder="Buscar alimento" full />
       <IconButton icon="barcode" label="Ler código de barras" tone="accent" />
     </Stack>

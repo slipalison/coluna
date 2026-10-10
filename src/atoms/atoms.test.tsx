@@ -677,3 +677,97 @@ describe("SearchField dentro da folha", () => {
     expect(campo).toHaveAttribute("id", "busca-do-diario");
   });
 });
+
+/** As propriedades que dão tamanho à moldura, nos dois eixos. */
+const TAMANHO = /^(min-|max-)?(height|width|block-size|inline-size)$/;
+/** O que não é uma medida em pixel: relativo ao contêiner, ou sem limite. */
+const SEM_MEDIDA = /^(auto|none|\d+(\.\d+)?%)$/;
+
+describe("a moldura do campo", () => {
+  it("tocar em qualquer ponto da moldura foca o campo, e a area mede ao menos 44x44 px", async () => {
+    const usuario = userEvent.setup();
+    const { container } = render(
+      <>
+        <button type="button">Registrar</button>
+        <Input aria-label="Peso" unit="kg" defaultValue="83,1" />
+        <SearchField label="Buscar alimento" count="6 resultados" />
+      </>,
+    );
+    const fora = screen.getByRole("button", { name: "Registrar" });
+    const peso = screen.getByRole("textbox", { name: "Peso" });
+    const busca = screen.getByRole("searchbox", { name: "Buscar alimento" });
+    const pedaco = (seletor: string) => {
+      const achado = container.querySelector(seletor);
+      expect(achado, seletor).not.toBeNull();
+      return achado as Element;
+    };
+
+    // O alvo de cada toque é a própria moldura (o respiro de 14px dos lados,
+    // onde não há controle nenhum), a unidade e a lupa: a pessoa vê uma caixa
+    // só, e qualquer ponto dela é o campo.
+    const toques: [string, Element, HTMLElement][] = [
+      ["respiro da moldura do campo", pedaco(".co-input"), peso],
+      ["unidade do campo", pedaco(".co-input__unit"), peso],
+      ["respiro da moldura da busca", pedaco(".co-search"), busca],
+      ["lupa da busca", pedaco(".co-search__icon"), busca],
+      ["contagem da busca", pedaco(".co-search__count"), busca],
+    ];
+    for (const [onde, alvo, controle] of toques) {
+      fora.focus();
+      await usuario.click(alvo);
+      expect(document.activeElement, `toque no ${onde}`).toBe(controle);
+
+      // Com o foco já no campo, o toque não o tira de lá no aperto para
+      // devolver no clique: o anel não pisca e o teclado do telefone não desce.
+      const saiu = vi.fn();
+      controle.addEventListener("blur", saiu);
+      await usuario.click(alvo);
+      controle.removeEventListener("blur", saiu);
+      expect(saiu, `toque no ${onde} com o foco já no campo`).not.toHaveBeenCalled();
+      expect(document.activeElement, `toque no ${onde} com o foco já no campo`).toBe(controle);
+    }
+
+    // O toque no próprio controle segue com o navegador: nada intercepta o
+    // aperto, e arrastar seleciona o texto, como em qualquer campo.
+    for (const controle of [peso, busca]) {
+      expect(fireEvent.mouseDown(controle), "o aperto no controle segue").toBe(true);
+      expect(fireEvent.click(controle), "o clique no controle segue").toBe(true);
+    }
+    fora.focus();
+    await usuario.pointer([
+      { keys: "[MouseLeft>]", target: peso, offset: 0 },
+      { offset: 2 },
+      { keys: "[/MouseLeft]" },
+    ]);
+    expect(document.activeElement).toBe(peso);
+    expect([
+      (peso as HTMLInputElement).selectionStart,
+      (peso as HTMLInputElement).selectionEnd,
+    ]).toEqual([0, 2]);
+
+    // A área: a moldura tem o alvo mínimo nos dois eixos, pela folha — a
+    // altura sozinha não segura o campo apertado numa coluna estreita.
+    for (const seletor of [".co-input", ".co-search"]) {
+      const declaracoes = Object.fromEntries(bloco(seletor));
+      for (const eixo of ["min-height", "min-width"]) {
+        expect(declaracoes[eixo], `${seletor} { ${eixo} }`).toBeDefined();
+        expect(
+          avaliar(declaracoes[eixo] ?? "", TOKENS),
+          `${seletor} { ${eixo} }`,
+        ).toBeGreaterThanOrEqual(44);
+      }
+    }
+
+    // E nenhuma regra que pinta a moldura — num tamanho, num estado, dentro
+    // de outra peça — a encolhe abaixo do alvo.
+    const encolhem = REGRAS.filter((r) =>
+      r.seletores.some((s) => classe("co-input", "co-search").test(ultimoComposto(s))),
+    ).flatMap((r) =>
+      r.declaracoes
+        .filter(([p, v]) => TAMANHO.test(p) && !SEM_MEDIDA.test(v))
+        .filter(([, v]) => !(avaliar(v, TOKENS) >= 44))
+        .map(([p, v]) => `${lugar(r)} { ${p}: ${v} }`),
+    );
+    expect(encolhem, "regras que encolhem a moldura abaixo de 44px").toEqual([]);
+  });
+});

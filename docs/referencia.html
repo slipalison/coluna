@@ -1939,6 +1939,11 @@ div.co-sheet-overlay {
  * no controle deixaria a unidade (`kg`) do lado de fora do foco, como se ela
  * pertencesse a outro campo.
  *
+ * A moldura inteira é o alvo do toque, e não só o controle: o respiro dos lados
+ * e a unidade levam o foco a ele (`levarAoCampo`, no componente), e a moldura
+ * tem os 44px de alvo nos dois eixos — o `min-width` segura o campo apertado
+ * numa coluna estreita, onde só a altura não bastaria (ADR-016).
+ *
  * (A moldura é `.co-input` e o controle é `.co-input__control`. O nome do
  * elemento HTML não aparece escrito aqui de propósito: esta folha inteira é
  * embutida na referência visual, e um analisador que leia a página encontra a
@@ -1949,6 +1954,7 @@ div.co-sheet-overlay {
   display: inline-flex;
   align-items: center;
   gap: var(--co-space-8);
+  min-width: var(--co-target-min);
   min-height: var(--co-target-min);
   padding: 0 var(--co-space-14);
   border: var(--co-border-width) solid var(--co-control-border);
@@ -2096,6 +2102,7 @@ div.co-sheet-overlay {
   display: inline-flex;
   align-items: center;
   gap: var(--co-space-10);
+  min-width: var(--co-target-min);
   min-height: var(--co-target-min);
   padding: 0 var(--co-space-14);
   border: var(--co-border-width) solid var(--co-control-border);
