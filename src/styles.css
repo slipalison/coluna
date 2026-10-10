@@ -23,6 +23,71 @@
 
 @import "./tokens/tokens.css";
 
+/* ---------------------------------------------------------------- fontes -- */
+
+/*
+ * As duas famílias que os tokens nomeiam moram no pacote (ADR-014): a
+ * Instrument Serif dos títulos e dos numerais, e a Archivo de todo o resto.
+ * Sem estes blocos, `--co-font-display` e `--co-font-body` nomeiam fontes que
+ * a página não tem, e quem consome vê a Georgia e a Helvetica no lugar da cara
+ * das pranchas.
+ *
+ * A `url()` é RELATIVA à folha: o build copia `src/fonts/` para `dist/fonts/`,
+ * e o bundler de quem consome resolve o caminho a partir de `dist/styles.css` e
+ * serve o arquivo da própria origem — o único lugar que a CSP `font-src 'self'`
+ * aceita. Uma URL de fora (um CDN de fontes) seria recusada por ela, e levaria
+ * o endereço de quem abre o aplicativo a um terceiro a cada visita.
+ *
+ * `swap`: o texto aparece na hora, na fonte de reserva, e troca de desenho
+ * quando a fonte chega. Texto invisível esperando rede é pior que texto que
+ * muda de desenho.
+ *
+ * Dois subconjuntos por família, cada um com o seu `unicode-range`: o
+ * navegador só baixa o `latin-ext` quando a página tem um caractere dele.
+ */
+@font-face {
+  font-family: "Instrument Serif";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./fonts/instrument-serif-latin-ext-400-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Instrument Serif";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./fonts/instrument-serif-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Variável no eixo `wght`: UM arquivo por subconjunto serve o 400, o 500 e o
+ * 600 dos tokens, e o 700 que o navegador põe no `<strong>` — todos
+ * desenhados, nenhum sintético. */
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("./fonts/archivo-latin-ext-wght-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("./fonts/archivo-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* ------------------------------------------------------------------ base -- */
 
 .co-root {
@@ -459,9 +524,16 @@ div.co-sheet-overlay {
   line-height: var(--co-leading-normal);
 }
 
-/* A serifa dos títulos de tela. Um por tela, e ele é o nome do lugar. */
+/* A serifa dos títulos de tela. Um por tela, e ele é o nome do lugar.
+ *
+ * O peso é 400 ESCRITO, e não herdado, em toda regra que lê
+ * `--co-font-display`: a Instrument Serif só tem o 400 (ADR-014). O título
+ * sai num `<h1>`, que o navegador pinta em negrito, e sem esta linha ele pede
+ * um 700 que o arquivo não tem — e o navegador o inventa, engrossando o traço
+ * à mão. É o "negrito sintético" que as pranchas não desenham. */
 .co-text[data-variant="title-lg"] {
   font-family: var(--co-font-display);
+  font-weight: 400;
   font-size: var(--co-text-36);
   line-height: var(--co-leading-title);
   letter-spacing: var(--co-tracking-title);
@@ -472,6 +544,7 @@ div.co-sheet-overlay {
  * dígito que muda. */
 .co-text[data-variant="numeral"] {
   font-family: var(--co-font-display);
+  font-weight: 400;
   font-size: var(--co-text-68);
   line-height: var(--co-leading-numeral);
   letter-spacing: var(--co-tracking-tight);

@@ -1,14 +1,15 @@
 <title>Coluna</title>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&amp;family=Instrument+Serif&amp;display=swap">
 <style>
 /* ===================== COLUNA_CSS ===================== */
 
 /*
- * O CSS acima é o publicado no pacote, sem uma linha de diferença. O que vem
- * abaixo é só a página: o esqueleto que segura os espécimes. Ele também não
- * escreve cor literal nenhuma — se algum token quebrar, esta página quebra
- * junto, e é para isso que ela serve.
+ * O CSS acima é o publicado no pacote, com UMA diferença: a `url()` de cada
+ * fonte vira o próprio arquivo, em `data:`, lido de `dist/fonts/`. Assim a
+ * página abre de qualquer lugar sem o `dist/` ao lado, e as fontes que ela
+ * mostra são as que o pacote leva (ADR-014). O que vem abaixo é só a página:
+ * o esqueleto que segura os espécimes. Ele também não escreve cor literal
+ * nenhuma — se algum token quebrar, esta página quebra junto, e é para isso
+ * que ela serve.
  */
 
 html, body { margin: 0; }
@@ -45,14 +46,18 @@ body {
 .marca { display: flex; align-items: baseline; gap: var(--co-space-10); }
 .marca__nome {
   font-family: var(--co-font-display);
+  font-weight: 400;
   font-size: var(--co-text-36);
   line-height: 1;
   letter-spacing: var(--co-tracking-tight);
 }
 
 .capa { display: flex; flex-direction: column; gap: var(--co-space-16); padding-block: var(--co-space-32) var(--co-space-20); }
+/* Um `<h1>`, que o navegador pinta em negrito: o 400 escrito é o único peso
+ * da serifa (ADR-014), como no `title-lg`. */
 .capa__frase {
   font-family: var(--co-font-display);
+  font-weight: 400;
   font-size: clamp(26px, 4.5vw, 40px);
   line-height: 1.12;
   letter-spacing: var(--co-tracking-tight);
@@ -175,7 +180,7 @@ pre code { background: none; border: 0; padding: 0; }
 
   <section class="capa">
     <h1 class="capa__frase">Coluna basáltica é o prisma que a lava deixa ao esfriar devagar.</h1>
-    <p class="capa__texto">É de onde vêm o grid, as ripas das barras e a aresta viva do conteúdo — o contêiner arredonda porque é vitrine, o conteúdo continua reto porque é pedra. Esta página é pintada pelo <strong>CSS que o pacote publica</strong>, sem uma linha de diferença — se um token quebrar, ela quebra junto.</p>
+    <p class="capa__texto">É de onde vêm o grid, as ripas das barras e a aresta viva do conteúdo — o contêiner arredonda porque é vitrine, o conteúdo continua reto porque é pedra. Esta página é pintada pelo <strong>CSS que o pacote publica</strong>, com as fontes que vão nele — se um token quebrar, ela quebra junto.</p>
     <pre><code>npm install @slipalison/coluna
 import "@slipalison/coluna/styles.css";</code></pre>
   </section>
