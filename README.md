@@ -241,7 +241,14 @@ Alguns que merecem nota:
   justamente o número que faz a pessoa escolher a porção. Em `overlay` o foco
   entra, dá a volta no Tab, sai no Esc e **volta para quem abriu**; e ela passa
   os primeiros 400ms sem receber ponteiro, contra o toque duplo (adendo 1.8.2
-  do [ADR-013](docs/adr/013-barra-de-acao.md)).
+  do [ADR-013](docs/adr/013-barra-de-acao.md)). `initialFocus` diz onde o foco
+  pousa ao abrir: `"first-field"` (o primeiro campo do corpo — a folha de
+  buscar, em que se abre e já se escreve) ou um `ref`. É o único jeito de focar
+  dentro da folha ao abrir: a folha grava quem abriu **antes** de mover o foco,
+  e quem foca sozinho (`autoFocus`, um `ref` que chama `focus()`) roda antes
+  dela e vira "quem abriu" — o foco cai no começo da página ao fechar. O corpo
+  que rola tem 4px de respiro em cima, para o anel de foco do campo encostado
+  no topo não ser cortado.
 - **`Rail`** é a contraparte da `TabBar`, e as duas existem porque a diferença
   entre telefone e desktop não é de tamanho, é de quantidade: embaixo cabem
   quatro destinos e o resto vira gaveta; na lateral cabem os sete. Os grupos são
@@ -346,9 +353,18 @@ Alguns que merecem nota:
   botão fica `aria-disabled`, e não `disabled`, para o foco não cair no começo
   da página no último toque; e o `current` anuncia o período que chegou.
 - **`SearchField`** é `<input type="search">` num marco `search`, com a
-  contagem de resultados anunciada quando muda. O atalho (`/`) traz o foco de
-  qualquer ponto da página — menos de dentro de outro campo, onde a barra
-  continua sendo barra.
+  contagem de resultados anunciada quando muda. O `label` aparece **escrito**,
+  em cima da moldura, num `<label>` amarrado ao campo — todo campo tem rótulo
+  visível, a busca também ([ADR-016](docs/adr/016-o-piso-de-ux-mora-no-sistema.md));
+  o `placeholder` é só exemplo. A moldura tem o contorno de controle parado,
+  e não só com o foco, para não sumir dentro de uma folha da mesma superfície;
+  a lupa e o resto da moldura levam o foco ao campo. Com texto, aparece o ×
+  de limpar da coluna (44px, nome em `clearLabel`, "Limpar a busca" por
+  padrão), que esvazia pelo `onChange` de quem usa e devolve o foco ao campo;
+  o × do navegador fica escondido. O atalho (`/`) traz o foco de qualquer
+  ponto da página — menos de dentro de outro campo, onde a barra continua
+  sendo barra. O `className` continua na moldura (`.co-search`); o rótulo e a
+  moldura moram juntos em `.co-search-field`, que leva o marco e o `full`.
 - **`NavList`** é a coluna que escolhe o que a coluna do lado mostra: as
   seções dos Ajustes, a lista das receitas. Não é o `Rail`: o trilho é a
   navegação do aplicativo; esta é a de dentro de uma seção. `opens="page"`

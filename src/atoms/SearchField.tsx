@@ -1,12 +1,26 @@
-import { useEffect, useRef, type InputHTMLAttributes, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type InputHTMLAttributes,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import { Icon } from "./Icon";
+import { Text } from "./Text";
 
 export interface SearchFieldProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "size" | "type" | "aria-label"> {
   /**
-   * O nome do campo, obrigatório. Ele não aparece escrito: para quem enxerga,
-   * a lupa e o texto de exemplo já dizem o que o campo é. Para quem ouve, não
-   * dizem nada — o `placeholder` some na primeira letra e não é nome.
+   * O nome do campo, obrigatório, e ele aparece ESCRITO, em cima da moldura,
+   * num `<label>` amarrado ao campo — o mesmo rótulo do `Field`.
+   *
+   * Já foi só para o leitor de tela, confiando na lupa e no texto de exemplo
+   * para quem enxerga. Não bastam: o exemplo some na primeira letra, e a lupa
+   * diz "aqui se busca", não "busca o quê". Todo campo tem rótulo visível, a
+   * busca também (`ux.md` §2, ADR-016).
    */
   label: string;
   /**
@@ -28,6 +42,12 @@ export interface SearchFieldProps
    */
   shortcut?: string;
   /**
+   * O nome do × que esvazia o campo. Ele só aparece com texto no campo, e o
+   * toque esvazia pelo `onChange` de quem usa (o mesmo evento de quem apaga
+   * letra a letra) e devolve o foco ao campo, para a próxima busca.
+   */
+  clearLabel?: string;
+  /**
    * `md` tem 44px e serve a busca que filtra uma lista. `lg` tem 52px e é a
    * busca que É a tela — a de registrar, onde procurar é a tarefa inteira.
    */
@@ -44,13 +64,32 @@ function escrevendo(alvo: EventTarget | null): boolean {
 }
 
 /**
- * O campo de busca: a lupa, o texto, e o que a busca respondeu.
+ * Escreve no campo como a pessoa escreveria: pelo `value` do protótipo e um
+ * evento `input`. É o que faz o `onChange` de quem usa receber o campo vazio,
+ * controlado ou não — o React só ouve a mudança que chega por evento.
+ */
+function esvaziar(campo: HTMLInputElement) {
+  const valor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+  valor?.set?.call(campo, "");
+  campo.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+/**
+ * O campo de busca: o nome escrito, a lupa, o texto, o × de limpar e o que a
+ * busca respondeu.
  *
  * É um `<input type="search">` dentro de um marco `search`, e não um `Input`
  * com uma lupa desenhada do lado. As duas coisas mudam o que chega a quem não
  * enxerga: o marco é onde o atalho de "ir para a busca" do leitor de tela
  * pousa, e o tipo dá o teclado com a tecla "buscar" no telefone e o Esc que
  * limpa no navegador.
+ *
+ * O × é da coluna, e não o do navegador: o do Safari e o do Chrome são pequenos
+ * demais para o dedo, não têm nome para o leitor de tela e cada um tem uma
+ * cara. O desta peça tem 44px, nome (`clearLabel`) e só existe com texto.
+ *
+ * A moldura inteira leva ao campo: a lupa, o espaço em volta e a contagem
+ * mandam o foco para o texto, sem tirá-lo de lá no meio do toque.
  *
  * O texto tem 16px nos dois tamanhos, pela mesma regra do `Input`: abaixo
  * disso o Safari do iPhone dá zoom ao focar, e a tela salta no meio da busca.
@@ -59,12 +98,23 @@ export function SearchField({
   label,
   count,
   shortcut,
+  clearLabel = "Limpar a busca",
   size = "md",
   full = false,
   className,
+  id,
+  onChange,
   ...resto
 }: Readonly<SearchFieldProps>) {
   const campo = useRef<HTMLInputElement>(null);
+  const gerado = useId();
+  const idCampo = id ?? gerado;
+  // O que o campo tem escrito quando ninguém o controla. Controlado, quem diz
+  // é o `value` de fora.
+  const [escritoLivre, definirEscritoLivre] = useState(
+    () => String(resto.defaultValue ?? "") !== "",
+  );
+  const temTexto = resto.value === undefined ? escritoLivre : String(resto.value) !== "";
 
   useEffect(() => {
     if (!shortcut) return;
@@ -81,36 +131,93 @@ export function SearchField({
     return () => document.removeEventListener("keydown", aoTeclar);
   }, [shortcut]);
 
+  function aoMudar(evento: ChangeEvent<HTMLInputElement>) {
+    definirEscritoLivre(evento.target.value !== "");
+    onChange?.(evento);
+  }
+
+  /**
+   * O toque na moldura fora do campo (a lupa, o respiro, a contagem) vai para
+   * o campo. O `preventDefault` no aperto é o que segura o foco onde está: sem
+   * ele, o campo já focado perde o foco no aperto e o recebe de volta no
+   * clique — o anel pisca e o teclado do telefone desce e sobe.
+   *
+   * O toque no próprio campo segue com o navegador (o cursor, a seleção), e o
+   * do × fica com o botão.
+   */
+  function levarAoCampo(evento: MouseEvent<HTMLDivElement>) {
+    const alvo = evento.target;
+    if (alvo === campo.current) return;
+    if (alvo instanceof Element && alvo.closest("button") !== null) return;
+    if (evento.type === "mousedown") evento.preventDefault();
+    campo.current?.focus();
+  }
+
+  function limpar() {
+    const no = campo.current;
+    if (!no) return;
+    // O foco vai antes: o × sai da tela quando o campo esvazia, e o foco que
+    // estivesse nele cairia no começo da página.
+    no.focus();
+    esvaziar(no);
+  }
+
   const classe = className ? `co-search ${className}` : "co-search";
 
   return (
-    <div
-      className={classe}
-      role="search"
-      data-size={size === "md" ? undefined : size}
-      data-full={full ? "true" : undefined}
-    >
-      <Icon className="co-search__icon" name="search" size={size === "lg" ? 20 : 17} />
-      <input
-        ref={campo}
-        className="co-search__control"
-        type="search"
-        aria-label={label}
-        aria-keyshortcuts={shortcut}
-        {...resto}
-      />
-      {count === undefined ? null : (
-        <span className="co-search__count" aria-live="polite" aria-atomic="true">
-          {count}
-        </span>
-      )}
-      {shortcut ? (
-        // O desenho da tecla é para quem enxerga; quem usa leitor de tela
-        // recebe o mesmo atalho pelo `aria-keyshortcuts` do campo.
-        <kbd className="co-search__key" aria-hidden="true">
-          {shortcut}
-        </kbd>
-      ) : null}
+    <div className="co-search-field" role="search" data-full={full ? "true" : undefined}>
+      <label className="co-search-field__label" htmlFor={idCampo}>
+        <Text as="span" variant="label" tone="subtle">
+          {label}
+        </Text>
+      </label>
+      {/*
+        Os ouvintes de ponteiro da moldura não fazem dela um controle: o
+        caminho do teclado até o campo é o próprio campo, e quem toca na
+        moldura já tem o campo inteiro a um toque.
+      */}
+      <div
+        className={classe}
+        data-size={size === "md" ? undefined : size}
+        data-full={full ? "true" : undefined}
+        data-clearable={temTexto ? "true" : undefined}
+        onMouseDown={levarAoCampo}
+        onClick={levarAoCampo}
+      >
+        <Icon className="co-search__icon" name="search" size={size === "lg" ? 20 : 17} />
+        <input
+          ref={campo}
+          id={idCampo}
+          className="co-search__control"
+          type="search"
+          aria-keyshortcuts={shortcut}
+          onChange={aoMudar}
+          {...resto}
+        />
+        {count === undefined ? null : (
+          <span className="co-search__count" aria-live="polite" aria-atomic="true">
+            {count}
+          </span>
+        )}
+        {shortcut ? (
+          // O desenho da tecla é para quem enxerga; quem usa leitor de tela
+          // recebe o mesmo atalho pelo `aria-keyshortcuts` do campo.
+          <kbd className="co-search__key" aria-hidden="true">
+            {shortcut}
+          </kbd>
+        ) : null}
+        {temTexto ? (
+          <button
+            type="button"
+            className="co-search__clear"
+            aria-label={clearLabel}
+            title={clearLabel}
+            onClick={limpar}
+          >
+            <Icon name="close" size={16} />
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

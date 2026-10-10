@@ -1575,10 +1575,12 @@ div.co-sheet-overlay {
   flex-shrink: 0;
 }
 
+/* As ações também assentam na base: a busca traz o nome escrito em cima da
+ * moldura, e é a moldura — e não o rótulo — que fica na linha do botão. */
 .co-page-header__actions {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-end;
   gap: var(--co-space-10);
 }
@@ -1804,6 +1806,19 @@ div.co-sheet-overlay {
 
 /* ----------------------------------------------------------------- busca ---- */
 
+/* O nome escrito em cima da moldura, com o mesmo respiro do rótulo do `Field`:
+ * todo campo tem rótulo visível, a busca também (ADR-016). */
+.co-search-field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--co-space-6);
+}
+
+.co-search-field[data-full="true"] {
+  display: flex;
+  width: 100%;
+}
+
 /*
  * A moldura da busca é a do campo — fundo de superfície, raio de controle, o
  * contorno de controle e o anel de foco em volta de TUDO. Ela já foi sem
@@ -1833,6 +1848,12 @@ div.co-sheet-overlay {
 .co-search[data-full="true"] {
   display: flex;
   width: 100%;
+}
+
+/* Com o ×, a moldura cede o respiro da direita a ele: o botão tem os 44px
+ * inteiros, como o de remover do chip, e a moldura não cresce por isso. */
+.co-search[data-clearable="true"] {
+  padding-right: 0;
 }
 
 .co-search:focus-within {
@@ -1881,6 +1902,13 @@ div.co-sheet-overlay {
   -webkit-appearance: none;
 }
 
+/* O × que o navegador desenha some: é pequeno para o dedo, não tem nome e muda
+ * de cara de um navegador para outro. O da coluna é `.co-search__clear`. */
+.co-search__control::-webkit-search-cancel-button {
+  display: none;
+  -webkit-appearance: none;
+}
+
 .co-search__count {
   flex-shrink: 0;
   color: var(--co-text-subtle);
@@ -1906,6 +1934,37 @@ div.co-sheet-overlay {
 
 .co-search:focus-within .co-search__key {
   display: none;
+}
+
+/*
+ * O × de limpar: 44px de alvo, que entram 1px na borda em cima e embaixo para
+ * a moldura seguir com os seus 44px. O anel dele fica DENTRO do botão — o da
+ * moldura já contorna tudo, e um segundo anel por fora dela se cruzaria com o
+ * primeiro.
+ */
+.co-search__clear {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--co-target-min);
+  height: var(--co-target-min);
+  margin: calc(-1 * var(--co-border-width)) 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--co-radius-control);
+  background: transparent;
+  color: var(--co-icon-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.co-search__clear:hover {
+  color: var(--co-text-body);
+}
+
+.co-search__clear:focus-visible {
+  outline-offset: -4px;
 }
 
 /* ------------------------------------------------------------------- chip --- */
@@ -2233,7 +2292,7 @@ button.co-chip {
   align-items: center;
   justify-content: space-between;
   gap: var(--co-space-12);
-  padding: var(--co-space-14) var(--co-space-8) var(--co-space-10) var(--co-inset-text);
+  padding: var(--co-space-14) var(--co-space-8) var(--co-space-6) var(--co-inset-text);
 }
 
 .co-sheet__close {
@@ -2254,9 +2313,15 @@ button.co-chip {
   color: var(--co-text-body);
 }
 
+/*
+ * O corpo rola, e o que rola recorta na borda de dentro do respiro: o anel de
+ * foco de um campo encostado no topo (2px de largura + 2px de afastamento)
+ * sumia de cima. Os 4px de cima são do anel; o cabeçalho cede os mesmos 4px do
+ * respiro dele, e o conteúdo começa no lugar de sempre.
+ */
 .co-sheet__body {
   overflow-y: auto;
-  padding: 0 var(--co-inset-text) var(--co-space-16);
+  padding: var(--co-space-4) var(--co-inset-text) var(--co-space-16);
 }
 
 .co-sheet__footer {

@@ -1,8 +1,20 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { createRef } from "react";
+import { createRef, useState } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { avaliar, bloco, paddingQueVale } from "../test/folha";
+import {
+  REGRAS,
+  avaliar,
+  bloco,
+  classe,
+  lugar,
+  paddingQueVale,
+  partes,
+  soEstesMexemNoPadding,
+  ultimoComposto,
+  type Valores,
+} from "../test/folha";
+import tokensCss from "../tokens/tokens.css?raw";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
 import { Chip } from "./Chip";
@@ -461,5 +473,207 @@ describe("SearchField", () => {
     expect(container.querySelector("kbd")).toBeNull();
     expect(container.querySelector(".co-search")).toHaveAttribute("data-size", "lg");
     expect(container.querySelector(".co-search")).toHaveAttribute("data-full", "true");
+  });
+});
+
+/**
+ * Os tokens pelo nome, lidos do CSS gerado, para a conta da folha — a folha não
+ * está carregada neste arquivo. Vale a primeira declaração de cada nome, a do
+ * `:root`: espaço, borda e alvo são iguais nos dois temas.
+ */
+const TOKENS: Valores = Object.fromEntries(
+  [...tokensCss.matchAll(/(--co-[\w-]+)\s*:\s*([^;]+);/g)]
+    .reverse()
+    .map((achado) => [achado[1] ?? "", (achado[2] ?? "").trim()]),
+);
+
+/**
+ * A regra pode pintar a moldura da busca: o último composto tem a classe dela,
+ * ou não tem classe da coluna e casa um `div` (`*`, `div`, `[role="search"]`).
+ */
+function alcancaMoldura(seletor: string): boolean {
+  const ultimo = ultimoComposto(seletor);
+  if (classe("co-search").test(ultimo)) return true;
+  if (/\.co-[\w-]/.test(ultimo)) return false;
+  const tipo = /^[a-z][\w-]*/i.exec(ultimo)?.[0];
+  return tipo === undefined || tipo === "div";
+}
+
+const BORDA = /^border(-(top|right|bottom|left|block|inline)(-(start|end))?)?(-(width|style|color))?$/;
+const APAGA = /^(0|0px|none|hidden|transparent)$/;
+
+/** Quanto o anel de `seletor` passa da caixa do controle: largura + afastamento (0 se é interno). */
+function extensaoDoAnel(seletor: string): number {
+  const declaracoes = Object.fromEntries(bloco(seletor));
+  const larguras = partes(declaracoes["outline"] ?? "").flatMap((parte) => {
+    try {
+      return [avaliar(parte, TOKENS)];
+    } catch {
+      return [];
+    }
+  });
+  expect(larguras, `largura do anel em ${seletor}`).toHaveLength(1);
+  const afastamento = avaliar(declaracoes["outline-offset"] ?? "", TOKENS);
+  return Math.max(0, (larguras[0] ?? 0) + afastamento);
+}
+
+describe("SearchField dentro da folha", () => {
+  it("a moldura do campo de busca continua visivel dentro da folha", () => {
+    // Dentro de uma folha da mesma superfície, o degrau de fundo não separa
+    // nada (1,14:1): o que diz "aqui se escreve" é o contorno, e ele tem de
+    // existir PARADO — não só com o foco dentro, que é quando a pessoa já
+    // achou o campo.
+    const contorno = bloco(".co-search").filter(([p]) => BORDA.test(p));
+    expect(contorno).toEqual([["border", "var(--co-border-width) solid var(--co-control-border)"]]);
+    expect(avaliar("var(--co-border-width)", TOKENS)).toBeGreaterThan(0);
+    expect(TOKENS["--co-control-border"], "o token de limite existe no CSS gerado").toMatch(/\S/);
+
+    // Nenhuma regra que alcança a moldura — a da folha inclusive
+    // (`.co-sheet .co-search`, `.co-sheet__body > *`) — a zera, apaga ou deixa
+    // transparente.
+    const apagam = REGRAS.filter((r) => r.seletores.some(alcancaMoldura)).flatMap((r) =>
+      r.declaracoes
+        .filter(([p, v]) => BORDA.test(p) && partes(v).some((parte) => APAGA.test(parte)))
+        .map(([p, v]) => `${lugar(r)} { ${p}: ${v} }`),
+    );
+    expect(apagam, "regras que apagam o contorno da busca").toEqual([]);
+
+    // E nenhuma regra da folha troca a cor ou a largura do contorno por baixo
+    // (um `--co-control-border: transparent` dentro de `.co-sheet`).
+    const redeclaram = REGRAS.flatMap((r) =>
+      r.declaracoes
+        .filter(([p]) => p === "--co-control-border" || p === "--co-border-width")
+        .map(([p]) => `${lugar(r)} ${p}`),
+    );
+    expect(redeclaram, "tokens de contorno redeclarados na folha").toEqual([]);
+  });
+
+  it("a lupa leva o foco ao campo", async () => {
+    const usuario = userEvent.setup();
+    const { container } = render(
+      <>
+        <button type="button">Registrar</button>
+        <SearchField label="Buscar alimento" />
+      </>,
+    );
+    const campo = screen.getByRole("searchbox", { name: "Buscar alimento" });
+    const lupa = container.querySelector(".co-search__icon");
+    expect(lupa).not.toBeNull();
+
+    screen.getByRole("button", { name: "Registrar" }).focus();
+    await usuario.click(lupa as Element);
+    expect(document.activeElement).toBe(campo);
+
+    // Com o foco já no campo, o toque na lupa não o tira de lá no aperto para
+    // devolver no clique: o anel não pisca e o teclado do telefone não desce.
+    const saiu = vi.fn();
+    campo.addEventListener("blur", saiu);
+    await usuario.click(lupa as Element);
+    expect(saiu).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(campo);
+
+    // O toque no próprio campo segue com o navegador: o cursor e a seleção.
+    expect(fireEvent.mouseDown(campo)).toBe(true);
+  });
+
+  it("o corpo que rola nao corta o anel de foco da busca", () => {
+    // O corpo da folha rola, e o que rola recorta na borda de dentro do
+    // respiro: o anel que passa da moldura tem de caber no respiro, dos quatro
+    // lados — o campo encostado no topo do corpo é o caso de toda folha que
+    // abre numa busca.
+    soEstesMexemNoPadding(classe("co-sheet__body"), [".co-sheet__body"]);
+    const respiro = paddingQueVale(bloco(".co-sheet__body"), TOKENS);
+    for (const seletor of [".co-search:focus-within", ".co-input:focus-within"]) {
+      const anel = extensaoDoAnel(seletor);
+      for (const [lado, px] of Object.entries(respiro)) {
+        expect(px, `${seletor}: ${anel}px de anel no lado ${lado}`).toBeGreaterThanOrEqual(anel);
+      }
+    }
+  });
+
+  it("o x de limpar e da coluna, com nome acessivel", async () => {
+    const usuario = userEvent.setup();
+    const recebidos: string[] = [];
+    function Busca() {
+      const [termo, definir] = useState("");
+      return (
+        <SearchField
+          label="Buscar alimento"
+          value={termo}
+          onChange={(evento) => {
+            recebidos.push(evento.target.value);
+            definir(evento.target.value);
+          }}
+        />
+      );
+    }
+    const { container } = render(<Busca />);
+    const campo = screen.getByRole("searchbox", { name: "Buscar alimento" });
+
+    // Sem texto, nada para limpar: nenhum botão.
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(container.querySelector(".co-search__clear")).toBeNull();
+
+    await usuario.type(campo, "arroz");
+    const limpar = screen.getByRole("button", { name: "Limpar a busca" });
+    expect(limpar.tagName).toBe("BUTTON");
+    expect(limpar).toHaveClass("co-search__clear");
+    expect(limpar).toHaveAttribute("type", "button");
+
+    // O toque esvazia pelo `onChange` de quem usa e devolve o foco ao campo.
+    await usuario.click(limpar);
+    expect(recebidos.at(-1)).toBe("");
+    expect(campo).toHaveValue("");
+    expect(document.activeElement).toBe(campo);
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+
+    // Pelo teclado também: Tab até o ×, Enter, e o foco volta ao campo — e não
+    // ao começo da página, com o botão que sumiu.
+    await usuario.type(campo, "feijão");
+    await usuario.tab();
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Limpar a busca" }));
+    await usuario.keyboard("{Enter}");
+    expect(campo).toHaveValue("");
+    expect(document.activeElement).toBe(campo);
+
+    // O × do navegador não aparece ao lado do da coluna.
+    expect(bloco(".co-search__control::-webkit-search-cancel-button")).toContainEqual([
+      "display",
+      "none",
+    ]);
+  });
+
+  it("o x de limpar aceita outro nome e serve o campo sem controle", async () => {
+    const usuario = userEvent.setup();
+    render(
+      <SearchField label="Buscar receita" defaultValue="bolo" clearLabel="Limpar a receita" />,
+    );
+    const campo = screen.getByRole("searchbox", { name: "Buscar receita" });
+    await usuario.click(screen.getByRole("button", { name: "Limpar a receita" }));
+    expect(campo).toHaveValue("");
+    expect(document.activeElement).toBe(campo);
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("o nome da busca aparece escrito e e o rotulo do campo", () => {
+    render(<SearchField label="Buscar alimento" placeholder="arroz, feijão, banana" />);
+    const campo = screen.getByRole("searchbox", { name: "Buscar alimento" });
+    // O nome vem do rótulo escrito, e não de um atributo que só quem ouve lê.
+    expect(campo).not.toHaveAttribute("aria-label");
+    expect(campo).not.toHaveAttribute("aria-labelledby");
+
+    const nome = screen.getByText("Buscar alimento");
+    const rotulo = nome.closest("label");
+    expect(rotulo).not.toBeNull();
+    expect(rotulo).toHaveAttribute("for", campo.id);
+    expect(nome.closest(".co-visually-hidden")).toBeNull();
+    expect(screen.getByLabelText("Buscar alimento")).toBe(campo);
+    expect(screen.getByRole("search")).toContainElement(rotulo);
+  });
+
+  it("um id vindo de fora é o do campo, e o rótulo aponta para ele", () => {
+    render(<SearchField label="Buscar alimento" id="busca-do-diario" />);
+    const campo = screen.getByRole("searchbox", { name: "Buscar alimento" });
+    expect(campo).toHaveAttribute("id", "busca-do-diario");
   });
 });

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { Button } from "../atoms/Button";
+import { SearchField } from "../atoms/SearchField";
 import { Stack } from "../atoms/Stack";
 import { Text } from "../atoms/Text";
 import { Group } from "./Group";
@@ -161,4 +162,81 @@ export const DentroDoCartão: Story = {
       </Stack>
     );
   },
+};
+
+const ALIMENTOS = [
+  { nome: "Arroz, branco, cozido", kcal: "128 kcal" },
+  { nome: "Arroz, integral, cozido", kcal: "124 kcal" },
+  { nome: "Arroz, carreteiro", kcal: "154 kcal" },
+];
+
+function FolhaComBusca() {
+  const [aberto, definir] = useState(true);
+  const [termo, definirTermo] = useState("arroz");
+  const achados = ALIMENTOS.filter((a) => a.nome.toLowerCase().includes(termo.trim().toLowerCase()));
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: "390px",
+        height: "560px",
+        overflow: "hidden",
+        borderRadius: "var(--co-radius-container)",
+        background: "var(--co-canvas)",
+      }}
+    >
+      <Stack gap={12} style={{ padding: "20px" }}>
+        <Text variant="title-lg">Almoço</Text>
+        <Button onClick={() => definir(true)}>Registrar alimento</Button>
+      </Stack>
+
+      <Sheet
+        open={aberto}
+        onClose={() => definir(false)}
+        title="Registrar alimento"
+        position="absolute"
+        initialFocus="first-field"
+      >
+        <Stack gap={16}>
+          <SearchField
+            label="Buscar alimento"
+            placeholder="arroz, feijão, banana"
+            value={termo}
+            onChange={(evento) => definirTermo(evento.target.value)}
+            count={achados.length === 1 ? "1 resultado" : `${achados.length} resultados`}
+            full
+          />
+          <Group inset="text" label="Resultados">
+            {achados.map((a) => (
+              <ListRow key={a.nome} trailing={a.kcal} onClick={() => definir(false)}>
+                {a.nome}
+              </ListRow>
+            ))}
+          </Group>
+        </Stack>
+      </Sheet>
+    </div>
+  );
+}
+
+/**
+ * A busca dentro da folha, que é onde ela mais some: o fundo da folha é o
+ * mesmo da moldura, e quem diz "aqui se escreve" é o contorno. O foco entra
+ * direto no campo (`initialFocus="first-field"`), o anel aparece inteiro no
+ * topo do corpo que rola, e o × de limpar é o da coluna.
+ *
+ * A folha grava quem abriu ANTES de mover o foco: ao fechar, o foco volta ao
+ * botão que a abriu, e não ao campo que sumiu com ela.
+ */
+export const ComBuscaClaro: Story = {
+  name: "Com busca — claro",
+  globals: { tema: "light" },
+  render: () => <FolhaComBusca />,
+};
+
+export const ComBuscaEscuro: Story = {
+  name: "Com busca — escuro",
+  globals: { tema: "dark" },
+  render: () => <FolhaComBusca />,
 };

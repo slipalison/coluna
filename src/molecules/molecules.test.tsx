@@ -1,9 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { Button } from "../atoms/Button";
 import { Input } from "../atoms/Input";
+import { SearchField } from "../atoms/SearchField";
 import { bloco, paddingQueVale } from "../test/folha";
 import { Diff } from "./Diff";
 import { Disclosure } from "./Disclosure";
@@ -676,6 +677,101 @@ describe("Sheet", () => {
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Trocar a porção" })).toBeInTheDocument();
+  });
+});
+
+describe("Sheet com foco inicial", () => {
+  type Alvo = "first-field" | "ref" | "ref-vazio";
+
+  function Abridor({ mode, alvo }: { mode: "overlay" | "inline"; alvo: Alvo }) {
+    const [aberto, definir] = useState(false);
+    const leitor = useRef<HTMLButtonElement>(null);
+    const vazio = useRef<HTMLElement>(null);
+    const initialFocus = alvo === "first-field" ? alvo : alvo === "ref" ? leitor : vazio;
+    return (
+      <div>
+        <button type="button" onClick={() => definir(true)}>
+          Registrar alimento
+        </button>
+        <Sheet
+          open={aberto}
+          mode={mode}
+          title="Registrar alimento"
+          onClose={() => definir(false)}
+          initialFocus={initialFocus}
+        >
+          {/* Um botão antes do campo: "first-field" é campo, e não o primeiro focável. */}
+          <button type="button">Recentes</button>
+          <SearchField label="Buscar alimento" />
+          <button type="button" ref={leitor}>
+            Ler o código de barras
+          </button>
+        </Sheet>
+      </div>
+    );
+  }
+
+  it.each(["overlay", "inline"] as const)(
+    "em %s, grava quem abriu ANTES de focar o alvo, e o foco volta a quem abriu ao fechar",
+    async (mode) => {
+      // KE-PROD-18: o foco posto no alvo antes de gravar quem abriu faz o
+      // próprio alvo virar "quem abriu" — e, ao fechar, o foco cai no começo
+      // da página, porque o alvo saiu com a folha.
+      const usuario = userEvent.setup();
+      render(<Abridor mode={mode} alvo="first-field" />);
+      const abridor = screen.getByRole("button", { name: "Registrar alimento" });
+      await usuario.click(abridor);
+
+      expect(document.activeElement).toBe(screen.getByRole("searchbox", { name: "Buscar alimento" }));
+
+      await usuario.keyboard("{Escape}");
+      expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
+      expect(document.activeElement).toBe(abridor);
+    },
+  );
+
+  it("o alvo pode ser um ref, para o que não é campo", async () => {
+    const usuario = userEvent.setup();
+    render(<Abridor mode="overlay" alvo="ref" />);
+    const abridor = screen.getByRole("button", { name: "Registrar alimento" });
+    await usuario.click(abridor);
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Ler o código de barras" }),
+    );
+
+    await usuario.click(screen.getByRole("button", { name: "Fechar" }));
+    expect(document.activeElement).toBe(abridor);
+  });
+
+  it("sem alvo na hora de abrir, o foco fica no painel", async () => {
+    const usuario = userEvent.setup();
+    const { rerender } = render(<Abridor mode="overlay" alvo="ref-vazio" />);
+    await usuario.click(screen.getByRole("button", { name: "Registrar alimento" }));
+    expect(document.activeElement).toBe(screen.getByRole("dialog", { name: "Registrar alimento" }));
+
+    // O corpo sem campo também: "first-field" sem campo não inventa alvo.
+    await usuario.keyboard("{Escape}");
+    function SemCampo() {
+      const [aberto, definir] = useState(false);
+      return (
+        <>
+          <button type="button" onClick={() => definir(true)}>
+            Trocar a porção
+          </button>
+          <Sheet
+            open={aberto}
+            title="Trocar a porção"
+            onClose={() => definir(false)}
+            initialFocus="first-field"
+          >
+            <button type="button">100 g</button>
+          </Sheet>
+        </>
+      );
+    }
+    rerender(<SemCampo />);
+    await usuario.click(screen.getByRole("button", { name: "Trocar a porção" }));
+    expect(document.activeElement).toBe(screen.getByRole("dialog", { name: "Trocar a porção" }));
   });
 });
 
