@@ -718,7 +718,9 @@ describe("SearchField dentro da folha", () => {
     // respiro: o anel que passa da moldura tem de caber no respiro, dos quatro
     // lados — o campo encostado no topo do corpo é o caso de toda folha que
     // abre numa busca.
-    soEstesMexemNoPadding(classe("co-sheet__body"), [".co-sheet__body"]);
+    // A busca presa (ADR-017) tem respiro próprio, e não mexe no do corpo: a
+    // margem negativa o devolve ao fluxo (`busca-presa.test.tsx` prova).
+    soEstesMexemNoPadding(classe("co-sheet__body"), [".co-sheet__body", ".co-sheet__body .co-search-field"]);
     const respiro = paddingQueVale(bloco(".co-sheet__body"), TOKENS);
     for (const seletor of [".co-search:focus-within", ".co-input:focus-within"]) {
       const anel = extensaoDoAnel(seletor);

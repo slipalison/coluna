@@ -258,7 +258,9 @@ export function avaliar(texto: string, valores: Valores): number {
       esperar(")");
       return valor;
     }
-    const numero = /^\d+(\.\d+)?(px)?/.exec(texto.slice(i));
+    // O sinal colado ao número é dele (`calc(-1 * var(--co-space-4))`); o
+    // menos da subtração vem sempre entre espaços, e a `soma()` o consome antes.
+    const numero = /^-?\d+(\.\d+)?(px)?/.exec(texto.slice(i));
     if (numero) {
       i += numero[0].length;
       return Number.parseFloat(numero[0]);

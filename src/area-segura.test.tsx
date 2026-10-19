@@ -634,11 +634,22 @@ it("o foco do teclado não fica atrás da faixa: o :root recua a rolagem pela al
   // O de BAIXO é da barra de ação (ADR-013), e `barra-de-acao.test.tsx` o prova:
   // aqui só se confere que ele mora no `:root` e nos `:root:has(...)` das
   // barras, e em mais lugar nenhum.
+  //
+  // A exceção, nomeada: o corpo da folha que rola, com a busca presa no topo
+  // (ADR-017), recua a rolagem DELE pela altura da busca — o "quem rola dentro
+  // de um contêiner próprio põe o mesmo recuo nele" do adendo 1.7.1 do ADR-012.
+  // O valor é provado em `busca-presa.test.tsx`; aqui, só que são esses dois
+  // lugares e mais nenhum.
   const recuos = REGRAS.flatMap((r) =>
     r.declaracoes.filter(([p]) => /^scroll-padding/.test(p)).map(([p, v]) => [lugar(r), p, v]),
   );
-  expect(recuos.filter(([, p]) => p !== "scroll-padding-bottom")).toEqual([
+  const daFolha = (onde: string) => onde.startsWith(".co-sheet__body:has(");
+  expect(recuos.filter(([onde, p]) => p !== "scroll-padding-bottom" && !daFolha(onde ?? ""))).toEqual([
     [":root", RECUO, "calc(var(--co-statusbar-height) * 4 / 3)"],
+  ]);
+  expect(recuos.filter(([onde]) => daFolha(onde ?? "")).map(([onde, p]) => [onde, p])).toEqual([
+    [".co-sheet__body:has(.co-search-field)", RECUO],
+    ['.co-sheet__body:has(.co-search[data-size="lg"])', RECUO],
   ]);
   expect(recuos.filter(([, p]) => p === "scroll-padding-bottom").map(([onde]) => onde)).toEqual([
     ":root",

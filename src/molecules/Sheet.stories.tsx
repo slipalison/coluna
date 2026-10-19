@@ -168,11 +168,20 @@ const ALIMENTOS = [
   { nome: "Arroz, branco, cozido", kcal: "128 kcal" },
   { nome: "Arroz, integral, cozido", kcal: "124 kcal" },
   { nome: "Arroz, carreteiro", kcal: "154 kcal" },
+  { nome: "Feijão, carioca, cozido", kcal: "76 kcal" },
+  { nome: "Feijão, preto, cozido", kcal: "77 kcal" },
+  { nome: "Frango, peito, grelhado", kcal: "159 kcal" },
+  { nome: "Ovo de galinha, cozido", kcal: "146 kcal" },
+  { nome: "Banana, prata", kcal: "98 kcal" },
+  { nome: "Batata, inglesa, cozida", kcal: "52 kcal" },
+  { nome: "Mandioca, cozida", kcal: "125 kcal" },
+  { nome: "Pão, francês", kcal: "300 kcal" },
+  { nome: "Queijo, minas, frescal", kcal: "264 kcal" },
 ];
 
-function FolhaComBusca() {
+function FolhaComBusca({ termoInicial = "arroz" }: { termoInicial?: string }) {
   const [aberto, setAberto] = useState(true);
-  const [termo, setTermo] = useState("arroz");
+  const [termo, setTermo] = useState(termoInicial);
   const achados = ALIMENTOS.filter((a) => a.nome.toLowerCase().includes(termo.trim().toLowerCase()));
 
   return (
@@ -239,4 +248,25 @@ export const ComBuscaEscuro: Story = {
   name: "Com busca — escuro",
   globals: { tema: "dark" },
   render: () => <FolhaComBusca />,
+};
+
+/**
+ * A busca presa no topo do corpo que rola, com o rótulo junto. Role a lista, ou
+ * vá de Tab pelas linhas: "Buscar alimento" e a moldura ficam juntos no topo, a
+ * lista passa por baixo da faixa, e a linha que recebe o foco para abaixo dela.
+ *
+ * Antes da 1.11.1, o Tab que levava o foco a uma linha só em parte à vista
+ * rolava o corpo o mínimo, e o rótulo saía do recorte com a moldura ainda
+ * inteira à vista — um campo sem rótulo visível (ADR-017).
+ */
+export const ComBuscaPresaClaro: Story = {
+  name: "Com busca presa — claro",
+  globals: { tema: "light" },
+  render: () => <FolhaComBusca termoInicial="" />,
+};
+
+export const ComBuscaPresaEscuro: Story = {
+  name: "Com busca presa — escuro",
+  globals: { tema: "dark" },
+  render: () => <FolhaComBusca termoInicial="" />,
 };

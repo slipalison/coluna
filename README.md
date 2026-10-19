@@ -248,7 +248,12 @@ Alguns que merecem nota:
   e quem foca sozinho (`autoFocus`, um `ref` que chama `focus()`) roda antes
   dela e vira "quem abriu" — o foco cai no começo da página ao fechar. O corpo
   que rola tem 4px de respiro em cima, para o anel de foco do campo encostado
-  no topo não ser cortado.
+  no topo não ser cortado. Desde a 1.11.1, a `SearchField` no corpo fica presa
+  no topo dele, com o rótulo junto e o fundo da folha, e o corpo recua a
+  rolagem a altura dela: o Tab que rola a lista não deixa mais a moldura à
+  vista sem o rótulo, e a linha que recebe o foco para abaixo da busca. Vale
+  para toda folha, sem prop
+  ([ADR-017](docs/adr/017-a-busca-da-folha-fica-presa.md)).
 - **`Rail`** é a contraparte da `TabBar`, e as duas existem porque a diferença
   entre telefone e desktop não é de tamanho, é de quantidade: embaixo cabem
   quatro destinos e o resto vira gaveta; na lateral cabem os sete. Os grupos são
@@ -436,7 +441,7 @@ arquivos (`dist/fonts/OFL-*.txt`). Origem, versão e o que ficou de fora
 ```bash
 npm install       # o `prepare` já gera os tokens
 npm run tokens    # tokens/*.json -> src/tokens/{tokens.css,gerado.ts}
-npm test          # 266 testes, piso de 80% em linha, ramo, função e comando
+npm test          # 291 testes, piso de 80% em linha, ramo, função e comando
 npm run build     # dist/coluna.js + dist/index.d.ts + os dois CSS + dist/fonts/
 npm run referencia # docs/referencia.html, pintada pelo CSS que o pacote publica
 ```
@@ -467,3 +472,4 @@ a esteira reprova o que estiver fora.
 - [ADR-014 — as fontes moram no pacote](docs/adr/014-as-fontes-moram-no-pacote.md)
 - [ADR-015 — a linha de baixo da `ListRow`](docs/adr/015-a-linha-de-baixo-da-lista.md)
 - [ADR-016 — o piso de UX mora no sistema](docs/adr/016-o-piso-de-ux-mora-no-sistema.md)
+- [ADR-017 — a busca da folha fica presa no topo](docs/adr/017-a-busca-da-folha-fica-presa.md)
