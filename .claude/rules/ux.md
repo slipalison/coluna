@@ -46,6 +46,8 @@ violação, o PR não entra.
 - **A moldura inteira de um campo foca o controle**, e a área tocável tem pelo menos `--co-target-min`.
 - **Dentro de folha ou cartão, o limite do controle continua visível** (uma superfície igual à de fora não basta), e
   o corpo que rola não corta o anel de foco.
+- **A busca da folha fica presa no topo do corpo que rola, com o rótulo**, e o foco para abaixo dela: rolar a lista
+  nunca deixa a moldura à vista sem o rótulo (ADR-017).
 - **Ícone de ação tem nome acessível**; o × é fechar ou limpar, nunca apagar.
 - **Toda peça funciona a 320 px** sem rolagem lateral e com o texto a 200%.
 - **Os estados vêm prontos**: carregando, vazio, erro, desligado com motivo.

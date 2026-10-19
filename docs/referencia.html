@@ -2699,6 +2699,57 @@ button.co-chip {
   padding: var(--co-space-4) var(--co-inset-text) var(--co-space-16);
 }
 
+/*
+ * A busca da folha fica presa no topo do corpo que rola, com o rótulo junto
+ * (ADR-017). Sem isso, o Tab que leva o foco a uma linha só em parte à vista
+ * faz o navegador rolar o corpo o mínimo para mostrá-la, e o rótulo sai do
+ * recorte enquanto a moldura continua inteira à vista: um campo à vista sem
+ * rótulo visível (WCAG 2.2, 3.3.2; medido no Basalto com a 1.11.0, scrollTop
+ * 24 a 78 num corpo de 549px).
+ *
+ * Vale para toda busca no corpo de uma folha, sem prop: o piso mora no sistema,
+ * e nenhuma tela precisa lembrar dele (ADR-016). Sem nada acima dela, ela já
+ * nasce presa; com um texto acima, sobe com ele e para no topo. Na `inline` o
+ * corpo não rola, e a regra não muda nada.
+ *
+ * - O respiro de cima (4px, o do anel) e o de baixo (8px) são da faixa, e as
+ *   margens negativas devolvem o mesmo ao fluxo: parada, ela fica onde sempre
+ *   esteve; presa, o rótulo nunca encosta na borda do recorte, e a moldura e o
+ *   anel dela ficam sempre sobre a superfície, e não sobre a lista que passa.
+ * - O fundo é o da folha, para a lista não aparecer por baixo; na `inline`, o
+ *   dela.
+ * - A camada é 1: as linhas de um `Group` são `position: relative` e vêm
+ *   depois no documento — com `auto`, a lista pintaria por cima da busca.
+ */
+.co-sheet__body .co-search-field {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin-block: calc(-1 * var(--co-space-4)) calc(-1 * var(--co-space-8));
+  padding-block: var(--co-space-4) var(--co-space-8);
+  background: var(--co-surface);
+}
+
+.co-sheet[data-mode="inline"] .co-sheet__body .co-search-field {
+  background: var(--co-surface-sunken);
+}
+
+/*
+ * E o foco nunca para por baixo dela: o corpo recua a rolagem a altura da
+ * faixa — o respiro de cima, o rótulo (uma linha da letra de corpo), o vão, a
+ * moldura e o respiro de baixo —, mais os 4px do anel de quem recebe o foco
+ * (WCAG 2.2, 2.4.11). O Tab, a âncora e o `scrollIntoView` param abaixo dela.
+ */
+.co-sheet__body:has(.co-search-field) {
+  scroll-padding-top: calc(var(--co-space-4) + var(--co-text-15) * var(--co-leading-normal) + var(--co-space-6)
+    + var(--co-target-min) + var(--co-space-8) + var(--co-space-4));
+}
+
+.co-sheet__body:has(.co-search[data-size="lg"]) {
+  scroll-padding-top: calc(var(--co-space-4) + var(--co-text-15) * var(--co-leading-normal) + var(--co-space-6)
+    + 52px + var(--co-space-8) + var(--co-space-4));
+}
+
 .co-sheet__footer {
   display: flex;
   gap: var(--co-space-8);
@@ -3159,7 +3210,7 @@ pre code { background: none; border: 0; padding: 0; }
   <header class="topo">
     <div class="marca">
       <span class="marca__nome">Coluna</span>
-      <span class="co-badge" data-tone="accent">v1.10.0</span>
+      <span class="co-badge" data-tone="accent">v1.11.0</span>
     </div>
     <div class="co-segmented" role="radiogroup" aria-label="Tema" id="tema">
       <button type="button" role="radio" class="co-segmented__option" aria-checked="false" data-tema="light">Claro</button>
