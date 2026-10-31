@@ -206,6 +206,16 @@ describe.each(TEMAS)("contraste no tema %s", (_nome, tema) => {
     }
   });
 
+  it("o anel de foco passa em 3:1 sobre todo fundo, o corpo da folha inclusive", () => {
+    // O anel é `--co-accent` (`.co-root :focus-visible`), e o corpo da folha
+    // que rola o usa por dentro, sobre `surface` (ADR-018). O piso é o de
+    // desenho (WCAG 1.4.11), e ele vale nos quatro fundos.
+    for (const [nomeFundo, fundo] of fundos) {
+      const razao = contraste(valor(tema["accent"]), fundo);
+      expect(razao, `o anel sobre ${nomeFundo} deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
+    }
+  });
+
   it("text-subtle é o piso, e icon-muted fica abaixo dele", () => {
     // A hierarquia importa: se `icon-muted` subisse acima de `text-subtle`,
     // os dois papéis colapsariam e a regra "isto não é para texto" perderia

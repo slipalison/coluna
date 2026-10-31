@@ -270,3 +270,77 @@ export const ComBuscaPresaEscuro: Story = {
   globals: { tema: "dark" },
   render: () => <FolhaComBusca termoInicial="" />,
 };
+
+const PASSOS = [
+  "Lave o arroz em água corrente até a água sair clara.",
+  "Aqueça um fio de óleo na panela e refogue o alho até dourar.",
+  "Junte o arroz e mexa por dois minutos, até os grãos ficarem opacos.",
+  "Acrescente a água fervente e o sal, e mexa uma vez só.",
+  "Tampe parcialmente e cozinhe em fogo baixo por quinze minutos.",
+  "Quando a água secar, desligue o fogo e deixe tampado por cinco minutos.",
+  "Solte os grãos com um garfo antes de servir.",
+  "Prove o sal e, se faltar, acerte com uma pitada sobre os grãos ainda quentes.",
+  "Guarde o que sobrar em pote fechado na geladeira, por até três dias.",
+  "Para requentar, borrife um pouco de água e aqueça tampado.",
+];
+
+function FolhaDeLeitura() {
+  const [aberto, setAberto] = useState(true);
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: "390px",
+        height: "560px",
+        overflow: "hidden",
+        borderRadius: "var(--co-radius-container)",
+        background: "var(--co-canvas)",
+      }}
+    >
+      <Stack gap={12} style={{ padding: "20px" }}>
+        <Text variant="title-lg">Almoço</Text>
+        <Button onClick={() => setAberto(true)}>Ver o modo de preparo</Button>
+      </Stack>
+
+      <Sheet open={aberto} onClose={() => setAberto(false)} title="Arroz branco" position="absolute">
+        <Stack gap={16}>
+          <Text variant="headline" as="h3">
+            Ingredientes
+          </Text>
+          <Text>1 xícara de arroz, 2 xícaras de água, 1 dente de alho, 1 colher de chá de sal e um fio de óleo.</Text>
+          <Text variant="headline" as="h3">
+            Passo a passo
+          </Text>
+          <ol style={{ margin: 0, paddingInlineStart: "1.25em" }}>
+            {PASSOS.map((passo) => (
+              <li key={passo}>
+                <Text>{passo}</Text>
+              </li>
+            ))}
+          </ol>
+        </Stack>
+      </Sheet>
+    </div>
+  );
+}
+
+/**
+ * Uma folha só de leitura — ingredientes e passos, nenhum controle no corpo — que
+ * passa da altura e rola. O corpo é uma parada do Tab (região com o nome do
+ * título): depois do fechar, o Tab pousa nele, o anel aparece por dentro, e as
+ * setas e o Page Down rolam a receita (ADR-018).
+ *
+ * Antes da 1.11.2, o WebKit não deixava rolar esse corpo pelo teclado, e o axe
+ * acusava `scrollable-region-focusable` (medido no Basalto, #99).
+ */
+export const SoDeLeituraClaro: Story = {
+  name: "Só de leitura — claro",
+  globals: { tema: "light" },
+  render: () => <FolhaDeLeitura />,
+};
+
+export const SoDeLeituraEscuro: Story = {
+  name: "Só de leitura — escuro",
+  globals: { tema: "dark" },
+  render: () => <FolhaDeLeitura />,
+};
