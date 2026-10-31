@@ -48,6 +48,8 @@ violação, o PR não entra.
   o corpo que rola não corta o anel de foco.
 - **A busca da folha fica presa no topo do corpo que rola, com o rótulo**, e o foco para abaixo dela: rolar a lista
   nunca deixa a moldura à vista sem o rótulo (ADR-017).
+- **O corpo da folha que rola se rola pelo teclado**: em `overlay` ele é uma parada do Tab e uma região com o nome do
+  título, com o anel por dentro, para a folha só de texto não prender quem usa teclado (WCAG 2.1.1; ADR-018).
 - **Ícone de ação tem nome acessível**; o × é fechar ou limpar, nunca apagar.
 - **Toda peça funciona a 320 px** sem rolagem lateral e com o texto a 200%.
 - **Os estados vêm prontos**: carregando, vazio, erro, desligado com motivo.

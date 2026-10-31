@@ -2434,6 +2434,18 @@ button.co-chip {
 }
 
 /*
+ * O corpo que rola é focável em `overlay` (ADR-018), e o anel dele vai para
+ * DENTRO: o corpo encosta nas bordas da folha, e a folha encosta nas da tela
+ * no telefone — com o afastamento de fora, o anel sairia da tela dos lados e
+ * cobriria o cabeçalho e o rodapé. Encostado na borda de dentro, ele fica no
+ * respiro do corpo (4px em cima, a calha dos lados, 16px embaixo), sobre a
+ * superfície da folha: o mesmo `--co-accent` de 3:1 do anel de sempre.
+ */
+.co-sheet__body:focus-visible {
+  outline-offset: -2px;
+}
+
+/*
  * A busca da folha fica presa no topo do corpo que rola, com o rótulo junto
  * (ADR-017). Sem isso, o Tab que leva o foco a uma linha só em parte à vista
  * faz o navegador rolar o corpo o mínimo para mostrá-la, e o rótulo sai do

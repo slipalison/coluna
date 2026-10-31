@@ -91,6 +91,9 @@ const FOCALIZAVEIS = [
  * (um resultado de busca) é tocável na hora. Quando ela fecha, as abas e a
  * barra de ação da `Screen` se rearmam pelo mesmo tempo. Em `inline` nada se
  * arma: o painel abre no fluxo, e não por cima (ADR-013, adendo 1.8.2).
+ *
+ * Em `overlay`, o corpo que rola é uma parada do Tab, uma região com o nome do
+ * título: é assim que quem usa teclado rola uma folha só de texto (ADR-018).
  */
 export function Sheet({
   open,
@@ -178,7 +181,24 @@ export function Sheet({
         </button>
       </div>
 
-      <div ref={corpo} className="co-sheet__body">
+      {/*
+        Em `overlay` o corpo rola (a folha tem altura máxima), e um corpo que
+        rola sem nada focável dentro — uma folha só de leitura, com
+        ingredientes e passos — não se rola pelo teclado: o WebKit não faz do
+        contêiner que rola uma parada do Tab (WCAG 2.1.1; axe
+        `scrollable-region-focusable`). Então ele é focável e se anuncia como
+        região com o título da folha. Sempre, e não só quando rola: a altura
+        muda com o conteúdo, a rotação e o texto a 200%, e uma parada de Tab que
+        aparece e some no meio da folha aberta é pior que uma a mais (ADR-018).
+        Em `inline` o corpo não tem altura máxima e não rola: nada muda.
+      */}
+      <div
+        ref={corpo}
+        className="co-sheet__body"
+        role={sobreposto ? "region" : undefined}
+        aria-labelledby={sobreposto ? idTitulo : undefined}
+        tabIndex={sobreposto ? 0 : undefined}
+      >
         {children}
       </div>
 

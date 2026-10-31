@@ -253,7 +253,11 @@ Alguns que merecem nota:
   rolagem a altura dela: o Tab que rola a lista não deixa mais a moldura à
   vista sem o rótulo, e a linha que recebe o foco para abaixo da busca. Vale
   para toda folha, sem prop
-  ([ADR-017](docs/adr/017-a-busca-da-folha-fica-presa.md)).
+  ([ADR-017](docs/adr/017-a-busca-da-folha-fica-presa.md)). Desde a 1.11.2,
+  em `overlay` o corpo é uma parada do Tab (`tabIndex={0}`) e uma região com o
+  nome do título, com o anel por dentro: numa folha só de texto, quem usa
+  teclado foca o corpo e rola com as setas e o Page Down. Na `inline`, que não
+  rola, nada muda ([ADR-018](docs/adr/018-o-corpo-da-folha-se-rola-pelo-teclado.md)).
 - **`Rail`** é a contraparte da `TabBar`, e as duas existem porque a diferença
   entre telefone e desktop não é de tamanho, é de quantidade: embaixo cabem
   quatro destinos e o resto vira gaveta; na lateral cabem os sete. Os grupos são
@@ -441,7 +445,7 @@ arquivos (`dist/fonts/OFL-*.txt`). Origem, versão e o que ficou de fora
 ```bash
 npm install       # o `prepare` já gera os tokens
 npm run tokens    # tokens/*.json -> src/tokens/{tokens.css,gerado.ts}
-npm test          # 291 testes, piso de 80% em linha, ramo, função e comando
+npm test          # 302 testes, piso de 80% em linha, ramo, função e comando
 npm run build     # dist/coluna.js + dist/index.d.ts + os dois CSS + dist/fonts/
 npm run referencia # docs/referencia.html, pintada pelo CSS que o pacote publica
 ```
@@ -473,3 +477,4 @@ a esteira reprova o que estiver fora.
 - [ADR-015 — a linha de baixo da `ListRow`](docs/adr/015-a-linha-de-baixo-da-lista.md)
 - [ADR-016 — o piso de UX mora no sistema](docs/adr/016-o-piso-de-ux-mora-no-sistema.md)
 - [ADR-017 — a busca da folha fica presa no topo](docs/adr/017-a-busca-da-folha-fica-presa.md)
+- [ADR-018 — o corpo da folha se rola pelo teclado](docs/adr/018-o-corpo-da-folha-se-rola-pelo-teclado.md)
