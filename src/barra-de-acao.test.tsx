@@ -1114,6 +1114,9 @@ it("o movimento reduzido não zera a trava da barra, das abas nem da folha", () 
       ],
     ],
     [TRAVA_DE_TOQUE.excecao, [["animation-duration", `${duracao} !important`]]],
+    // O card do carrossel que não anda com o dedo (slipalison/basalto#120):
+    // não mexe em duração, e não toca na trava.
+    ['.co-root .co-deck__card[data-dragging="true"]', [["transform", "none"]]],
   ]);
   // A exceção é a união das três regras, seletor por seletor.
   expect(TRAVA_DE_TOQUE.excecao.split(", ").sort()).toEqual(

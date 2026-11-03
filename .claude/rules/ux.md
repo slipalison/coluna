@@ -50,6 +50,11 @@ violação, o PR não entra.
   nunca deixa a moldura à vista sem o rótulo (ADR-017).
 - **O corpo da folha que rola se rola pelo teclado**: em `overlay` ele é uma parada do Tab e uma região com o nome do
   título, com o anel por dentro, para a folha só de texto não prender quem usa teclado (WCAG 2.1.1; ADR-018).
+- **O gesto sempre tem alternativa**: o arrasto do carrossel (`Deck`) tem as setas de 44px, com o limite de controle, e
+  as setas do teclado; o foco vai para o card novo, e o indicador de posição não depende só da cor. Com
+  `prefers-reduced-motion`, nada anda com o dedo (WCAG 2.5.1, 2.5.7; ADR-019).
+- **O painel que rola por dentro é uma parada do Tab**, como o das `Tabs`, com o anel por dentro, e a fileira de abas
+  rola de lado dentro de si: a página nunca rola de lado (ADR-019).
 - **Ícone de ação tem nome acessível**; o × é fechar ou limpar, nunca apagar.
 - **Toda peça funciona a 320 px** sem rolagem lateral e com o texto a 200%.
 - **Os estados vêm prontos**: carregando, vazio, erro, desligado com motivo.

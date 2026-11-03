@@ -57,6 +57,8 @@ export type { VisuallyHiddenProps } from "./atoms/VisuallyHidden";
 
 export { Diff } from "./molecules/Diff";
 export type { DiffProps } from "./molecules/Diff";
+export { Deck } from "./molecules/Deck";
+export type { DeckProps } from "./molecules/Deck";
 export { Disclosure } from "./molecules/Disclosure";
 export type { DisclosureProps } from "./molecules/Disclosure";
 export { EmptyState } from "./molecules/EmptyState";
@@ -97,6 +99,8 @@ export { Stepper } from "./molecules/Stepper";
 export type { StepperProps } from "./molecules/Stepper";
 export { TabBar } from "./molecules/TabBar";
 export type { TabBarProps, TabItem } from "./molecules/TabBar";
+export { Tabs } from "./molecules/Tabs";
+export type { TabsItem, TabsProps } from "./molecules/Tabs";
 
 export { readToken, semanticTokens } from "./tokens/tokens";
 export type { SemanticToken } from "./tokens/tokens";
