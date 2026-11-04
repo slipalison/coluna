@@ -185,7 +185,7 @@ texto ([ADR-005](docs/adr/005-cor-nunca-sozinha.md)).
 **Moléculas** — `Group` `ListRow` `Reckoning` `MacroBar` `Stat` `Notice`
 `SegmentedControl` `Stepper` `ScreenHeader` `PageHeader` `TabBar` `Rail`
 `NavList` `Pager` `Field` `Sheet` `Legend` `Ruler` `Disclosure` `EmptyState`
-`Diff`
+`Diff` `Deck` `Tabs`
 
 **Padrões** — no catálogo, `Padrões/Tela do diário` monta a tela do telefone e
 `Padrões/Desktop` monta três do desktop (diário, ajustes, receitas), só com
@@ -258,6 +258,21 @@ Alguns que merecem nota:
   nome do título, com o anel por dentro: numa folha só de texto, quem usa
   teclado foca o corpo e rola com as setas e o Page Down. Na `inline`, que não
   rola, nada muda ([ADR-018](docs/adr/018-o-corpo-da-folha-se-rola-pelo-teclado.md)).
+- **`Deck`** é o carrossel de cards: um card de cada vez, que se troca
+  arrastando para os lados, com um giro leve. O gesto nunca é o único caminho:
+  embaixo ficam as duas setas (44px, com o limite de controle) e, com o foco no
+  card ou numa seta, as setas do teclado, Home e End. Em toda troca o foco vai
+  para o card novo, um grupo com `aria-roledescription="card"` e o nome de
+  `cardLabel` ("Almoço, 2 de 4"). O indicador marca a vaga cheia com um traço
+  largo e as vazias com um anel — forma, e não só cor. Com
+  `prefers-reduced-motion` o card não anda com o dedo e nada anima
+  ([ADR-019](docs/adr/019-o-carrossel-de-cards-e-as-abas-no-card.md)).
+- **`Tabs`** são as abas dentro de um card: `tablist`, `tab` e `tabpanel`, com
+  setas que dão a volta, Home e End, e a aba focada abre. O painel rola por
+  dentro quando o conteúdo não cabe (letra grande, 320px) e é uma parada do
+  Tab, para rolar pelo teclado; a fileira de nomes compridos rola de lado
+  dentro de si. A página nunca rola de lado
+  ([ADR-019](docs/adr/019-o-carrossel-de-cards-e-as-abas-no-card.md)).
 - **`Rail`** é a contraparte da `TabBar`, e as duas existem porque a diferença
   entre telefone e desktop não é de tamanho, é de quantidade: embaixo cabem
   quatro destinos e o resto vira gaveta; na lateral cabem os sete. Os grupos são
@@ -445,7 +460,7 @@ arquivos (`dist/fonts/OFL-*.txt`). Origem, versão e o que ficou de fora
 ```bash
 npm install       # o `prepare` já gera os tokens
 npm run tokens    # tokens/*.json -> src/tokens/{tokens.css,gerado.ts}
-npm test          # 302 testes, piso de 80% em linha, ramo, função e comando
+npm test          # 327 testes, piso de 80% em linha, ramo, função e comando
 npm run build     # dist/coluna.js + dist/index.d.ts + os dois CSS + dist/fonts/
 npm run referencia # docs/referencia.html, pintada pelo CSS que o pacote publica
 ```
@@ -478,3 +493,4 @@ a esteira reprova o que estiver fora.
 - [ADR-016 — o piso de UX mora no sistema](docs/adr/016-o-piso-de-ux-mora-no-sistema.md)
 - [ADR-017 — a busca da folha fica presa no topo](docs/adr/017-a-busca-da-folha-fica-presa.md)
 - [ADR-018 — o corpo da folha se rola pelo teclado](docs/adr/018-o-corpo-da-folha-se-rola-pelo-teclado.md)
+- [ADR-019 — o carrossel de cards e as abas dentro do card](docs/adr/019-o-carrossel-de-cards-e-as-abas-no-card.md)

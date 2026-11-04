@@ -1520,6 +1520,193 @@ div.co-sheet-overlay {
   cursor: not-allowed;
 }
 
+/* ------------------------------------------------------------ carrossel ---- */
+
+/*
+ * O carrossel de cards (`Deck`). Um card de cada vez; embaixo, as setas e o
+ * indicador de posição. A janela corta o card arrastado só na horizontal
+ * (`overflow-x: clip`, que não vira contêiner de rolagem): o card que sai de
+ * lado com o dedo não faz a página rolar de lado.
+ */
+.co-deck {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-12);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.co-deck__viewport {
+  min-width: 0;
+  overflow-x: clip;
+}
+
+/* O card leva o dedo na horizontal; a vertical continua sendo da página. O
+ * anel fica por dentro, porque a janela corta o que passa dos lados. */
+.co-deck__card {
+  border-radius: var(--co-radius-container);
+  touch-action: pan-y;
+  transition: transform var(--co-duration-normal) var(--co-ease);
+}
+
+.co-deck__card[hidden] { display: none; }
+
+.co-deck__card:focus-visible {
+  outline-offset: -2px;
+}
+
+/* O arrasto: o card anda com o dedo, com um giro leve, e sem transição — a
+ * transição é a da volta, quando o dedo solta abaixo do limiar. */
+.co-deck__card[data-dragging="true"] {
+  transform: translateX(var(--co-deck-dx)) rotate(var(--co-deck-tilt));
+  transition: none;
+  cursor: grabbing;
+  user-select: none;
+}
+
+.co-deck__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--co-space-12);
+}
+
+/* As setas: o gesto sempre tem alternativa. 44px e o limite de controle, para
+ * a seta não sumir sobre um cartão da mesma superfície (WCAG 1.4.11). */
+.co-deck__arrow {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--co-target-min);
+  height: var(--co-target-min);
+  padding: 0;
+  border: var(--co-border-width) solid var(--co-control-border);
+  border-radius: var(--co-radius-control);
+  background: var(--co-surface);
+  color: var(--co-text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.co-deck__arrow:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--co-surface-raised);
+  color: var(--co-text-body);
+}
+
+/* Na ponta a seta apaga e continua focável, como a do `Pager`. */
+.co-deck__arrow:disabled,
+.co-deck__arrow[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* O indicador de posição. A vaga vazia é um anel; a cheia é um traço largo e
+ * cheio: forma diferente, e não só cor (ADR-005). As duas no piso de desenho,
+ * 3:1 (o anel no limite de controle, a cheia no acento). */
+.co-deck__dots {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--co-space-8);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.co-deck__dot {
+  width: var(--co-space-8);
+  height: var(--co-space-8);
+  border: var(--co-border-width) solid var(--co-control-border);
+  border-radius: var(--co-radius-pill);
+  background: transparent;
+}
+
+.co-deck__dot[data-current="true"] {
+  width: var(--co-space-24);
+  border-color: var(--co-accent);
+  background: var(--co-accent);
+}
+
+/* ------------------------------------------------------------------ abas ---- */
+
+/*
+ * As abas dentro de um card (`Tabs`). Coluna que encolhe: num card de altura
+ * fixa, o painel ocupa o que sobra e rola por dentro.
+ */
+.co-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-12);
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+}
+
+/* A fileira tem o limite de controle, como o segmentado. Nome comprido a 200%
+ * rola de lado DENTRO da fileira, e não na página. */
+.co-tabs__list {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--co-space-2);
+  min-width: 0;
+  padding: var(--co-space-2);
+  overflow-x: auto;
+  border: var(--co-border-width) solid var(--co-control-border);
+  border-radius: var(--co-radius-control);
+  background: var(--co-surface);
+}
+
+.co-tabs__tab {
+  flex: 1 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--co-target-min);
+  min-height: var(--co-target-min);
+  padding: 0 var(--co-space-12);
+  border: 0;
+  border-radius: var(--co-radius-inset);
+  background: transparent;
+  color: var(--co-text-muted);
+  font: inherit;
+  font-size: var(--co-text-14);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.co-tabs__tab:hover:not([aria-selected="true"]) { color: var(--co-text-body); }
+
+/* A aberta muda de fundo e de peso, e não só de cor (ADR-005). */
+.co-tabs__tab[aria-selected="true"] {
+  background: var(--co-accent);
+  color: var(--co-accent-contrast);
+  font-weight: var(--co-weight-semibold);
+}
+
+/* O anel por dentro: a fileira rola, e cortaria o de fora. Na aba aberta, o
+ * anel de acento sumiria no fundo de acento; ali ele é o contraste do acento. */
+.co-tabs__tab:focus-visible { outline-offset: -2px; }
+.co-tabs__tab[aria-selected="true"]:focus-visible { outline-color: var(--co-accent-contrast); }
+
+/* O painel rola por dentro, para os dois lados, e é parada do Tab para rolar
+ * pelo teclado (como o corpo da folha, ADR-018), com o anel por dentro. */
+.co-tabs__panel {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  max-height: var(--co-tabs-panel-max-height, none);
+  overflow: auto;
+  overflow-wrap: anywhere;
+  border-radius: var(--co-radius-inset);
+}
+
+.co-tabs__panel[hidden] { display: none; }
+
+.co-tabs__panel:focus-visible { outline-offset: -2px; }
+
 /* ------------------------------------------------------------ cabeçalho ---- */
 
 .co-screen-header {
@@ -2786,5 +2973,11 @@ fieldset.co-nav-list {
   div.co-sheet-overlay,
   .co-tabbar .co-tabbar__item {
     animation-duration: 400ms !important;
+  }
+
+  /* O card do carrossel não anda nem gira com o dedo: o arrasto só decide,
+   * ao soltar, se troca de card. */
+  .co-root .co-deck__card[data-dragging="true"] {
+    transform: none;
   }
 }

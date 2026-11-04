@@ -455,13 +455,14 @@ describe("desligado com cara de desligado", () => {
     await usuario.tab();
     expect(screen.getByRole("button", { name: "Nova receita" })).toHaveFocus();
 
-    // Pela folha: os três que apagam no `:disabled` apagam igual no
+    // Pela folha: os quatro que apagam no `:disabled` apagam igual no
     // `aria-disabled`, e nenhuma regra de hover acende um deles. A lista dos
-    // três é o que impede a prova de passar sem ter medido nada.
+    // quatro é o que impede a prova de passar sem ter medido nada.
     expect(desligadosQueApagam(REGRAS)).toEqual([
       [".co-button", "0.45"],
       [".co-icon-button", "0.45"],
       [".co-stepper__button", "0.45"],
+      [".co-deck__arrow", "0.45"],
     ]);
     const hovers = REGRAS.flatMap((r) => r.seletores).filter((s) => s.includes(":not(:disabled)"));
     expect(hovers.length).toBeGreaterThan(0);

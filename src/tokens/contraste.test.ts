@@ -83,6 +83,10 @@ const CONTROLES = [
   [".co-list-row__mark", "marca de radio e de checkbox"],
   [".co-segmented", "segmentado"],
   [".co-stepper", "stepper"],
+  // O carrossel e as abas moram dentro de cartão: a seta e a fileira têm o
+  // mesmo fundo do cartão, e sem o limite somem nele (slipalison/basalto#120).
+  [".co-deck__arrow", "seta do carrossel"],
+  [".co-tabs__list", "fileira de abas"],
 ] as const;
 
 /** As declarações de contorno de um bloco, na ordem — sem o raio, que é forma. */
@@ -165,7 +169,7 @@ describe.each(TEMAS)("contraste no tema %s", (_nome, tema) => {
     expect(razao, `deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
   });
 
-  it("o limite de controle (campo, busca, chip, radio, checkbox, segmentado e stepper) passa em 3:1", () => {
+  it("o limite de controle (campo, busca, chip, radio, checkbox, segmentado, stepper, seta do carrossel e abas) passa em 3:1", () => {
     // `--co-border` e `--co-border-strong` são o traço do que NÃO se toca
     // (superfície, selo) e ficam abaixo de 3:1 de propósito: um contorno de
     // cartão a 3:1 pesaria a tela inteira. O limite de controle é outro papel,
