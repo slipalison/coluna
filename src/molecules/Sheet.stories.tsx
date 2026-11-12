@@ -347,74 +347,83 @@ export const SoDeLeituraEscuro: Story = {
   render: () => <FolhaDeLeitura />,
 };
 
+/**
+ * As três receitas, escritas como se leem: o prato, os ingredientes, o preparo
+ * e os macros, um bloco de cada, um item por linha. A história é uma só, e o
+ * dado não repete a forma três vezes.
+ */
 const RECEITAS = [
-  {
-    prato: "Arroz, feijão e frango grelhado",
-    ingredientes: [
-      ["Arroz branco cozido", "150 g"],
-      ["Feijão carioca cozido", "120 g"],
-      ["Peito de frango grelhado", "140 g"],
-      ["Alface e tomate", "80 g"],
-      ["Azeite de oliva", "5 g"],
-      ["Banana prata", "70 g"],
-    ],
-    preparo: [
-      "Tempere o frango com alho e sal e grelhe por quatro minutos de cada lado.",
-      "Aqueça o arroz e o feijão.",
-      "Monte o prato com a salada e regue com o azeite.",
-    ],
-    macros: [
-      ["Energia", "620 kcal"],
-      ["Proteína", "48 g"],
-      ["Carboidrato", "72 g"],
-      ["Gordura", "12 g"],
-    ],
-  },
-  {
-    prato: "Macarrão com carne moída",
-    ingredientes: [
-      ["Macarrão cozido", "180 g"],
-      ["Carne moída refogada", "120 g"],
-      ["Molho de tomate", "80 g"],
-      ["Cebola", "30 g"],
-      ["Queijo ralado", "10 g"],
-      ["Laranja", "130 g"],
-    ],
-    preparo: [
-      "Refogue a cebola e a carne até dourar.",
-      "Junte o molho de tomate e cozinhe por dez minutos.",
-      "Misture ao macarrão e finalize com o queijo.",
-    ],
-    macros: [
-      ["Energia", "640 kcal"],
-      ["Proteína", "42 g"],
-      ["Carboidrato", "78 g"],
-      ["Gordura", "16 g"],
-    ],
-  },
-  {
-    prato: "Omelete de legumes com batata",
-    ingredientes: [
-      ["Ovo inteiro", "150 g"],
-      ["Batata cozida", "200 g"],
-      ["Espinafre", "50 g"],
-      ["Tomate", "60 g"],
-      ["Azeite de oliva", "5 g"],
-      ["Mamão", "120 g"],
-    ],
-    preparo: [
-      "Refogue o espinafre e o tomate no azeite.",
-      "Junte os ovos batidos e deixe firmar em fogo baixo.",
-      "Sirva com a batata cozida.",
-    ],
-    macros: [
-      ["Energia", "590 kcal"],
-      ["Proteína", "30 g"],
-      ["Carboidrato", "70 g"],
-      ["Gordura", "20 g"],
-    ],
-  },
-] as const;
+  `Arroz, feijão e frango grelhado
+
+Arroz branco cozido: 150 g
+Feijão carioca cozido: 120 g
+Peito de frango grelhado: 140 g
+Alface e tomate: 80 g
+Azeite de oliva: 5 g
+Banana prata: 70 g
+
+Tempere o frango com alho e sal e grelhe por quatro minutos de cada lado.
+Aqueça o arroz e o feijão.
+Monte o prato com a salada e regue com o azeite.
+
+Energia: 620 kcal
+Proteína: 48 g
+Carboidrato: 72 g
+Gordura: 12 g`,
+  `Macarrão com carne moída
+
+Macarrão cozido: 180 g
+Carne moída refogada: 120 g
+Molho de tomate: 80 g
+Cebola: 30 g
+Queijo ralado: 10 g
+Laranja: 130 g
+
+Refogue a cebola e a carne até dourar.
+Junte o molho de tomate e cozinhe por dez minutos.
+Misture ao macarrão e finalize com o queijo.
+
+Energia: 640 kcal
+Proteína: 42 g
+Carboidrato: 78 g
+Gordura: 16 g`,
+  `Omelete de legumes com batata
+
+Ovo inteiro: 150 g
+Batata cozida: 200 g
+Espinafre: 50 g
+Tomate: 60 g
+Azeite de oliva: 5 g
+Mamão: 120 g
+
+Refogue o espinafre e o tomate no azeite.
+Junte os ovos batidos e deixe firmar em fogo baixo.
+Sirva com a batata cozida.
+
+Energia: 590 kcal
+Proteína: 30 g
+Carboidrato: 70 g
+Gordura: 20 g`,
+].map((texto) => {
+  const [prato = "", ingredientes = "", preparo = "", macros = ""] = texto.split("\n\n");
+  return { prato, ingredientes: ingredientes.split("\n"), preparo: preparo.split("\n"), macros: macros.split("\n") };
+});
+
+/** As linhas de uma aba de pares: "nome: quanto" vira a linha com o quanto no fim. */
+function Pares({ linhas }: Readonly<{ linhas: readonly string[] }>) {
+  return (
+    <Group inset="text">
+      {linhas.map((linha) => {
+        const [nome, quanto] = linha.split(": ");
+        return (
+          <ListRow key={linha} trailing={quanto}>
+            {nome}
+          </ListRow>
+        );
+      })}
+    </Group>
+  );
+}
 
 function CardDaReceita({ receita }: Readonly<{ receita: (typeof RECEITAS)[number] }>) {
   return (
@@ -425,19 +434,7 @@ function CardDaReceita({ receita }: Readonly<{ receita: (typeof RECEITAS)[number
       <Tabs
         label={`Receita: ${receita.prato}`}
         items={[
-          {
-            value: "ingredientes",
-            label: "Ingredientes",
-            content: (
-              <Group inset="text">
-                {receita.ingredientes.map(([alimento, quanto]) => (
-                  <ListRow key={alimento} trailing={quanto}>
-                    {alimento}
-                  </ListRow>
-                ))}
-              </Group>
-            ),
-          },
+          { value: "ingredientes", label: "Ingredientes", content: <Pares linhas={receita.ingredientes} /> },
           {
             value: "preparo",
             label: "Preparo",
@@ -451,19 +448,7 @@ function CardDaReceita({ receita }: Readonly<{ receita: (typeof RECEITAS)[number
               </ol>
             ),
           },
-          {
-            value: "macros",
-            label: "Macros",
-            content: (
-              <Group inset="text">
-                {receita.macros.map(([macro, quanto]) => (
-                  <ListRow key={macro} trailing={quanto}>
-                    {macro}
-                  </ListRow>
-                ))}
-              </Group>
-            ),
-          },
+          { value: "macros", label: "Macros", content: <Pares linhas={receita.macros} /> },
         ]}
       />
     </Stack>
