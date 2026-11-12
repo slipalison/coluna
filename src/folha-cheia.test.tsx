@@ -249,7 +249,11 @@ describe("a geometria, pela folha", () => {
     // cederiam a altura, e o painel rolaria com uma linha de altura.
     expect(Object.fromEntries(bloco(".co-tabs"))["min-height"]).toBe("0");
     const painelDaAba = Object.fromEntries(bloco(".co-tabs__panel"));
-    expect([painelDaAba["flex"], painelDaAba["min-height"], painelDaAba["overflow"]]).toEqual(["1 1 auto", "0", "auto"]);
+    expect([painelDaAba["flex"], painelDaAba["min-height"], painelDaAba["overflow"]]).toEqual([
+      "1 1 auto",
+      "var(--co-target-min)",
+      "auto",
+    ]);
     // E o painel só tem teto quando alguém lhe dá um.
     expect(painelDaAba["max-height"]).toBe("var(--co-tabs-panel-max-height, none)");
   });

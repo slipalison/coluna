@@ -1972,11 +1972,14 @@ div.co-sheet-overlay {
 .co-tabs__tab[aria-selected="true"]:focus-visible { outline-color: var(--co-accent-contrast); }
 
 /* O painel rola por dentro, para os dois lados, e é parada do Tab para rolar
- * pelo teclado (como o corpo da folha, ADR-018), com o anel por dentro. */
+ * pelo teclado (como o corpo da folha, ADR-018), com o anel por dentro.
+ * Parada do Tab é alvo: com uma linha de conteúdo ele mediria 22,5px, abaixo
+ * do piso. Por isso ele encolhe até `--co-target-min`, e não até zero — em
+ * qualquer contexto, com ou sem teto (adendo do ADR-019). */
 .co-tabs__panel {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 0;
+  min-height: var(--co-target-min);
   max-height: var(--co-tabs-panel-max-height, none);
   overflow: auto;
   overflow-wrap: anywhere;

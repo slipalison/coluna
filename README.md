@@ -283,8 +283,8 @@ Alguns que merecem nota:
 - **`Tabs`** são as abas dentro de um card: `tablist`, `tab` e `tabpanel`, com
   setas que dão a volta, Home e End, e a aba focada abre. O painel rola por
   dentro quando o conteúdo não cabe (letra grande, 320px) e é uma parada do
-  Tab, para rolar pelo teclado; a fileira de nomes compridos rola de lado
-  dentro de si. A página nunca rola de lado
+  Tab, para rolar pelo teclado — por isso é um alvo, e nunca mede menos que
+  `--co-target-min`; a fileira de nomes compridos rola de lado dentro de si. A página nunca rola de lado
   ([ADR-019](docs/adr/019-o-carrossel-de-cards-e-as-abas-no-card.md)).
 - **`Rail`** é a contraparte da `TabBar`, e as duas existem porque a diferença
   entre telefone e desktop não é de tamanho, é de quantidade: embaixo cabem

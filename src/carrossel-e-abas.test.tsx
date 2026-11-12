@@ -338,7 +338,16 @@ describe("Tabs, as abas dentro do card", () => {
     const painel = Object.fromEntries(bloco(".co-tabs__panel"));
     expect(painel["overflow"]).toBe("auto");
     expect(painel["min-width"]).toBe("0");
-    expect(painel["min-height"]).toBe("0");
+    // O painel é parada do Tab, portanto alvo: encolhe até o piso, nunca até zero
+    // (com um passo de preparo ele media 22,5px; slipalison/basalto#155).
+    expect(painel["min-height"]).toBe("var(--co-target-min)");
+    expect(raiz("--co-target-min")).toBe("44px");
+    // A isca: nenhuma outra regra do painel devolve o piso a zero, nem lhe dá altura menor.
+    const altura = /^(min-height|min-block-size|height|block-size)$/;
+    const mexem = [...REGRAS, ...dentroDe("@media (prefers-reduced-motion: reduce)")]
+      .filter((r) => r.seletores.some((s) => s.includes(".co-tabs__panel")))
+      .flatMap((r) => r.declaracoes.filter(([p]) => altura.test(p)).map(([p, v]) => `${p}: ${v}`));
+    expect(mexem).toEqual(["min-height: var(--co-target-min)"]);
     expect(painel["overflow-wrap"]).toBe("anywhere");
     const fileira = Object.fromEntries(bloco(".co-tabs__list"));
     expect(fileira["overflow-x"]).toBe("auto");
