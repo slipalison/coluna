@@ -576,13 +576,17 @@ it("a faixa tem a área de cima mais um terço, e 0 sem área segura", () => {
   ]);
 });
 
-it("só a faixa e o recuo da rolagem leem a altura dela, e nenhum dos dois lê a área de cima direto", () => {
+it("só a faixa, o recuo da rolagem e a folha de altura cheia leem a altura dela, e nenhum lê a área de cima direto", () => {
   const leem = REGRAS.flatMap((r) =>
     r.declaracoes
       .filter(([p, v]) => p !== "--co-statusbar-height" && v.includes("--co-statusbar-height"))
       .map(([p]) => `${lugar(r)} ${p}`),
   );
-  expect(leem).toEqual([`:root ${RECUO}`, ".co-screen__statusbar height"]);
+  // A terceira, desde a 1.13.0: a folha de altura cheia deixa a faixa do véu
+  // ABAIXO do relógio (ADR-020). Ela é da janela, como a faixa, e lê a altura
+  // resolvida no `:root`, e não a área de cima que o consumidor zera.
+  expect(leem).toEqual([`:root ${RECUO}`, ".co-screen__statusbar height", '.co-sheet[data-size="full"] height']);
+  expect(bloco('.co-sheet[data-size="full"]').filter(([, v]) => /--co-safe-|safe-area-inset/.test(v))).toEqual([]);
   expect(bloco(FAIXA).filter(([, v]) => /--co-safe-|safe-area-inset/.test(v))).toEqual([]);
   expect(
     bloco(":root").filter(([p, v]) => p === RECUO && /--co-safe-|safe-area-inset/.test(v)),

@@ -258,6 +258,15 @@ Alguns que merecem nota:
   nome do título, com o anel por dentro: numa folha só de texto, quem usa
   teclado foca o corpo e rola com as setas e o Page Down. Na `inline`, que não
   rola, nada muda ([ADR-018](docs/adr/018-o-corpo-da-folha-se-rola-pelo-teclado.md)).
+  Desde a 1.13.0, `size="full"` faz da `overlay` o card flutuante em tela
+  cheia: o painel (`data-size="full"`) tem a altura da janela menos uma faixa
+  de 24px do véu abaixo do relógio, e essa altura não muda com o conteúdo —
+  trocar de aba ou de card não faz o painel pular. O cabeçalho e o `footer`
+  ficam fixos, e o corpo ocupa o resto e rola inteiro quando o conteúdo não
+  cabe (320px, letra a 200%). A largura é a de sempre (520px de teto). O padrão
+  é `size="auto"`, a folha de antes; em `inline`, `size` não muda nada. A
+  composição de referência é a história "Receita em tela cheia"
+  ([ADR-020](docs/adr/020-a-folha-de-altura-cheia.md)).
 - **`Deck`** é o carrossel de cards: um card de cada vez, que se troca
   arrastando para os lados, com um giro leve. O gesto nunca é o único caminho:
   embaixo ficam as duas setas (44px, com o limite de controle) e, com o foco no
@@ -266,7 +275,11 @@ Alguns que merecem nota:
   `cardLabel` ("Almoço, 2 de 4"). O indicador marca a vaga cheia com um traço
   largo e as vazias com um anel — forma, e não só cor. Com
   `prefers-reduced-motion` o card não anda com o dedo e nada anima
-  ([ADR-019](docs/adr/019-o-carrossel-de-cards-e-as-abas-no-card.md)).
+  ([ADR-019](docs/adr/019-o-carrossel-de-cards-e-as-abas-no-card.md)). Direto
+  no corpo de uma `Sheet` com `size="full"`, ele cresce até o rodapé e as setas
+  ficam embaixo, no mesmo lugar; e, desde a 1.13.0, o dedo que anda de lado
+  sobre o conteúdo de uma aba também arrasta o card
+  ([ADR-020](docs/adr/020-a-folha-de-altura-cheia.md)).
 - **`Tabs`** são as abas dentro de um card: `tablist`, `tab` e `tabpanel`, com
   setas que dão a volta, Home e End, e a aba focada abre. O painel rola por
   dentro quando o conteúdo não cabe (letra grande, 320px) e é uma parada do

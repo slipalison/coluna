@@ -55,6 +55,10 @@ violação, o PR não entra.
   `prefers-reduced-motion`, nada anda com o dedo (WCAG 2.5.1, 2.5.7; ADR-019).
 - **O painel que rola por dentro é uma parada do Tab**, como o das `Tabs`, com o anel por dentro, e a fileira de abas
   rola de lado dentro de si: a página nunca rola de lado (ADR-019).
+- **A folha de altura cheia não pula e rola inteira**: com `size="full"`, a altura da `Sheet` não muda com o
+  conteúdo, o cabeçalho e o rodapé ficam fixos, e quem rola é o corpo — nada direto nele encolhe para rolar por
+  dentro com uma linha de altura. Dentro de um card do `Deck`, o dedo de lado é do carrossel também sobre o painel
+  de uma aba (ADR-020).
 - **Ícone de ação tem nome acessível**; o × é fechar ou limpar, nunca apagar.
 - **Toda peça funciona a 320 px** sem rolagem lateral e com o texto a 200%.
 - **Os estados vêm prontos**: carregando, vazio, erro, desligado com motivo.

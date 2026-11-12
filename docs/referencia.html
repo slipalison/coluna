@@ -1802,7 +1802,12 @@ div.co-sheet-overlay {
   max-width: 100%;
 }
 
+/* A janela cresce e nunca encolhe: o carrossel que recebe altura (o da folha
+ * de altura cheia, ADR-020) põe as setas embaixo, e o card nunca é cortado na
+ * vertical — quem não cabe faz rolar quem está por fora. Sem altura dada, nada
+ * muda. */
 .co-deck__viewport {
+  flex: 1 0 auto;
   min-width: 0;
   overflow-x: clip;
 }
@@ -1816,6 +1821,15 @@ div.co-sheet-overlay {
 }
 
 .co-deck__card[hidden] { display: none; }
+
+/* O painel das abas é um contêiner de rolagem, e o `touch-action` de quem está
+ * dentro dele só se soma até ele: sem esta regra, o dedo que anda de lado sobre
+ * o conteúdo da aba é do navegador (que não acha o que rolar e cancela o
+ * ponteiro), e o card só se arrasta pelo título (medido no Chromium, ADR-020).
+ * Dentro do card, de lado é do carrossel; na vertical, rola quem rola. */
+.co-deck__card .co-tabs__panel {
+  touch-action: pan-y;
+}
 
 .co-deck__card:focus-visible {
   outline-offset: -2px;
@@ -2842,6 +2856,48 @@ button.co-chip {
   animation: none;
 }
 
+/*
+ * A folha de altura cheia (`size="full"`, só em `overlay`; ADR-020): o card
+ * flutuante em tela cheia.
+ *
+ * - A altura é a da camada menos a faixa do véu que fica à vista em cima: 24px
+ *   abaixo do relógio e da ilha. Ela lê `--co-statusbar-height`, resolvida no
+ *   `:root`, e não `--co-safe-top`, que o consumidor zera debaixo de um aviso
+ *   (ADR-012): a folha é da JANELA, e o relógio não muda de lugar. É `height`,
+ *   e não `max-height`: o painel não muda de tamanho com o conteúdo, e trocar
+ *   de aba ou de card não o faz pular. A área segura de baixo continua sendo o
+ *   `padding-bottom` da folha de sempre.
+ * - A largura é a de sempre (520px de teto): numa janela larga a linha
+ *   continua abaixo de 80 caracteres.
+ * - O corpo ocupa o que sobra entre o cabeçalho e o rodapé, que ficam fixos, e
+ *   é ELE que rola. Ele vira coluna flex para o `Deck` poder crescer até o
+ *   rodapé — e por isso nada que está direto nele encolhe: sem o
+ *   `flex-shrink: 0`, as `Tabs` (que encolhem, `min-height: 0`) cederiam a
+ *   altura e o painel da aba rolaria por dentro com uma linha de altura, a
+ *   320px e com a letra a 200%.
+ */
+.co-sheet[data-size="full"] {
+  height: calc(100% - var(--co-statusbar-height) - var(--co-space-24));
+  max-height: none;
+}
+
+.co-sheet[data-size="full"] > .co-sheet__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.co-sheet[data-size="full"] > .co-sheet__body > * {
+  flex-shrink: 0;
+}
+
+/* O carrossel direto no corpo cresce até o rodapé: as setas ficam embaixo, no
+ * mesmo lugar, qualquer que seja a altura do card ou da aba aberta. */
+.co-sheet[data-size="full"] > .co-sheet__body > .co-deck {
+  flex-grow: 1;
+}
+
 @keyframes co-sheet-subir {
   from {
     transform: translateY(var(--co-space-16));
@@ -3415,7 +3471,7 @@ pre code { background: none; border: 0; padding: 0; }
   <header class="topo">
     <div class="marca">
       <span class="marca__nome">Coluna</span>
-      <span class="co-badge" data-tone="accent">v1.11.2</span>
+      <span class="co-badge" data-tone="accent">v1.12.0</span>
     </div>
     <div class="co-segmented" role="radiogroup" aria-label="Tema" id="tema">
       <button type="button" role="radio" class="co-segmented__option" aria-checked="false" data-tema="light">Claro</button>

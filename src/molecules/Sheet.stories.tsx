@@ -4,9 +4,11 @@ import { Button } from "../atoms/Button";
 import { SearchField } from "../atoms/SearchField";
 import { Stack } from "../atoms/Stack";
 import { Text } from "../atoms/Text";
+import { Deck } from "./Deck";
 import { Group } from "./Group";
 import { ListRow } from "./ListRow";
 import { Sheet } from "./Sheet";
+import { Tabs } from "./Tabs";
 
 /**
  * O painel que abre por cima (telefone) ou por dentro (desktop).
@@ -343,4 +345,202 @@ export const SoDeLeituraEscuro: Story = {
   name: "Só de leitura — escuro",
   globals: { tema: "dark" },
   render: () => <FolhaDeLeitura />,
+};
+
+const RECEITAS = [
+  {
+    prato: "Arroz, feijão e frango grelhado",
+    ingredientes: [
+      ["Arroz branco cozido", "150 g"],
+      ["Feijão carioca cozido", "120 g"],
+      ["Peito de frango grelhado", "140 g"],
+      ["Alface e tomate", "80 g"],
+      ["Azeite de oliva", "5 g"],
+      ["Banana prata", "70 g"],
+    ],
+    preparo: [
+      "Tempere o frango com alho e sal e grelhe por quatro minutos de cada lado.",
+      "Aqueça o arroz e o feijão.",
+      "Monte o prato com a salada e regue com o azeite.",
+    ],
+    macros: [
+      ["Energia", "620 kcal"],
+      ["Proteína", "48 g"],
+      ["Carboidrato", "72 g"],
+      ["Gordura", "12 g"],
+    ],
+  },
+  {
+    prato: "Macarrão com carne moída",
+    ingredientes: [
+      ["Macarrão cozido", "180 g"],
+      ["Carne moída refogada", "120 g"],
+      ["Molho de tomate", "80 g"],
+      ["Cebola", "30 g"],
+      ["Queijo ralado", "10 g"],
+      ["Laranja", "130 g"],
+    ],
+    preparo: [
+      "Refogue a cebola e a carne até dourar.",
+      "Junte o molho de tomate e cozinhe por dez minutos.",
+      "Misture ao macarrão e finalize com o queijo.",
+    ],
+    macros: [
+      ["Energia", "640 kcal"],
+      ["Proteína", "42 g"],
+      ["Carboidrato", "78 g"],
+      ["Gordura", "16 g"],
+    ],
+  },
+  {
+    prato: "Omelete de legumes com batata",
+    ingredientes: [
+      ["Ovo inteiro", "150 g"],
+      ["Batata cozida", "200 g"],
+      ["Espinafre", "50 g"],
+      ["Tomate", "60 g"],
+      ["Azeite de oliva", "5 g"],
+      ["Mamão", "120 g"],
+    ],
+    preparo: [
+      "Refogue o espinafre e o tomate no azeite.",
+      "Junte os ovos batidos e deixe firmar em fogo baixo.",
+      "Sirva com a batata cozida.",
+    ],
+    macros: [
+      ["Energia", "590 kcal"],
+      ["Proteína", "30 g"],
+      ["Carboidrato", "70 g"],
+      ["Gordura", "20 g"],
+    ],
+  },
+] as const;
+
+function CardDaReceita({ receita }: Readonly<{ receita: (typeof RECEITAS)[number] }>) {
+  return (
+    <Stack gap={12}>
+      <Text variant="headline" as="h3">
+        {receita.prato}
+      </Text>
+      <Tabs
+        label={`Receita: ${receita.prato}`}
+        items={[
+          {
+            value: "ingredientes",
+            label: "Ingredientes",
+            content: (
+              <Group inset="text">
+                {receita.ingredientes.map(([alimento, quanto]) => (
+                  <ListRow key={alimento} trailing={quanto}>
+                    {alimento}
+                  </ListRow>
+                ))}
+              </Group>
+            ),
+          },
+          {
+            value: "preparo",
+            label: "Preparo",
+            content: (
+              <ol style={{ margin: 0, paddingInlineStart: "1.25em" }}>
+                {receita.preparo.map((passo) => (
+                  <li key={passo}>
+                    <Text>{passo}</Text>
+                  </li>
+                ))}
+              </ol>
+            ),
+          },
+          {
+            value: "macros",
+            label: "Macros",
+            content: (
+              <Group inset="text">
+                {receita.macros.map(([macro, quanto]) => (
+                  <ListRow key={macro} trailing={quanto}>
+                    {macro}
+                  </ListRow>
+                ))}
+              </Group>
+            ),
+          },
+        ]}
+      />
+    </Stack>
+  );
+}
+
+function ReceitaEmTelaCheia() {
+  const [aberto, definir] = useState(true);
+  return (
+    <>
+      <Stack gap={12}>
+        <Text variant="title-lg">Almoço</Text>
+        <Button onClick={() => definir(true)}>Ver a receita</Button>
+      </Stack>
+
+      <Sheet
+        open={aberto}
+        onClose={() => definir(false)}
+        title="Almoço"
+        size="full"
+        footer={
+          <>
+            <Button variant="secondary" full onClick={() => definir(false)}>
+              Trocar
+            </Button>
+            <Button full onClick={() => definir(false)}>
+              Comi
+            </Button>
+          </>
+        }
+      >
+        <Deck
+          label="Receitas do almoço"
+          previousLabel="Receita anterior"
+          nextLabel="Próxima receita"
+          cardLabel={(i, total) => `${RECEITAS[i]?.prato ?? ""}, ${i + 1} de ${total}`}
+        >
+          {RECEITAS.map((receita) => (
+            <CardDaReceita key={receita.prato} receita={receita} />
+          ))}
+        </Deck>
+      </Sheet>
+    </>
+  );
+}
+
+/** A folha de altura cheia gruda na janela: na página de documentação, cada história abre na própria moldura. */
+const NA_PROPRIA_MOLDURA = { docs: { story: { inline: false, height: "852px" } } };
+
+/**
+ * O card flutuante em tela cheia (`size="full"`, ADR-020) — a receita de uma
+ * refeição no telefone (slipalison/basalto#155). É a composição de referência:
+ * a `Sheet` com um `Deck` de três receitas direto no corpo, cada card com as
+ * `Tabs` (Ingredientes, Preparo, Macros), e dois botões no `footer`. Nenhum
+ * estilo além das peças.
+ *
+ * **O que conferir.** O painel tem a altura da janela menos a faixa do véu em
+ * cima, e não muda de tamanho ao trocar de aba ou de receita: o cabeçalho e o
+ * rodapé ficam onde estão, e as setas do carrossel ficam embaixo. Num iPhone 16
+ * (393×852), as seis linhas de ingrediente aparecem sem rolagem nenhuma.
+ * Estreite a janela até 320px e ponha o zoom em 200%: quem rola é o corpo da
+ * folha, inteiro — nunca o painel da aba com uma linha de altura —, e a página
+ * não rola de lado. Arrastar o card para os lados troca de receita; para cima
+ * e para baixo, rola o corpo.
+ *
+ * Em `inline`, `size` não muda nada.
+ */
+export const TelaCheiaClaro: Story = {
+  name: "Receita em tela cheia — claro",
+  globals: { tema: "light" },
+  parameters: NA_PROPRIA_MOLDURA,
+  render: () => <ReceitaEmTelaCheia />,
+};
+
+export const TelaCheiaEscuro: Story = {
+  name: "Receita em tela cheia — escuro",
+  globals: { tema: "dark" },
+  parameters: NA_PROPRIA_MOLDURA,
+  render: () => <ReceitaEmTelaCheia />,
 };
