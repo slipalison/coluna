@@ -24,6 +24,24 @@ export interface SheetProps {
    * de uma moldura posicionada — a pré-visualização de aparelho no catálogo.
    */
   position?: "fixed" | "absolute";
+  /**
+   * A altura do painel em `overlay` (ADR-020).
+   *
+   * - `auto` (padrão): a altura é a do conteúdo, até 88% da janela.
+   * - `full`: o card flutuante em tela cheia. O painel ocupa a janela inteira
+   *   menos uma faixa do véu no topo (24px abaixo do relógio e da ilha), com a
+   *   área segura de baixo por dentro. A altura é ESTÁVEL: não muda com o
+   *   conteúdo, então trocar de aba ou de card no corpo não faz o painel
+   *   pular. O cabeçalho e o `footer` ficam fixos, e o corpo ocupa o resto e
+   *   rola INTEIRO quando o conteúdo não cabe (320px, letra a 200%): nada que
+   *   está direto nele encolhe para rolar por dentro. Um `Deck` direto no
+   *   corpo cresce até o rodapé, com as setas embaixo.
+   *
+   * A largura não muda: os mesmos 520px de teto, e a linha continua curta numa
+   * janela larga. Em `inline`, `size` não muda nada: o painel abre no fluxo,
+   * com a altura do conteúdo, e não há janela para encher.
+   */
+  size?: "auto" | "full";
   /** A faixa de ações no rodapé do painel. */
   footer?: ReactNode;
   /**
@@ -94,6 +112,9 @@ const FOCALIZAVEIS = [
  *
  * Em `overlay`, o corpo que rola é uma parada do Tab, uma região com o nome do
  * título: é assim que quem usa teclado rola uma folha só de texto (ADR-018).
+ *
+ * Com `size="full"`, a `overlay` é o card flutuante em tela cheia: altura
+ * estável, cabeçalho e rodapé fixos, e o corpo que rola inteiro (ADR-020).
  */
 export function Sheet({
   open,
@@ -102,6 +123,7 @@ export function Sheet({
   children,
   mode = "overlay",
   position = "fixed",
+  size = "auto",
   footer,
   initialFocus,
   className,
@@ -166,6 +188,7 @@ export function Sheet({
       ref={painel}
       className={classe}
       data-mode={sobreposto ? undefined : "inline"}
+      data-size={sobreposto && size === "full" ? "full" : undefined}
       role={sobreposto ? "dialog" : "group"}
       aria-modal={sobreposto ? true : undefined}
       aria-labelledby={idTitulo}

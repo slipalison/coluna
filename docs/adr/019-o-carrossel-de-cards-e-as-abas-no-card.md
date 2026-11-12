@@ -96,3 +96,24 @@ o padrão do WAI-ARIA, e todo limiar do piso que elas tocam é provado em
   de abas rolando dentro de si; o painel de "Preparo" rola por dentro (522px de
   conteúdo em 173px) e o End, com o foco nele, leva-o para baixo; a seta, o
   teclado e o arrasto trocam de card, e o foco chega ao card novo.
+
+## Adendo (2026-11-12) — o painel é alvo, e não mede menos que o piso
+
+O painel das `Tabs` é parada do Tab (`tabIndex={0}`, acima), e toda parada do
+Tab é um alvo. Ele encolhia até zero (`min-height: 0`), e com conteúdo curto
+ficava abaixo do piso: a guarda de UX do Basalto mediu 22,5px na aba "Preparo"
+com um passo só e 43,5px em "Ingredientes" com um alimento
+(slipalison/basalto#155), contra 44px no toque e 24px com ponteiro.
+
+O painel passa a encolher até `--co-target-min`, e não até zero:
+`min-height: var(--co-target-min)` na própria `.co-tabs__panel`, em qualquer
+contexto — solto, num card de altura fixa, com ou sem
+`--co-tabs-panel-max-height`, dentro do `Deck` e da folha de altura cheia
+(ADR-020). O piso mora na peça, e nenhuma tela precisa lembrar dele (ADR-016).
+O que não muda: o painel continua rolando por dentro quando o conteúdo não
+cabe, e as `Tabs` (`.co-tabs`) continuam encolhendo.
+
+A medida no navegador (Chromium do Playwright, claro e escuro, 393px com toque
+e 1280px com ponteiro): o painel com uma linha de texto, ou com um passo de
+preparo, mede 44px (antes, 22,5px); num card de 100px de altura em coluna flex,
+44px (antes, 0); com seis linhas, 238px, antes e depois.
