@@ -558,7 +558,7 @@ div.co-sheet-overlay {
 }
 
 .co-text[data-variant="body"] {
-  font-size: var(--co-text-15);
+  font-size: var(--co-text-16);
 }
 
 .co-text[data-variant="callout"] {
@@ -570,11 +570,11 @@ div.co-sheet-overlay {
 }
 
 .co-text[data-variant="footnote"] {
-  font-size: var(--co-text-12);
+  font-size: var(--co-text-14);
 }
 
 .co-text[data-variant="caption"] {
-  font-size: var(--co-text-11);
+  font-size: var(--co-text-12);
   line-height: var(--co-leading-note);
 }
 
@@ -582,17 +582,18 @@ div.co-sheet-overlay {
  * bloco do outro sem precisar de linha nem de caixa — e é por isso que este
  * sistema tem tão pouca borda. */
 .co-text[data-variant="label"] {
-  font-size: var(--co-text-11);
+  font-size: var(--co-text-12);
   font-weight: var(--co-weight-semibold);
   letter-spacing: var(--co-tracking-label);
   text-transform: uppercase;
   color: var(--co-text-subtle);
 }
 
-/* O mesmo papel, um degrau abaixo: nomeia o grupo alimentar dentro da linha,
- * não a seção da tela. */
+/* O mesmo papel, dentro da linha: nomeia o grupo, não a seção da tela. Já foi
+ * um degrau abaixo (10px); o piso do versalete é 12px, e o que o separa do
+ * rótulo de seção agora é o espaçamento menor e o lugar, não a letra (ADR-021). */
 .co-text[data-variant="micro"] {
-  font-size: var(--co-text-10);
+  font-size: var(--co-text-12);
   font-weight: var(--co-weight-semibold);
   letter-spacing: var(--co-tracking-micro);
   text-transform: uppercase;
@@ -1043,7 +1044,7 @@ div.co-sheet-overlay {
   border: var(--co-border-width) solid transparent;
   border-radius: var(--co-radius-pill);
   background: var(--co-surface-raised);
-  font-size: var(--co-text-11);
+  font-size: var(--co-text-12);
   font-weight: var(--co-weight-semibold);
   color: var(--co-text-secondary);
   white-space: nowrap;
@@ -1858,7 +1859,9 @@ div.co-sheet-overlay {
   background: transparent;
   color: var(--co-text-muted);
   font-family: inherit;
-  font-size: var(--co-text-10);
+  /* 11px é o piso do rótulo da barra de abas, a convenção do iOS, e só ele
+   * fica abaixo dos 12px do resto do sistema (ADR-021). */
+  font-size: var(--co-text-11);
   cursor: pointer;
 }
 
@@ -2038,7 +2041,7 @@ div.co-sheet-overlay {
   margin: 0;
   color: var(--co-danger);
   font-family: var(--co-font-body);
-  font-size: var(--co-text-12);
+  font-size: var(--co-text-14);
   line-height: var(--co-leading-note);
 }
 
@@ -2233,7 +2236,7 @@ div.co-sheet-overlay {
   background: var(--co-surface-sunken);
   color: var(--co-text-subtle);
   font-family: var(--co-font-body);
-  font-size: var(--co-text-11);
+  font-size: var(--co-text-12);
   line-height: var(--co-leading-normal);
   text-align: center;
 }
@@ -2733,12 +2736,12 @@ button.co-chip {
  * (WCAG 2.2, 2.4.11). O Tab, a âncora e o `scrollIntoView` param abaixo dela.
  */
 .co-sheet__body:has(.co-search-field) {
-  scroll-padding-top: calc(var(--co-space-4) + var(--co-text-15) * var(--co-leading-normal) + var(--co-space-6)
+  scroll-padding-top: calc(var(--co-space-4) + var(--co-text-16) * var(--co-leading-normal) + var(--co-space-6)
     + var(--co-target-min) + var(--co-space-8) + var(--co-space-4));
 }
 
 .co-sheet__body:has(.co-search[data-size="lg"]) {
-  scroll-padding-top: calc(var(--co-space-4) + var(--co-text-15) * var(--co-leading-normal) + var(--co-space-6)
+  scroll-padding-top: calc(var(--co-space-4) + var(--co-text-16) * var(--co-leading-normal) + var(--co-space-6)
     + 52px + var(--co-space-8) + var(--co-space-4));
 }
 
@@ -2924,7 +2927,7 @@ fieldset.co-nav-list {
   background: transparent;
   color: var(--co-text-muted);
   font-family: var(--co-font-body);
-  font-size: var(--co-text-14);
+  font-size: var(--co-text-16);
   text-align: left;
   cursor: pointer;
 }

@@ -26,6 +26,10 @@ import { avaliar, bloco, paddingQueVale, partes, REGRAS, SEM_AREA, type Regra } 
  * esta conta acha os mesmos 28 estados que o Chromium e o WebKit acharam na
  * história "Com busca presa" com o conserto anulado; com ela, nenhum. O número
  * medido na tela é do navegador.
+ *
+ * Desde o ADR-021 o rótulo sai na letra de corpo de 16px, e não de 15px: uma
+ * linha de 24px, e não de 22,5px. A isca acha então 30 estados (5 a 34), e não
+ * 28 (5 a 32): o rótulo maior fica fora do recorte por mais 2px de rolagem.
  */
 
 const CORPO = 549;
@@ -167,19 +171,20 @@ function trocar(seletor: string, troca: (declaracoes: Regra["declaracoes"]) => R
 describe("a busca presa no topo da folha", () => {
   it("rolada píxel a píxel, a moldura nunca fica à vista sem o rótulo, e o foco para abaixo dela", () => {
     // Antes de tudo, que a conta mediu alguma coisa: a faixa e as medidas que
-    // ela lê existem, e dão a faixa que o Chromium mediu (84,5px no md).
+    // ela lê existem, e dão a faixa que o Chromium mediu (84,5px no md, com
+    // a letra de corpo de 15px; 86px com a de 16px, ADR-021).
     const m = medidas("md");
-    expect(m).toEqual({ respiroDoCorpo: 4, rotulo: 22.5, vao: 6, moldura: 44 });
+    expect(m).toEqual({ respiroDoCorpo: 4, rotulo: 24, vao: 6, moldura: 44 });
     expect(faixa(REGRAS).presa).toBe(true);
     expect(faltas(REGRAS)).toEqual([]);
   });
 
-  it("a isca: sem a regra presa, a conta acha os 28 estados que o Basalto mediu", () => {
+  it("a isca: sem a regra presa, a conta acha os estados que o Basalto mediu, com o rótulo de 16px", () => {
     const isca = REGRAS.filter((r) => !r.seletores.includes(SELETOR) && !r.seletores.includes(SELETOR_INLINE));
-    expect(estadosSemRotulo(isca, "md")).toEqual(Array.from({ length: 28 }, (_, k) => k + 5));
+    expect(estadosSemRotulo(isca, "md")).toEqual(Array.from({ length: 30 }, (_, k) => k + 5));
     expect(faltas(isca)).toEqual([
-      "md: 28 estados com a moldura à vista e o rótulo fora do recorte (scrollTop 5 a 32)",
-      "lg: 28 estados com a moldura à vista e o rótulo fora do recorte (scrollTop 5 a 32)",
+      "md: 30 estados com a moldura à vista e o rótulo fora do recorte (scrollTop 5 a 34)",
+      "lg: 30 estados com a moldura à vista e o rótulo fora do recorte (scrollTop 5 a 34)",
       "camada: z-index auto deixa a lista pintar por cima da busca",
       "fundo: nenhum e não o da folha (var(--co-surface))",
       "fundo inline: nenhum e não o da folha (var(--co-surface-sunken))",
@@ -205,15 +210,15 @@ describe("a busca presa no topo da folha", () => {
     // inteiro: o que segura o rótulo é a faixa presa, e não o respiro.
     const solta = trocar(SELETOR, (d) => d.map(([p, v]) => [p, p === "position" ? "static" : v] as const));
     expect(faltas(solta)).toEqual([
-      "md: 28 estados com a moldura à vista e o rótulo fora do recorte (scrollTop 5 a 32)",
-      "lg: 28 estados com a moldura à vista e o rótulo fora do recorte (scrollTop 5 a 32)",
+      "md: 30 estados com a moldura à vista e o rótulo fora do recorte (scrollTop 5 a 34)",
+      "lg: 30 estados com a moldura à vista e o rótulo fora do recorte (scrollTop 5 a 34)",
     ]);
 
     const recuoCurto = trocar(RECUO, (d) => d.map(([p, v]) => [p, p === "scroll-padding-top" ? "80px" : v] as const));
-    expect(faltas(recuoCurto)).toEqual(["md: o foco para a 80px, por baixo da faixa de 84.5px mais o anel"]);
+    expect(faltas(recuoCurto)).toEqual(["md: o foco para a 80px, por baixo da faixa de 86px mais o anel"]);
 
     const semRecuoLg = REGRAS.filter((r) => !r.seletores.includes(RECUO_LG));
-    expect(faltas(semRecuoLg)).toEqual(["lg: o foco para a 88.5px, por baixo da faixa de 92.5px mais o anel"]);
+    expect(faltas(semRecuoLg)).toEqual(["lg: o foco para a 90px, por baixo da faixa de 94px mais o anel"]);
   });
 
   it.each(["overlay", "inline"] as const)(

@@ -114,7 +114,7 @@ export function NavList<T extends string>({
                       as="span"
                       id={`${id}-descricao`}
                       className="co-nav-list__description"
-                      variant="caption"
+                      variant="callout"
                       tone="subtle"
                     >
                       {item.description}

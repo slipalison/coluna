@@ -68,7 +68,7 @@ function Amostra({ token, de }: { token: SemanticToken; de: Element | null }) {
         <Text variant="caption" style={{ fontFamily: "ui-monospace, Menlo, monospace" }}>
           --co-{token}
         </Text>
-        <Text variant="caption" tone="muted" numeric style={{ fontSize: "11px" }}>
+        <Text variant="caption" tone="muted" numeric>
           {valor || "—"}
         </Text>
       </Stack>
@@ -115,7 +115,7 @@ export const Espaço: Story = {
       {ESPACOS.map((n) => (
         <Stack key={n} gap={6} align="center">
           <div style={{ width: `${n}px`, height: "16px", background: "var(--co-accent)" }} />
-          <Text variant="caption" tone="muted" numeric style={{ fontSize: "10px" }}>
+          <Text variant="caption" tone="muted" numeric>
             {n}
           </Text>
         </Stack>
@@ -144,7 +144,7 @@ export const Forma: Story = {
                 borderRadius: `var(--co-radius-${r})`,
               }}
             />
-            <Text variant="caption" tone="muted" style={{ fontSize: "10px" }}>
+            <Text variant="caption" tone="muted">
               radius-{r}
             </Text>
           </Stack>

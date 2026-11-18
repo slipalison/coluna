@@ -10,11 +10,13 @@
 
   "text-10": {
     "$type": "dimension",
-    "$value": "10px"
+    "$value": "10px",
+    "$description": "Abaixo do piso de letra: nenhum componente o usa desde o ADR-021. Fica porque quem consome pode ler o nome; nao serve para texto."
   },
   "text-11": {
     "$type": "dimension",
-    "$value": "11px"
+    "$value": "11px",
+    "$description": "So o rotulo da barra de abas, com o piso de 11px da convencao do iOS (ADR-021)."
   },
   "text-12": {
     "$type": "dimension",

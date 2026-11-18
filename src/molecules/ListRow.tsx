@@ -50,13 +50,14 @@ export interface ListRowProps {
 }
 
 /**
- * A linha de baixo, na tipografia da descrição do `NavList`. Sem texto, nada:
- * nenhum nó a mais no corpo.
+ * A linha de baixo, na tipografia da descrição do `NavList`: `callout`, porque
+ * é o texto secundário da linha, e o piso dele é 14px (ADR-021). Sem texto,
+ * nada: nenhum nó a mais no corpo.
  */
 function LinhaDeBaixo({ children }: Readonly<{ children: ReactNode }>) {
   if (children === undefined) return null;
   return (
-    <Text as="span" className="co-list-row__description" variant="caption" tone="subtle">
+    <Text as="span" className="co-list-row__description" variant="callout" tone="subtle">
       {children}
     </Text>
   );
