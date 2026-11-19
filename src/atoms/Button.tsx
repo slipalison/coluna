@@ -4,7 +4,8 @@ import { Icon, type IconName } from "./Icon";
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 /**
- * Só dois tamanhos, e o menor tem 44px.
+ * Só dois tamanhos (plano s7, ADR-022): no aparelho de toque, o comum (`md`)
+ * tem 44px e o principal (`lg`) 50px; com ponteiro fino, o desktop, 40 e 46px.
  *
  * Não existe `sm` nesta API, e a ausência é a decisão: 44px é o alvo mínimo
  * que um polegar acerta. Um botão de 32px passa no desenho, some no uso, e

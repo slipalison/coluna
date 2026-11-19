@@ -16,6 +16,12 @@ import tokensCss from "./tokens/tokens.css?raw";
  *   `prefers-reduced-motion` respeitado.
  */
 
+/** As declarações dos blocos do nível de cima com este seletor, juntas na ordem. */
+const noTopo = (seletor: string) =>
+  REGRAS.filter((r) => r.profundidade === 0 && r.seletores.length === 1 && r.seletores[0] === seletor).flatMap(
+    (r) => r.declaracoes,
+  );
+
 const TOKENS = Object.fromEntries(
   [...tokensCss.matchAll(/(--co-[\w-]+)\s*:\s*([^;]+);/g)].map((achado) => [achado[1] ?? "", (achado[2] ?? "").trim()]),
 );
@@ -137,7 +143,7 @@ describe("o movimento", () => {
     expect(Object.fromEntries(bloco('.co-button:active:not(:disabled):not([aria-disabled="true"])'))).toEqual({
       transform: "scale(0.97)",
     });
-    expect(Object.fromEntries(bloco(".co-button"))["transition"]).toContain(
+    expect(Object.fromEntries(noTopo(".co-button"))["transition"]).toContain(
       "transform var(--co-duration-press) var(--co-ease-settle)",
     );
   });

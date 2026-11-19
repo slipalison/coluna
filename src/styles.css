@@ -916,9 +916,12 @@ div.co-sheet-overlay {
   align-items: center;
   justify-content: center;
   gap: var(--co-space-8);
-  /* O piso de 44px é do sistema, não do componente: não existe tamanho menor
-   * na API. Um alvo de 32px passa no desenho e falha no polegar. */
-  min-height: var(--co-target-min);
+  /* A altura é do sistema, não do componente: não existe tamanho menor na
+   * API. No toque, o comum tem os 44px do alvo e o principal 50px; com
+   * ponteiro fino (o desktop), 40 e 46px (plano s7, ADR-022), no `@media` de
+   * toque e ponteiro, mais abaixo. Um alvo de 32px passa no desenho e falha no
+   * polegar. */
+  min-height: var(--co-button-height);
   padding: 0 var(--co-space-14);
   border: var(--co-border-width) solid transparent;
   border-radius: var(--co-radius-control);
@@ -941,7 +944,7 @@ div.co-sheet-overlay {
 }
 
 .co-button[data-size="lg"] {
-  min-height: 52px;
+  min-height: var(--co-button-height-lg);
   padding: 0 var(--co-space-20);
   font-size: var(--co-text-17);
 }
@@ -1013,17 +1016,17 @@ div.co-sheet-overlay {
 /* ----------------------------------------------------------- botão-ícone --- */
 
 /*
- * Quadrado, com o mesmo piso de 44px do botão. O `lg` tem os 52px do
- * `Button size="lg"`, para os dois ficarem da mesma altura lado a lado —
- * "Registrar" e o marcador de favorito.
+ * Quadrado, com a altura do botão: 44px no toque e 40px com ponteiro fino, e
+ * o `lg` com a do `Button size="lg"` (50 e 46px), para os dois ficarem da
+ * mesma altura lado a lado — "Registrar" e o marcador de favorito.
  */
 .co-icon-button {
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: var(--co-target-min);
-  height: var(--co-target-min);
+  width: var(--co-button-height);
+  height: var(--co-button-height);
   padding: 0;
   border: 0;
   border-radius: var(--co-radius-control);
@@ -1035,8 +1038,8 @@ div.co-sheet-overlay {
 }
 
 .co-icon-button[data-size="lg"] {
-  width: 52px;
-  height: 52px;
+  width: var(--co-button-height-lg);
+  height: var(--co-button-height-lg);
 }
 
 .co-icon-button:hover:not(:disabled):not([aria-disabled="true"]) {
@@ -3047,7 +3050,10 @@ fieldset.co-nav-list {
 /*
  * O aparelho de toque é o padrão, e o ponteiro fino (o desktop, com mouse ou
  * trackpad) ganha a escala dele (plano s7, ADR-022): o título de tela sobe de
- * 26 para 30px. A pergunta é o PONTEIRO, e não a largura: o telefone deitado
+ * 26 para 30px, e o botão desce de 44 para 40px (o principal, de 50 para
+ * 46px), acima dos 24px que o WCAG 2.5.8 pede com ponteiro. Só o botão e o
+ * botão-ícone mudam: campo, busca, chip e segmentado ficam nos 44px do toque,
+ * que o plano não muda. A pergunta é o PONTEIRO, e não a largura: o telefone deitado
  * continua sendo de toque, e o layout de celular dele também (s7, "Área
  * segura"). Sem a media query (um navegador que não responde a ela), vale o
  * de toque, que é o maior alvo.
@@ -3055,6 +3061,24 @@ fieldset.co-nav-list {
 @media (pointer: fine) {
   .co-text[data-variant="title-lg"] {
     font-size: var(--co-text-30);
+  }
+
+  .co-button {
+    min-height: var(--co-button-height-fine);
+  }
+
+  .co-button[data-size="lg"] {
+    min-height: var(--co-button-height-lg-fine);
+  }
+
+  .co-icon-button {
+    width: var(--co-button-height-fine);
+    height: var(--co-button-height-fine);
+  }
+
+  .co-icon-button[data-size="lg"] {
+    width: var(--co-button-height-lg-fine);
+    height: var(--co-button-height-lg-fine);
   }
 }
 

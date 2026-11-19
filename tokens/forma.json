@@ -49,6 +49,26 @@
     "$type": "dimension",
     "$value": "44px"
   },
+  "button-height": {
+    "$type": "dimension",
+    "$value": "44px",
+    "$description": "O botao comum no aparelho de toque (plano s7): o alvo minimo."
+  },
+  "button-height-lg": {
+    "$type": "dimension",
+    "$value": "50px",
+    "$description": "O botao principal no aparelho de toque (plano s7): o grande do iOS."
+  },
+  "button-height-fine": {
+    "$type": "dimension",
+    "$value": "40px",
+    "$description": "O botao comum com ponteiro fino, o desktop (plano s7). Acima dos 24px do WCAG 2.5.8."
+  },
+  "button-height-lg-fine": {
+    "$type": "dimension",
+    "$value": "46px",
+    "$description": "O botao principal com ponteiro fino, o desktop (plano s7)."
+  },
   "inset-none": {
     "$type": "other",
     "$value": "0"
