@@ -1,18 +1,52 @@
 {
-  "duration-fast": {
+  "duration-press": {
     "$type": "duration",
-    "$value": "120ms"
+    "$value": "90ms",
+    "$description": "A resposta ao toque (escala 0,97): sempre abaixo de 100ms."
   },
-  "duration-normal": {
+  "duration-quick": {
     "$type": "duration",
-    "$value": "180ms"
+    "$value": "160ms",
+    "$description": "Hover, troca de estado, chip."
+  },
+  "duration-base": {
+    "$type": "duration",
+    "$value": "260ms",
+    "$description": "Entrada de bloco, conteudo da folha, troca de tema."
   },
   "duration-slow": {
     "$type": "duration",
-    "$value": "220ms"
+    "$value": "420ms",
+    "$description": "Folha, tela, painel."
   },
-  "ease": {
+  "duration-roll": {
+    "$type": "duration",
+    "$value": "700ms",
+    "$description": "O numero que rola."
+  },
+  "duration-reduced": {
+    "$type": "duration",
+    "$value": "120ms",
+    "$description": "Com prefers-reduced-motion: deslocamento e escala viram este esmaecer."
+  },
+  "ease-settle": {
     "$type": "other",
-    "$value": "cubic-bezier(0.2, 0, 0, 1)"
+    "$value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+    "$description": "A entrada (o padrao): a pedra assenta."
+  },
+  "ease-spring": {
+    "$type": "other",
+    "$value": "cubic-bezier(0.34, 1.45, 0.64, 1)",
+    "$description": "O selo, a celula do prato, o check de feita."
+  },
+  "ease-move": {
+    "$type": "other",
+    "$value": "cubic-bezier(0.65, 0, 0.35, 1)",
+    "$description": "O deslocamento entre posicoes (carrossel, indicador)."
+  },
+  "ease-exit": {
+    "$type": "other",
+    "$value": "cubic-bezier(0.4, 0, 1, 1)",
+    "$description": "A saida, mais curta que a entrada."
   }
 }

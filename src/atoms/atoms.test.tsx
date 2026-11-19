@@ -626,8 +626,8 @@ describe("SearchField dentro da folha", () => {
     // existir PARADO — não só com o foco dentro, que é quando a pessoa já
     // achou o campo.
     const contorno = bloco(".co-search").filter(([p]) => BORDA.test(p));
-    expect(contorno).toEqual([["border", "var(--co-border-width) solid var(--co-control)"]]);
-    expect(avaliar("var(--co-border-width)", TOKENS)).toBeGreaterThan(0);
+    expect(contorno).toEqual([["border", "var(--co-control-width) solid var(--co-control)"]]);
+    expect(avaliar("var(--co-control-width)", TOKENS)).toBeGreaterThan(0);
     expect(TOKENS["--co-control"], "o token de limite existe no CSS gerado").toMatch(/\S/);
 
     // Nenhuma regra que alcança a moldura — a da folha inclusive
@@ -644,7 +644,7 @@ describe("SearchField dentro da folha", () => {
     // (um `--co-control: transparent` dentro de `.co-sheet`).
     const redeclaram = REGRAS.flatMap((r) =>
       r.declaracoes
-        .filter(([p]) => p === "--co-control" || p === "--co-border-width")
+        .filter(([p]) => p === "--co-control" || p === "--co-control-width" || p === "--co-border-width")
         .map(([p]) => `${lugar(r)} ${p}`),
     );
     expect(redeclaram, "tokens de contorno redeclarados na folha").toEqual([]);
@@ -669,7 +669,7 @@ describe("SearchField dentro da folha", () => {
         <SearchField label="Buscar receita" size="lg" />
       </>,
     );
-    const borda = avaliar("var(--co-border-width)", TOKENS);
+    const borda = avaliar("var(--co-control-width)", TOKENS);
     for (const [tamanho, variante] of [
       ["md", []],
       ["lg", ['.co-search[data-size="lg"]']],
@@ -925,10 +925,10 @@ function oControleOcupaAMoldura({ moldura, controle, area, porCima }: Moldura): 
     `${c} { grid-area: ${area} }`,
     `${c} { place-self: stretch }`,
     `${c} { width: auto }`,
-    `${c} { margin: calc(-1 * var(--co-border-width)) }`,
+    `${c} { margin: calc(-1 * var(--co-control-width)) }`,
   ];
   if (lugarDoControle.join() !== esperado.join()) faltas.push(`lugar do controle: ${lugarDoControle.join("; ")}`);
-  if (partes(oValorDe(m, "border"))[0] !== "var(--co-border-width)") faltas.push("borda da moldura");
+  if (partes(oValorDe(m, "border"))[0] !== "var(--co-control-width)") faltas.push("borda da moldura");
 
   // O que fica por cima mora numa célula da área do controle e deixa o toque
   // passar para ele.
@@ -997,7 +997,7 @@ describe("a moldura do campo", () => {
       // O respiro dos lados é do controle, e o do fim é o que a peça de cima
       // ocupa: sem a medida, o da moldura; com ela, a medida inteira.
       const c = `.${moldura.controle}`;
-      const borda = avaliar("var(--co-border-width)", TOKENS);
+      const borda = avaliar("var(--co-control-width)", TOKENS);
       const semFim = paddingQueVale(bloco(c), TOKENS);
       expect(semFim.esquerda - borda, `${c} respiro do começo`).toBeGreaterThanOrEqual(14);
       expect(semFim.direita - borda, `${c} respiro do fim`).toBeGreaterThanOrEqual(14);

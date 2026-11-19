@@ -5,15 +5,28 @@
   },
   "radius-inset": {
     "$type": "dimension",
-    "$value": "9px"
+    "$value": "10.5px",
+    "$description": "O que mora dentro de um trilho de controle: raio interno = raio externo - folga (14 - 1,5 de limite - 2 de respiro). ADR-004, ADR-022."
   },
   "radius-control": {
     "$type": "dimension",
-    "$value": "12px"
+    "$value": "14px",
+    "$description": "O que se toca: botao, campo (ADR-022)."
   },
   "radius-container": {
     "$type": "dimension",
-    "$value": "16px"
+    "$value": "22px",
+    "$description": "A vitrine que segura conteudo: cartao, grupo, aviso (ADR-022)."
+  },
+  "radius-sheet": {
+    "$type": "dimension",
+    "$value": "28px",
+    "$description": "A folha que sobe do rodape, nos dois cantos de cima (ADR-022)."
+  },
+  "radius-dialog": {
+    "$type": "dimension",
+    "$value": "24px",
+    "$description": "O dialogo (ADR-022)."
   },
   "radius-pill": {
     "$type": "dimension",

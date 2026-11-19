@@ -209,7 +209,7 @@ describe.each(TEMAS)("a pedra no tema %s", (_nome, tema) => {
     // `--co-line` passa na conta acima e some na tela.
     for (const [seletor, controle] of CONTROLES) {
       expect(contorno(bloco(seletor)), `o contorno de ${controle} (${seletor})`).toEqual([
-        ["border", "var(--co-border-width) solid var(--co-control)"],
+        ["border", "var(--co-control-width) solid var(--co-control)"],
       ]);
     }
 

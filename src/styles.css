@@ -847,7 +847,7 @@ div.co-sheet-overlay {
   display: flex;
   flex-shrink: 0;
   color: var(--co-control);
-  transition: transform var(--co-duration-fast) var(--co-ease);
+  transition: transform var(--co-duration-quick) var(--co-ease-settle);
 }
 
 .co-list-row[data-expanded="true"] .co-list-row__chevron { transform: rotate(180deg); }
@@ -872,7 +872,7 @@ div.co-sheet-overlay {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: var(--co-border-width) solid var(--co-control);
+  border: var(--co-control-width) solid var(--co-control);
   border-radius: var(--co-radius-content);
   color: var(--co-on-ink);
 }
@@ -928,9 +928,16 @@ div.co-sheet-overlay {
   line-height: 1;
   text-align: center;
   cursor: pointer;
-  transition: background var(--co-duration-fast) var(--co-ease),
-    color var(--co-duration-fast) var(--co-ease),
-    border-color var(--co-duration-fast) var(--co-ease);
+  transition: background var(--co-duration-quick) var(--co-ease-settle),
+    color var(--co-duration-quick) var(--co-ease-settle),
+    border-color var(--co-duration-quick) var(--co-ease-settle),
+    transform var(--co-duration-press) var(--co-ease-settle);
+}
+
+/* A resposta ao toque: o botão assenta (escala 0,97) em 90ms, abaixo dos 100ms
+ * do piso de resposta (ADR-022). Só o que está ligado responde. */
+.co-button:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: scale(0.97);
 }
 
 .co-button[data-size="lg"] {
@@ -1023,8 +1030,8 @@ div.co-sheet-overlay {
   background: var(--co-surface);
   color: var(--co-ink-2);
   cursor: pointer;
-  transition: background var(--co-duration-fast) var(--co-ease),
-    color var(--co-duration-fast) var(--co-ease);
+  transition: background var(--co-duration-quick) var(--co-ease-settle),
+    color var(--co-duration-quick) var(--co-ease-settle);
 }
 
 .co-icon-button[data-size="lg"] {
@@ -1156,7 +1163,7 @@ div.co-sheet-overlay {
     var(--co-slat-color, var(--co-ink)) 0 var(--co-slat-width),
     transparent var(--co-slat-width) var(--co-slat-gap)
   );
-  transition: width var(--co-duration-normal) var(--co-ease);
+  transition: width var(--co-duration-base) var(--co-ease-settle);
 }
 
 .co-slat[data-pattern="solid"] .co-slat__fill {
@@ -1248,10 +1255,9 @@ div.co-sheet-overlay {
 /* ------------------------------------------------------- controle segmentado -- */
 
 /*
- * Trilho de 12px com 3px de folga, opção de 9px dentro. O 9 não é escolha
- * solta: raio interno = raio externo − folga, senão o canto da opção corre
- * paralelo ao canto do trilho com espessura variável e o olho vê a diferença
- * sem saber nomear.
+ * Pílula por fora e pílula por dentro (ADR-022): o chip e o segmentado são as
+ * duas peças em pílula do "Relógio de Sol". Pílula dentro de pílula fecha a
+ * conta do raio interno sozinha — os dois cantos são meia altura.
  *
  * O trilho tem contorno de controle: o fundo `surface` sobre `bg` mede
  * cerca de 1,1:1 nos dois temas, e sem o contorno as opções não
@@ -1261,9 +1267,9 @@ div.co-sheet-overlay {
   display: inline-flex;
   gap: var(--co-space-2);
   padding: var(--co-space-2);
-  border: var(--co-border-width) solid var(--co-control);
+  border: var(--co-control-width) solid var(--co-control);
   background: var(--co-surface);
-  border-radius: var(--co-radius-control);
+  border-radius: var(--co-radius-pill);
 }
 
 .co-segmented[data-full="true"] { display: flex; width: 100%; }
@@ -1276,7 +1282,7 @@ div.co-sheet-overlay {
   min-height: var(--co-target-min);
   padding: 0 var(--co-space-12);
   border: 0;
-  border-radius: var(--co-radius-inset);
+  border-radius: var(--co-radius-pill);
   background: transparent;
   color: var(--co-ink-2);
   font-family: inherit;
@@ -1471,7 +1477,7 @@ div.co-sheet-overlay {
   align-items: center;
   gap: var(--co-space-2);
   padding: var(--co-space-2);
-  border: var(--co-border-width) solid var(--co-control);
+  border: var(--co-control-width) solid var(--co-control);
   background: var(--co-surface);
   border-radius: var(--co-radius-control);
 }
@@ -1580,7 +1586,7 @@ div.co-sheet-overlay {
 .co-deck__card {
   border-radius: var(--co-radius-container);
   touch-action: pan-y;
-  transition: transform var(--co-duration-normal) var(--co-ease);
+  transition: transform var(--co-duration-base) var(--co-ease-move);
 }
 
 .co-deck__card[hidden] { display: none; }
@@ -1624,7 +1630,7 @@ div.co-sheet-overlay {
   width: var(--co-target-min);
   height: var(--co-target-min);
   padding: 0;
-  border: var(--co-border-width) solid var(--co-control);
+  border: var(--co-control-width) solid var(--co-control);
   border-radius: var(--co-radius-control);
   background: var(--co-surface);
   color: var(--co-ink-2);
@@ -1697,7 +1703,7 @@ div.co-sheet-overlay {
   min-width: 0;
   padding: var(--co-space-2);
   overflow-x: auto;
-  border: var(--co-border-width) solid var(--co-control);
+  border: var(--co-control-width) solid var(--co-control);
   border-radius: var(--co-radius-control);
   background: var(--co-surface);
 }
@@ -1943,11 +1949,11 @@ div.co-sheet-overlay {
   min-width: var(--co-target-min);
   min-height: var(--co-target-min);
   padding: 0;
-  border: var(--co-border-width) solid var(--co-control);
+  border: var(--co-control-width) solid var(--co-control);
   border-radius: var(--co-radius-control);
   background: var(--co-surface);
   color: var(--co-ink);
-  transition: border-color var(--co-duration-fast) var(--co-ease);
+  transition: border-color var(--co-duration-quick) var(--co-ease-settle);
 }
 
 .co-input[data-full="true"] {
@@ -1975,9 +1981,9 @@ div.co-sheet-overlay {
   place-self: stretch;
   min-width: 0;
   width: auto;
-  margin: calc(-1 * var(--co-border-width));
-  padding: var(--co-space-10) calc(var(--co-field-end, var(--co-space-14)) + var(--co-border-width))
-    var(--co-space-10) calc(var(--co-space-14) + var(--co-border-width));
+  margin: calc(-1 * var(--co-control-width));
+  padding: var(--co-space-10) calc(var(--co-field-end, var(--co-space-14)) + var(--co-control-width))
+    var(--co-space-10) calc(var(--co-space-14) + var(--co-control-width));
   border: 0;
   background: transparent;
   color: inherit;
@@ -2111,11 +2117,11 @@ div.co-sheet-overlay {
   min-width: var(--co-target-min);
   min-height: var(--co-target-min);
   padding: 0;
-  border: var(--co-border-width) solid var(--co-control);
+  border: var(--co-control-width) solid var(--co-control);
   border-radius: var(--co-radius-control);
   background: var(--co-surface);
   color: var(--co-ink);
-  transition: border-color var(--co-duration-fast) var(--co-ease);
+  transition: border-color var(--co-duration-quick) var(--co-ease-settle);
 }
 
 .co-search[data-size="lg"] {
@@ -2164,9 +2170,9 @@ div.co-sheet-overlay {
   place-self: stretch;
   min-width: 0;
   width: auto;
-  margin: calc(-1 * var(--co-border-width));
-  padding: var(--co-space-10) calc(var(--co-field-end, var(--co-space-14)) + var(--co-border-width))
-    var(--co-space-10) calc(var(--co-space-14) + 17px + var(--co-space-10) + var(--co-border-width));
+  margin: calc(-1 * var(--co-control-width));
+  padding: var(--co-space-10) calc(var(--co-field-end, var(--co-space-14)) + var(--co-control-width))
+    var(--co-space-10) calc(var(--co-space-14) + 17px + var(--co-space-10) + var(--co-control-width));
   border: 0;
   background: transparent;
   color: inherit;
@@ -2178,16 +2184,16 @@ div.co-sheet-overlay {
 }
 
 .co-search[data-size="lg"] .co-search__control {
-  padding-right: calc(var(--co-field-end, var(--co-space-16)) + var(--co-border-width));
-  padding-left: calc(var(--co-space-16) + 20px + var(--co-space-12) + var(--co-border-width));
+  padding-right: calc(var(--co-field-end, var(--co-space-16)) + var(--co-control-width));
+  padding-left: calc(var(--co-space-16) + 20px + var(--co-space-12) + var(--co-control-width));
 }
 
 .co-search[data-clearable="true"] .co-search__control {
-  padding-right: calc(var(--co-field-end, var(--co-space-10)) + var(--co-target-min) + var(--co-border-width));
+  padding-right: calc(var(--co-field-end, var(--co-space-10)) + var(--co-target-min) + var(--co-control-width));
 }
 
 .co-search[data-size="lg"][data-clearable="true"] .co-search__control {
-  padding-right: calc(var(--co-field-end, var(--co-space-12)) + var(--co-target-min) + var(--co-border-width));
+  padding-right: calc(var(--co-field-end, var(--co-space-12)) + var(--co-target-min) + var(--co-control-width));
 }
 
 .co-search__control:focus-visible {
@@ -2283,7 +2289,7 @@ div.co-sheet-overlay {
   justify-content: center;
   width: var(--co-target-min);
   height: var(--co-target-min);
-  margin: calc(-1 * var(--co-border-width)) 0;
+  margin: calc(-1 * var(--co-control-width)) 0;
   padding: 0;
   border: 0;
   border-radius: var(--co-radius-control);
@@ -2309,7 +2315,7 @@ div.co-sheet-overlay {
   gap: var(--co-space-6);
   min-height: var(--co-target-min);
   padding: 0 var(--co-space-14);
-  border: var(--co-border-width) solid var(--co-control);
+  border: var(--co-control-width) solid var(--co-control);
   border-radius: var(--co-radius-pill);
   background: transparent;
   color: var(--co-ink);
@@ -2483,7 +2489,7 @@ button.co-chip {
 .co-disclosure__chevron {
   flex-shrink: 0;
   color: var(--co-control);
-  transition: transform var(--co-duration-fast) var(--co-ease);
+  transition: transform var(--co-duration-quick) var(--co-ease-settle);
 }
 
 .co-disclosure[open] .co-disclosure__chevron {
@@ -2516,9 +2522,10 @@ button.co-chip {
   width: var(--co-target-min);
   height: var(--co-target-min);
   margin-bottom: var(--co-space-4);
-  border-radius: var(--co-radius-container);
+  /* O hexágono é o sinal da marca (ADR-022): o selo do vazio, e não uma moldura. */
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
   background: var(--co-surface-2);
-  color: var(--co-control);
+  color: var(--co-ink-2);
 }
 
 .co-empty__action {
@@ -2597,11 +2604,11 @@ button.co-chip {
   max-width: 520px;
   max-height: 88%;
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  border-radius: var(--co-radius-container) var(--co-radius-container) var(--co-radius-content)
+  border-radius: var(--co-radius-sheet) var(--co-radius-sheet) var(--co-radius-content)
     var(--co-radius-content);
   background: var(--co-surface);
   box-shadow: var(--co-shadow-float);
-  animation: co-sheet-subir var(--co-duration-slow) var(--co-ease);
+  animation: co-sheet-subir var(--co-duration-slow) var(--co-ease-settle);
 }
 
 /*
@@ -2865,6 +2872,7 @@ button.co-chip {
  */
 .co-rail__item[aria-current="page"] {
   background: var(--co-surface);
+  box-shadow: var(--co-shadow-lift);
   color: var(--co-ink);
   font-weight: var(--co-weight-semibold);
 }
@@ -3079,6 +3087,11 @@ fieldset.co-nav-list {
   /* O card do carrossel não anda nem gira com o dedo: o arrasto só decide,
    * ao soltar, se troca de card. */
   .co-root .co-deck__card[data-dragging="true"] {
+    transform: none;
+  }
+
+  /* O botão não escala ao toque: a resposta é a cor do hover, sem movimento. */
+  .co-root .co-button:active {
     transform: none;
   }
 }

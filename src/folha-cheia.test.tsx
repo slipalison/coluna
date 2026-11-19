@@ -293,7 +293,7 @@ describe("a geometria, pela folha", () => {
 
     // A entrada é a da folha de sempre, e a regra geral do movimento reduzido a zera.
     expect(Object.fromEntries(bloco(".co-sheet"))["animation"]).toBe(
-      "co-sheet-subir var(--co-duration-slow) var(--co-ease)",
+      "co-sheet-subir var(--co-duration-slow) var(--co-ease-settle)",
     );
     const reduzido = dentroDe("@media (prefers-reduced-motion: reduce)");
     const geral = reduzido.find((r) => r.seletores.includes(".co-root *"));
