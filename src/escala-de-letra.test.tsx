@@ -17,7 +17,7 @@ import { Reckoning } from "./molecules/Reckoning";
 import { Stat } from "./molecules/Stat";
 import { TabBar } from "./molecules/TabBar";
 import { ThemeProvider } from "./theme/ThemeProvider";
-import { REGRAS, avaliar, lugar, type Regra, type Valores } from "./test/folha";
+import { REGRAS, avaliar, dentroDe, lugar, type Regra, type Valores } from "./test/folha";
 import tokensCss from "./tokens/tokens.css?raw";
 import "./styles.css";
 
@@ -98,6 +98,8 @@ const REGRAS_DE_LETRA: Readonly<Record<string, Papel>> = {
   ".co-stepper__value": "corpo",
   ".co-input__control": "corpo",
   ".co-search__control": "corpo",
+  // O título de tela com ponteiro fino (o desktop): 30px (plano s7, ADR-022).
+  '@ .co-text[data-variant="title-lg"]': "corpo",
 };
 
 const papelDa = (regra: Regra): Papel | undefined => {
@@ -200,6 +202,73 @@ describe("o piso de letra na folha", () => {
       declaracoes: [["font-size", "var(--co-text-14)"]],
     };
     expect(faltasNaFolha([...REGRAS, estreita])).toEqual(['@ .co-text[data-variant="body"]: letra sem papel']);
+  });
+});
+
+// ------------------------------------------- a escala do Relógio de Sol --
+
+/**
+ * Acima do piso, a escala da identidade (design/identidade.md, plano s7,
+ * ADR-022): corpo, campo e botão de 17px, legenda e secundário de 14px, caixa
+ * alta de 13px, aba de 11px, título de tela de 26px no toque e de 30px com
+ * ponteiro fino. O piso diz o mínimo; isto diz o desenho, e uma letra que muda
+ * sem a identidade mudar reprova aqui.
+ */
+const ESCALA: Readonly<Record<string, number>> = {
+  '.co-text[data-variant="title-lg"]': 26,
+  '.co-text[data-variant="numeral"]': 56,
+  '.co-text[data-variant="headline"]': 17,
+  '.co-text[data-variant="body"]': 17,
+  '.co-text[data-variant="callout"]': 14,
+  '.co-text[data-variant="subhead"]': 13,
+  '.co-text[data-variant="footnote"]': 14,
+  '.co-text[data-variant="caption"]': 14,
+  '.co-text[data-variant="label"]': 13,
+  '.co-text[data-variant="micro"]': 13,
+  ".co-button": 17,
+  '.co-button[data-size="lg"]': 17,
+  ".co-input__control": 17,
+  ".co-search__control": 17,
+  ".co-tabbar__item": 11,
+  ".co-chip": 13,
+  ".co-segmented__option": 13,
+  '@ .co-text[data-variant="title-lg"]': 30,
+};
+
+function foraDaEscala(regras: readonly Regra[]): string[] {
+  return Object.entries(ESCALA).flatMap(([seletor, px]) => {
+    const declarada = regras
+      .filter((regra) => lugar(regra) === seletor)
+      .flatMap((regra) => regra.declaracoes.filter(([p]) => p === "font-size").map(([, v]) => v));
+    if (declarada.length !== 1) return [`${seletor}: ${declarada.length} letras declaradas`];
+    const medida = avaliar(declarada[0] ?? "", TOKENS);
+    return medida === px ? [] : [`${seletor}: ${medida}px, e a identidade pede ${px}px`];
+  });
+}
+
+describe("a escala do Relógio de Sol", () => {
+  it("cada letra da tabela é a da identidade", () => {
+    expect(foraDaEscala(REGRAS)).toEqual([]);
+  });
+
+  it("o título de 30px mora só no @media do ponteiro fino", () => {
+    expect(
+      dentroDe("@media (pointer: fine)")
+        .filter((regra) => regra.declaracoes.some(([p]) => p === "font-size"))
+        .map((regra) => [regra.seletores.join(", "), regra.declaracoes.find(([p]) => p === "font-size")?.[1]]),
+    ).toEqual([['.co-text[data-variant="title-lg"]', "var(--co-text-30)"]]);
+  });
+
+  it("a isca: o corpo de volta a 16px e a legenda a 12px reprovam pela tabela", () => {
+    expect(foraDaEscala(comLetra('.co-text[data-variant="body"]', "var(--co-text-16)"))).toEqual([
+      '.co-text[data-variant="body"]: 16px, e a identidade pede 17px',
+    ]);
+    expect(foraDaEscala(comLetra('.co-text[data-variant="caption"]', "var(--co-text-12)"))).toEqual([
+      '.co-text[data-variant="caption"]: 12px, e a identidade pede 14px',
+    ]);
+    expect(foraDaEscala(REGRAS.filter((regra) => lugar(regra) !== '@ .co-text[data-variant="title-lg"]'))).toEqual([
+      '@ .co-text[data-variant="title-lg"]: 0 letras declaradas',
+    ]);
   });
 });
 
@@ -389,15 +458,17 @@ describe("o piso de letra nas peças", () => {
   it("a isca: a linha de baixo, a nota e o corpo do aviso de volta à variante da 1.13.0 reprovam", () => {
     const { container } = render(<Pecas />);
     // A regressão de verdade é a peça escrever a variante de antes.
+    // Desde a 2.0 a legenda (`caption`) tem 14px (ADR-022), e a variante que
+    // fica abaixo do secundário é a de 13px (`subhead`).
     for (const seletor of [".co-list-row__description", ".co-nav-list__description", ".co-group__note"]) {
-      container.querySelector(seletor)?.setAttribute("data-variant", "caption");
+      container.querySelector(seletor)?.setAttribute("data-variant", "subhead");
     }
     container.querySelector(".co-notice__body > :nth-child(2)")?.setAttribute("data-variant", "subhead");
     expect(faltasNaTela(container)).toEqual([
       "o corpo do aviso: 13px, abaixo dos 14px de secundario",
-      "a linha de baixo da ListRow: 12px, abaixo dos 14px de secundario",
-      "a linha de baixo do NavList: 12px, abaixo dos 14px de secundario",
-      "a nota do Group: 12px, abaixo dos 14px de secundario",
+      "a linha de baixo da ListRow: 13px, abaixo dos 14px de secundario",
+      "a linha de baixo do NavList: 13px, abaixo dos 14px de secundario",
+      "a nota do Group: 13px, abaixo dos 14px de secundario",
     ]);
   });
 

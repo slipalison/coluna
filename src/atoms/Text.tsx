@@ -3,26 +3,27 @@ import type { ElementType, HTMLAttributes } from "react";
 /**
  * A rampa tipográfica inteira do sistema, e ela é fechada de propósito.
  *
- * Dez variantes, cada uma ganhando o lugar por aparecer nas telas, e cada uma
- * com o piso de letra do papel que cumpre (ADR-016, ADR-021): corpo 16,
- * secundário e nota 14, legenda e versalete 12.
+ * Dez variantes, cada uma ganhando o lugar por aparecer nas telas, cada uma
+ * com o piso de letra do papel que cumpre (ADR-016, ADR-021) e, desde a 2.0,
+ * com a escala do "Relógio de Sol" (ADR-022): corpo 17, secundário e legenda
+ * 14, caixa alta 13.
  *
- *   title-lg   36  a Bricolage que nomeia a tela. Um por tela.
- *   numeral    68  a Sofia condensada do número que carrega a mensagem.
- *   headline   16  o nome de uma refeição, de um cartão.
- *   body       16  o texto corrido, a linha principal de uma lista.
+ *   title-lg   26  a Bricolage que nomeia a tela (30 com ponteiro fino). Um por tela.
+ *   numeral    56  a Sofia condensada do número que carrega a mensagem.
+ *   headline   17  o nome de uma refeição, de um cartão.
+ *   body       17  o texto corrido, a linha principal de uma lista.
  *   callout    14  o texto secundário dentro de uma linha.
- *   subhead    13  legenda, horário, valor ao lado do nome.
+ *   subhead    13  horário, valor ao lado do nome.
  *   footnote   14  a nota que explica o bloco (o corpo do aviso, o do vazio).
- *   caption    12  a conta miúda embaixo do número.
- *   label      12  o versalete que separa uma seção da outra.
- *   micro      12  o versalete DENTRO da linha (o grupo, no trilho e na lista).
+ *   caption    14  a legenda: a conta miúda embaixo do número.
+ *   label      13  o versalete que separa uma seção da outra.
+ *   micro      13  o versalete DENTRO da linha (o grupo, no trilho e na lista).
  *
- * `footnote` e `callout` têm a mesma letra, e `label` e `micro` também: o que
- * os separa é o papel (e, nos versaletes, o espaçamento). Nenhum dos nomes
- * saiu, porque quem usa o pacote escreve o nome.
+ * `footnote`, `callout` e `caption` têm a mesma letra, e `label` e `micro`
+ * também: o que os separa é o papel (e, nos versaletes, o espaçamento). Nenhum
+ * dos nomes saiu, porque quem usa o pacote escreve o nome.
  *
- * Não existe "tamanho 17 em negrito": se um desenho pede isso, ou é uma
+ * Não existe "tamanho 19 em negrito": se um desenho pede isso, ou é uma
  * variante nova aqui, ou é um desenho fora do sistema. Essa recusa é o que
  * impede o vale-tudo de voltar pela porta dos fundos.
  */
@@ -39,12 +40,13 @@ export type TextVariant =
   | "micro";
 
 /**
- * Cinco degraus de texto e um de ícone, e a ordem é de contraste decrescente.
+ * Os tons do texto, sobre as três tintas da pedra (ADR-022): `default` e
+ * `body` são a `ink`, `secondary` e `muted` a `ink-2`, `subtle` a `ink-3`.
+ * `accent` é a tinta da hora (cor de lugar) e `status` o `ok`.
  *
- * O piso é `subtle`: ele ainda passa em 4,5:1 sobre a superfície, que é o
- * fundo mais claro do tema escuro e portanto o caso difícil. Abaixo dele só
- * existe `icon-muted`, e ele é para DESENHO — seta, chevron, moldura —, nunca
- * para texto.
+ * O piso é `subtle` (`ink-3`): ele ainda passa em 4,5:1 sobre todo fundo de
+ * texto, nos dois temas. Abaixo dele só existe `--co-control`, e ele é para
+ * DESENHO — seta, chevron, moldura —, nunca para texto.
  */
 export type TextTone =
   | "default"

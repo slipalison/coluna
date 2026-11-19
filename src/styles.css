@@ -559,7 +559,7 @@ div.co-sheet-overlay {
   font-family: var(--co-font-display);
   font-weight: 700;
   font-stretch: 88%;
-  font-size: var(--co-text-36);
+  font-size: var(--co-text-26);
   line-height: var(--co-leading-title);
   letter-spacing: var(--co-tracking-tight);
   text-wrap: balance;
@@ -571,20 +571,20 @@ div.co-sheet-overlay {
 .co-text[data-variant="numeral"] {
   font-family: var(--co-font-num);
   font-weight: 900;
-  font-size: var(--co-text-68);
+  font-size: var(--co-text-56);
   line-height: var(--co-leading-numeral);
   letter-spacing: var(--co-tracking-tight);
   font-variant-numeric: tabular-nums;
 }
 
 .co-text[data-variant="headline"] {
-  font-size: var(--co-text-16);
-  font-weight: var(--co-weight-medium);
+  font-size: var(--co-text-17);
+  font-weight: var(--co-weight-semibold);
   line-height: var(--co-leading-snug);
 }
 
 .co-text[data-variant="body"] {
-  font-size: var(--co-text-16);
+  font-size: var(--co-text-17);
 }
 
 .co-text[data-variant="callout"] {
@@ -600,7 +600,7 @@ div.co-sheet-overlay {
 }
 
 .co-text[data-variant="caption"] {
-  font-size: var(--co-text-12);
+  font-size: var(--co-text-14);
   line-height: var(--co-leading-note);
 }
 
@@ -608,18 +608,18 @@ div.co-sheet-overlay {
  * bloco do outro sem precisar de linha nem de caixa — e é por isso que este
  * sistema tem tão pouca borda. */
 .co-text[data-variant="label"] {
-  font-size: var(--co-text-12);
+  font-size: var(--co-text-13);
   font-weight: var(--co-weight-semibold);
   letter-spacing: var(--co-tracking-label);
   text-transform: uppercase;
   color: var(--co-ink-3);
 }
 
-/* O mesmo papel, dentro da linha: nomeia o grupo, não a seção da tela. Já foi
- * um degrau abaixo (10px); o piso do versalete é 12px, e o que o separa do
- * rótulo de seção agora é o espaçamento menor e o lugar, não a letra (ADR-021). */
+/* O mesmo papel, dentro da linha: nomeia o grupo, não a seção da tela. A caixa
+ * alta do "Relógio de Sol" tem 13px (ADR-022), e o que o separa do rótulo de
+ * seção é o espaçamento menor e o lugar, não a letra (ADR-021). */
 .co-text[data-variant="micro"] {
-  font-size: var(--co-text-12);
+  font-size: var(--co-text-13);
   font-weight: var(--co-weight-semibold);
   letter-spacing: var(--co-tracking-micro);
   text-transform: uppercase;
@@ -923,7 +923,7 @@ div.co-sheet-overlay {
   border: var(--co-border-width) solid transparent;
   border-radius: var(--co-radius-control);
   font-family: inherit;
-  font-size: var(--co-text-14);
+  font-size: var(--co-text-17);
   font-weight: var(--co-weight-semibold);
   line-height: 1;
   text-align: center;
@@ -936,7 +936,7 @@ div.co-sheet-overlay {
 .co-button[data-size="lg"] {
   min-height: 52px;
   padding: 0 var(--co-space-20);
-  font-size: var(--co-text-15);
+  font-size: var(--co-text-17);
 }
 
 .co-button[data-full="true"] {
@@ -1500,7 +1500,7 @@ div.co-sheet-overlay {
 .co-stepper__value {
   min-width: 52px;
   text-align: center;
-  font-size: var(--co-text-16);
+  font-size: var(--co-text-17);
   font-weight: var(--co-weight-medium);
   font-variant-numeric: tabular-nums;
 }
@@ -1985,10 +1985,9 @@ div.co-sheet-overlay {
   /*
    * 16px, e é regra de plataforma: abaixo disso o Safari do iPhone DÁ ZOOM ao
    * focar o campo, a tela salta, e a pessoa termina o cadastro com a página
-   * torta. Custa um degrau da rampa e evita um defeito que ninguém reproduz no
-   * computador.
+   * torta. O "Relógio de Sol" escreve o campo em 17px (ADR-022), acima disso.
    */
-  font-size: var(--co-text-16);
+  font-size: var(--co-text-17);
   line-height: var(--co-leading-snug);
 }
 
@@ -2172,7 +2171,7 @@ div.co-sheet-overlay {
   background: transparent;
   color: inherit;
   font-family: var(--co-font-body);
-  font-size: var(--co-text-16);
+  font-size: var(--co-text-17);
   line-height: var(--co-leading-snug);
   -webkit-appearance: none;
   appearance: none;
@@ -2760,12 +2759,12 @@ button.co-chip {
  * (WCAG 2.2, 2.4.11). O Tab, a âncora e o `scrollIntoView` param abaixo dela.
  */
 .co-sheet__body:has(.co-search-field) {
-  scroll-padding-top: calc(var(--co-space-4) + var(--co-text-16) * var(--co-leading-normal) + var(--co-space-6)
+  scroll-padding-top: calc(var(--co-space-4) + var(--co-text-17) * var(--co-leading-normal) + var(--co-space-6)
     + var(--co-target-min) + var(--co-space-8) + var(--co-space-4));
 }
 
 .co-sheet__body:has(.co-search[data-size="lg"]) {
-  scroll-padding-top: calc(var(--co-space-4) + var(--co-text-16) * var(--co-leading-normal) + var(--co-space-6)
+  scroll-padding-top: calc(var(--co-space-4) + var(--co-text-17) * var(--co-leading-normal) + var(--co-space-6)
     + 52px + var(--co-space-8) + var(--co-space-4));
 }
 
@@ -2951,7 +2950,7 @@ fieldset.co-nav-list {
   background: transparent;
   color: var(--co-ink-2);
   font-family: var(--co-font-body);
-  font-size: var(--co-text-16);
+  font-size: var(--co-text-17);
   text-align: left;
   cursor: pointer;
 }
@@ -3033,6 +3032,22 @@ fieldset.co-nav-list {
   pointer-events: none;
   opacity: var(--co-grain-opacity);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+}
+
+/* ------------------------------------------------- toque e ponteiro ---- */
+
+/*
+ * O aparelho de toque é o padrão, e o ponteiro fino (o desktop, com mouse ou
+ * trackpad) ganha a escala dele (plano s7, ADR-022): o título de tela sobe de
+ * 26 para 30px. A pergunta é o PONTEIRO, e não a largura: o telefone deitado
+ * continua sendo de toque, e o layout de celular dele também (s7, "Área
+ * segura"). Sem a media query (um navegador que não responde a ela), vale o
+ * de toque, que é o maior alvo.
+ */
+@media (pointer: fine) {
+  .co-text[data-variant="title-lg"] {
+    font-size: var(--co-text-30);
+  }
 }
 
 /* Quem pede menos movimento não recebe transição nenhuma.

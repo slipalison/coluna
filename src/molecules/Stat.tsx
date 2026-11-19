@@ -23,9 +23,9 @@ export interface StatProps {
 }
 
 const TAMANHO: Record<NonNullable<StatProps["size"]>, string> = {
-  hero: "var(--co-text-68)",
-  lg: "var(--co-text-46)",
-  md: "var(--co-text-36)",
+  hero: "var(--co-text-56)",
+  lg: "var(--co-text-40)",
+  md: "var(--co-text-30)",
 };
 
 /**
