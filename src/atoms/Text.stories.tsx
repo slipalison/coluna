@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useEffect, useRef, useState } from "react";
 import { Stack } from "./Stack";
 import { Text } from "./Text";
 
@@ -64,6 +65,55 @@ export const Rampa: Story = {
       </Text>
       <Text variant="label">Macros da meta</Text>
       <Text variant="micro">Cereal</Text>
+    </Stack>
+  ),
+};
+
+/** O piso de cada papel (ADR-016, ADR-021). */
+const PISO_DA_VARIANTE: Record<(typeof VARIANTES)[number], string> = {
+  "title-lg": "corpo, 16",
+  numeral: "corpo, 16",
+  headline: "corpo, 16",
+  body: "corpo, 16",
+  callout: "secundário, 14",
+  subhead: "legenda, 12",
+  footnote: "nota, 14",
+  caption: "legenda, 12",
+  label: "versalete, 12",
+  micro: "versalete, 12",
+};
+
+function LetraMedida({ variante }: Readonly<{ variante: (typeof VARIANTES)[number] }>) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [letra, definir] = useState("");
+  useEffect(() => {
+    const texto = ref.current?.firstElementChild;
+    if (texto) definir(getComputedStyle(texto).fontSize);
+  }, []);
+  return (
+    <Stack direction="row" gap={16} align="baseline" wrap>
+      <div ref={ref}>
+        <Text variant={variante}>{variante}</Text>
+      </div>
+      <Text variant="caption" tone="subtle" numeric>
+        {letra || "…"} · piso de {PISO_DA_VARIANTE[variante]}px
+      </Text>
+    </Stack>
+  );
+}
+
+/**
+ * O piso de letra, medido na tela: cada variante com a letra que o navegador
+ * computou e o piso do papel dela. Nenhuma fica abaixo dos 12px; o único texto
+ * do sistema a 11px é o rótulo da barra de abas (ADR-021).
+ */
+export const PisoDeLetra: Story = {
+  name: "Piso de letra",
+  render: () => (
+    <Stack gap={12}>
+      {VARIANTES.map((variante) => (
+        <LetraMedida key={variante} variante={variante} />
+      ))}
     </Stack>
   ),
 };

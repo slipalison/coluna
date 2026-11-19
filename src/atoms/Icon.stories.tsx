@@ -33,7 +33,7 @@ export const Todos: Story = {
         <Surface key={nome} bordered padding={12}>
           <Stack align="center" gap={8}>
             <Icon name={nome} size={22} />
-            <Text variant="caption" tone="muted" style={{ fontSize: "10px", textAlign: "center" }}>
+            <Text variant="caption" tone="muted" style={{ textAlign: "center" }}>
               {nome}
             </Text>
           </Stack>

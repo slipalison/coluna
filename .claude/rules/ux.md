@@ -29,7 +29,7 @@ violação, o PR não entra.
 | Texto sobre superfície | ≥ 4,5:1; texto ≥ 24 px (ou ≥ 18,66 px em negrito) ≥ 3:1 | teste que calcula o contraste de cada par de texto sobre `canvas`, `surface`, `surface-raised` e `surface-sunken`, nos dois temas |
 | Limite de controle — campo, busca, chip, marca de radio e de checkbox, segmentado, stepper | ≥ 3:1 sobre a superfície onde o controle fica, nos dois temas | o mesmo teste, sobre o token de borda de controle (WCAG 1.4.11; o axe-core não mede contraste de não-texto) |
 | Anel de foco | ≥ 3:1 sobre a superfície | o mesmo teste |
-| Tamanho de letra | corpo ≥ 16 px; nota ≥ 14 px; legenda e rótulo em caixa-alta ≥ 12 px; rótulo da barra de abas ≥ 11 px (convenção do iOS); nenhuma variante de `Text` abaixo disso | teste sobre os tokens de texto e as variantes |
+| Tamanho de letra | texto corrido, texto primário de lista e valor de campo ≥ 16 px; texto secundário e nota ≥ 14 px; legenda e rótulo em caixa-alta ≥ 12 px; rótulo da barra de abas ≥ 11 px (convenção do iOS), e só ele abaixo de 12 px; nenhuma variante de `Text` e nenhuma letra de componente abaixo do piso do seu papel (ADR-021) | `src/escala-de-letra.test.tsx`: toda letra da folha tem papel e fica no piso dele, cada variante e cada texto das peças no estilo computado, nenhuma história com letra à mão abaixo de 12 px — cada prova com a isca da 1.13.0 |
 | Espaço | uma escala em que o espaço entre grupos possa ser 1,5 a 2 vezes o de dentro (4, 8, 12, 16, 24, 32, 48, 64) | revisão dos tokens |
 | Alvo | `--co-target-min` (44 px) em todo controle, com a moldura inteira tocável | teste de componente |
 | Cor | nunca é o único sinal (ADR-005); a paleta de dados (macros) fica separada da de ação, seleção e status, com luminâncias distintas entre si | teste sobre os tokens de dado |
@@ -73,7 +73,7 @@ existe bloqueia só o cartão dono dela, que apaga a linha ao ser entregue.
 
 | Defeito | Cartão (`slipalison/basalto`) |
 |---|---|
-| Escala de texto com sete degraus de 1 px entre 10 e 16 px e corpo de 15 px; escala de espaço com 13 degraus de 2 px até 40; `--co-macro-protein` igual a `--co-accent` e `--co-macro-carb` igual a `--co-status`; rótulo de campo com a cara do rótulo de seção | #59 |
+| Escala de texto com degraus de 1 px entre 11 e 16 px (o piso de letra foi pago no ADR-021); escala de espaço com 13 degraus de 2 px até 40; `--co-macro-protein` igual a `--co-accent` e `--co-macro-carb` igual a `--co-status`; rótulo de campo com a cara do rótulo de seção | #59 |
 | Sem ação no fim da `ListRow`; `Stepper` que não aceita digitação nem repete ao segurar | #60 |
 | Sem aviso temporário com "Desfazer" | #61 |
 | Sem campo de data em dia, mês e ano; sem `Skeleton` | #64 |

@@ -3,18 +3,24 @@ import type { ElementType, HTMLAttributes } from "react";
 /**
  * A rampa tipográfica inteira do sistema, e ela é fechada de propósito.
  *
- * Dez degraus, cada um ganhando o lugar por aparecer nas telas:
+ * Dez variantes, cada uma ganhando o lugar por aparecer nas telas, e cada uma
+ * com o piso de letra do papel que cumpre (ADR-016, ADR-021): corpo 16,
+ * secundário e nota 14, legenda e versalete 12.
  *
  *   title-lg   36  a serifa que nomeia a tela. Um por tela.
  *   numeral    68  a serifa do número que carrega a mensagem.
  *   headline   16  o nome de uma refeição, de um cartão.
- *   body       15  a linha principal de uma lista.
+ *   body       16  o texto corrido, a linha principal de uma lista.
  *   callout    14  o texto secundário dentro de uma linha.
  *   subhead    13  legenda, horário, valor ao lado do nome.
- *   footnote   12  a nota que explica o bloco.
- *   caption    11  a conta miúda embaixo do número.
- *   label      11  o versalete que separa uma seção da outra.
- *   micro      10  o versalete DENTRO da linha (grupo alimentar, aba).
+ *   footnote   14  a nota que explica o bloco (o corpo do aviso, o do vazio).
+ *   caption    12  a conta miúda embaixo do número.
+ *   label      12  o versalete que separa uma seção da outra.
+ *   micro      12  o versalete DENTRO da linha (o grupo, no trilho e na lista).
+ *
+ * `footnote` e `callout` têm a mesma letra, e `label` e `micro` também: o que
+ * os separa é o papel (e, nos versaletes, o espaçamento). Nenhum dos nomes
+ * saiu, porque quem usa o pacote escreve o nome.
  *
  * Não existe "tamanho 17 em negrito": se um desenho pede isso, ou é uma
  * variante nova aqui, ou é um desenho fora do sistema. Essa recusa é o que

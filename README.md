@@ -132,6 +132,12 @@ token ou de um componente é provado aqui, com teste, nos dois temas
 ([ADR-016](docs/adr/016-o-piso-de-ux-mora-no-sistema.md)). Achado do piso não
 vira aviso: o PR não entra.
 
+Desde a 1.13.1 a letra cumpre o piso em toda a folha: corpo de 16px, nota e
+texto secundário de 14px, legenda e versalete de 12px, e só o rótulo da barra
+de abas em 11px. Cada variante do `Text` e cada letra de componente têm um
+papel, e um teste reprova a letra que fica abaixo do piso dele
+([ADR-021](docs/adr/021-a-escala-de-letra-no-piso.md)).
+
 ### Aviso informa, nunca bloqueia
 
 O `Notice` não tem variante de erro, não tem fundo vermelho e não exige ser
@@ -507,3 +513,5 @@ a esteira reprova o que estiver fora.
 - [ADR-017 — a busca da folha fica presa no topo](docs/adr/017-a-busca-da-folha-fica-presa.md)
 - [ADR-018 — o corpo da folha se rola pelo teclado](docs/adr/018-o-corpo-da-folha-se-rola-pelo-teclado.md)
 - [ADR-019 — o carrossel de cards e as abas dentro do card](docs/adr/019-o-carrossel-de-cards-e-as-abas-no-card.md)
+- [ADR-020 — a folha de altura cheia](docs/adr/020-a-folha-de-altura-cheia.md)
+- [ADR-021 — a escala de letra cumpre o piso](docs/adr/021-a-escala-de-letra-no-piso.md)

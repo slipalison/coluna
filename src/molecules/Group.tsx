@@ -138,7 +138,7 @@ export function Group({
         <Text
           id={idNota}
           className="co-group__note"
-          variant="caption"
+          variant="footnote"
           tone="subtle"
           style={{ textWrap: "pretty" }}
         >

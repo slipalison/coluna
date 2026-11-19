@@ -80,7 +80,7 @@ export function Reckoning({ lines, note, className }: ReckoningProps) {
         </div>
       ))}
       {note === undefined ? null : (
-        <Text variant="caption" tone="subtle" style={{ textWrap: "pretty" }}>
+        <Text variant="footnote" tone="subtle" style={{ textWrap: "pretty" }}>
           {note}
         </Text>
       )}
