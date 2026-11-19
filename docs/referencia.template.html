@@ -53,11 +53,12 @@ body {
 }
 
 .capa { display: flex; flex-direction: column; gap: var(--co-space-16); padding-block: var(--co-space-32) var(--co-space-20); }
-/* Um `<h1>`, que o navegador pinta em negrito: o 400 escrito é o único peso
- * da serifa (ADR-014), como no `title-lg`. */
+/* Um `<h1>`: o peso e a largura do título escritos, como no `title-lg`
+ * (ADR-023). */
 .capa__frase {
   font-family: var(--co-font-display);
-  font-weight: 400;
+  font-weight: 700;
+  font-stretch: 88%;
   font-size: clamp(26px, 4.5vw, 40px);
   line-height: 1.12;
   letter-spacing: var(--co-tracking-tight);
@@ -221,9 +222,9 @@ import "@slipalison/coluna/styles.css";</code></pre>
   <section class="secao">
     <div class="secao__cabeca">
       <h2 class="secao__titulo">Tipografia</h2>
-      <span class="secao__nota">Instrument Serif + Archivo</span>
+      <span class="secao__nota">Bricolage Grotesque + Figtree + Sofia Sans Extra Condensed</span>
     </div>
-    <p class="prosa">A rampa é fechada de propósito: não existe "tamanho 17 em negrito". Se um desenho pede isso, ou vira uma variante aqui, ou é um desenho fora do sistema. A serifa entra só onde o número carrega a mensagem.</p>
+    <p class="prosa">A rampa é fechada de propósito: não existe "tamanho 17 em negrito". Se um desenho pede isso, ou vira uma variante aqui, ou é um desenho fora do sistema. A Bricolage nomeia a tela, a Figtree escreve o resto, e a Sofia condensada entra onde o número carrega a mensagem.</p>
     <div class="caixa">
       <div class="co-text" data-variant="title-lg">Quanto você gasta em repouso</div>
       <div class="co-text" data-variant="numeral">1.917</div>

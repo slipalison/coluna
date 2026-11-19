@@ -7,8 +7,8 @@ import type { ElementType, HTMLAttributes } from "react";
  * com o piso de letra do papel que cumpre (ADR-016, ADR-021): corpo 16,
  * secundário e nota 14, legenda e versalete 12.
  *
- *   title-lg   36  a serifa que nomeia a tela. Um por tela.
- *   numeral    68  a serifa do número que carrega a mensagem.
+ *   title-lg   36  a Bricolage que nomeia a tela. Um por tela.
+ *   numeral    68  a Sofia condensada do número que carrega a mensagem.
  *   headline   16  o nome de uma refeição, de um cartão.
  *   body       16  o texto corrido, a linha principal de uma lista.
  *   callout    14  o texto secundário dentro de uma linha.

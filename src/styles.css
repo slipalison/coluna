@@ -26,11 +26,11 @@
 /* ---------------------------------------------------------------- fontes -- */
 
 /*
- * As duas famílias que os tokens nomeiam moram no pacote (ADR-014): a
- * Instrument Serif dos títulos e dos numerais, e a Archivo de todo o resto.
- * Sem estes blocos, `--co-font-display` e `--co-font-body` nomeiam fontes que
- * a página não tem, e quem consome vê a Georgia e a Helvetica no lugar da cara
- * das pranchas.
+ * As três famílias do "Relógio de Sol" moram no pacote (ADR-014, ADR-023): a
+ * Bricolage Grotesque dos títulos, a Figtree do texto e a Sofia Sans Extra
+ * Condensed dos números. Sem estes blocos, `--co-font-display`,
+ * `--co-font-body` e `--co-font-num` nomeiam fontes que a página não tem, e
+ * quem consome vê a fonte do sistema no lugar da cara da identidade.
  *
  * A `url()` é RELATIVA à folha: o build copia `src/fonts/` para `dist/fonts/`,
  * e o bundler de quem consome resolve o caminho a partir de `dist/styles.css` e
@@ -44,46 +44,70 @@
  *
  * Dois subconjuntos por família, cada um com o seu `unicode-range`: o
  * navegador só baixa o `latin-ext` quando a página tem um caractere dele.
+ *
+ * As três são variáveis, e cada bloco declara o intervalo do ARQUIVO: todo
+ * peso pedido dentro dele sai desenhado, nenhum sintético. A Bricolage traz
+ * também o eixo da largura (`font-stretch` 75% a 100%), que o título usa em
+ * 88%; o eixo do tamanho óptico ficou de fora (ADR-023).
  */
 @font-face {
-  font-family: "Instrument Serif";
+  font-family: "Bricolage Grotesque";
   font-style: normal;
-  font-weight: 400;
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
   font-display: swap;
-  src: url("./fonts/instrument-serif-latin-ext-400-normal.woff2") format("woff2");
+  src: url("./fonts/bricolage-grotesque-latin-ext-wdth-normal.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
     U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
 @font-face {
-  font-family: "Instrument Serif";
+  font-family: "Bricolage Grotesque";
   font-style: normal;
-  font-weight: 400;
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
   font-display: swap;
-  src: url("./fonts/instrument-serif-latin-400-normal.woff2") format("woff2");
+  src: url("./fonts/bricolage-grotesque-latin-wdth-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* Variável no eixo `wght`: UM arquivo por subconjunto serve o 400, o 500 e o
- * 600 dos tokens, e o 700 que o navegador põe no `<strong>` — todos
- * desenhados, nenhum sintético. */
 @font-face {
-  font-family: "Archivo";
+  font-family: "Figtree";
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 300 900;
   font-display: swap;
-  src: url("./fonts/archivo-latin-ext-wght-normal.woff2") format("woff2");
+  src: url("./fonts/figtree-latin-ext-wght-normal.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
     U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
 @font-face {
-  font-family: "Archivo";
+  font-family: "Figtree";
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 300 900;
   font-display: swap;
-  src: url("./fonts/archivo-latin-wght-normal.woff2") format("woff2");
+  src: url("./fonts/figtree-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Sofia Sans Extra Condensed";
+  font-style: normal;
+  font-weight: 1 1000;
+  font-display: swap;
+  src: url("./fonts/sofia-sans-extra-condensed-latin-ext-wght-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Sofia Sans Extra Condensed";
+  font-style: normal;
+  font-weight: 1 1000;
+  font-display: swap;
+  src: url("./fonts/sofia-sans-extra-condensed-latin-wght-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -524,27 +548,30 @@ div.co-sheet-overlay {
   line-height: var(--co-leading-normal);
 }
 
-/* A serifa dos títulos de tela. Um por tela, e ele é o nome do lugar.
+/* O título de tela, na Bricolage Grotesque. Um por tela, e ele é o nome do
+ * lugar (ADR-023).
  *
- * O peso é 400 ESCRITO, e não herdado, em toda regra que lê
- * `--co-font-display`: a Instrument Serif só tem o 400 (ADR-014). O título
- * sai num `<h1>`, que o navegador pinta em negrito, e sem esta linha ele pede
- * um 700 que o arquivo não tem — e o navegador o inventa, engrossando o traço
- * à mão. É o "negrito sintético" que as pranchas não desenham. */
+ * O peso 700 e a largura de 88% são ESCRITOS, e não herdados, em toda regra
+ * que lê `--co-font-display`: o título sai num `<h1>` de quem consome, ou
+ * dentro de um ancestral com outro peso, e a cara da identidade não pode
+ * depender do que está em volta. Os dois estão dentro do intervalo do arquivo
+ * (peso 200 a 800, largura 75% a 100%), então saem desenhados. */
 .co-text[data-variant="title-lg"] {
   font-family: var(--co-font-display);
-  font-weight: 400;
+  font-weight: 700;
+  font-stretch: 88%;
   font-size: var(--co-text-36);
   line-height: var(--co-leading-title);
-  letter-spacing: var(--co-tracking-title);
+  letter-spacing: var(--co-tracking-tight);
+  text-wrap: balance;
 }
 
-/* A serifa dos números que carregam a mensagem: restante da meta, gasto do
- * dia. `tabular-nums` não é preciosismo — sem ele o algarismo dança a cada
- * dígito que muda. */
+/* O número que carrega a mensagem, na Sofia Sans Extra Condensed: alto e
+ * estreito como uma coluna de basalto, no 900 da identidade. `tabular-nums`
+ * não é preciosismo — sem ele o algarismo dança a cada dígito que muda. */
 .co-text[data-variant="numeral"] {
-  font-family: var(--co-font-display);
-  font-weight: 400;
+  font-family: var(--co-font-num);
+  font-weight: 900;
   font-size: var(--co-text-68);
   line-height: var(--co-leading-numeral);
   letter-spacing: var(--co-tracking-tight);

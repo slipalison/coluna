@@ -1,11 +1,18 @@
 {
   "font-display": {
     "$type": "fontFamily",
-    "$value": "\"Instrument Serif\", \"Iowan Old Style\", Georgia, serif"
+    "$value": "\"Bricolage Grotesque\", \"Avenir Next Condensed\", \"Arial Narrow\", system-ui, sans-serif",
+    "$description": "Titulos de tela e de receita (ADR-023): peso 700, largura 88%."
   },
   "font-body": {
     "$type": "fontFamily",
-    "$value": "Archivo, \"Helvetica Neue\", system-ui, sans-serif"
+    "$value": "Figtree, \"Segoe UI\", system-ui, -apple-system, sans-serif",
+    "$description": "Todo o texto (ADR-023)."
+  },
+  "font-num": {
+    "$type": "fontFamily",
+    "$value": "\"Sofia Sans Extra Condensed\", \"Roboto Condensed\", \"Arial Narrow\", sans-serif",
+    "$description": "Numeros em coluna: gramas, kcal, horarios, sempre com tabular-nums (ADR-023)."
   },
 
   "text-10": {
