@@ -72,7 +72,7 @@ export const Removível: Story = {
           />
         ))}
         {ingredientes.length === 0 ? (
-          <span style={{ color: "var(--co-text-muted)", fontSize: "var(--co-text-13)" }}>
+          <span style={{ color: "var(--co-ink-2)", fontSize: "var(--co-text-13)" }}>
             Nenhum ingrediente na receita.
           </span>
         ) : null}

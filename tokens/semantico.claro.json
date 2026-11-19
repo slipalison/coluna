@@ -1,120 +1,149 @@
 {
   "claro": {
-    "canvas": {
+    "bg": {
       "$type": "color",
-      "$value": "{stone-075}"
+      "$value": "{pomes-100}",
+      "$description": "O fundo do aplicativo."
     },
     "surface": {
       "$type": "color",
-      "$value": "{white}"
+      "$value": "{pomes-050}",
+      "$description": "O painel elevado: cartao, folha, grupo."
     },
-    "surface-raised": {
+    "surface-2": {
       "$type": "color",
-      "$value": "{stone-100}"
+      "$value": "{pomes-200}",
+      "$description": "O rebaixado: trilho, campo, faixa, linha escolhida, hover. Fundo de texto."
     },
-    "surface-sunken": {
+    "surface-3": {
       "$type": "color",
-      "$value": "{stone-200}"
+      "$value": "{pomes-300}",
+      "$description": "O pressionado e o trilho de barra. NAO e fundo de texto (no claro, ink-3 mede 4,28:1 sobre ele)."
     },
-    "overlay": {
+    "ink": {
       "$type": "color",
-      "$value": "{overlay-claro}"
+      "$value": "{pomes-950}",
+      "$description": "O texto principal e o botao primario."
     },
-    "overlay-line": {
+    "ink-2": {
       "$type": "color",
-      "$value": "{fio-claro}"
+      "$value": "{pomes-800}",
+      "$description": "O texto secundario."
     },
-    "border": {
+    "ink-3": {
       "$type": "color",
-      "$value": "{stone-400}"
+      "$value": "{pomes-700}",
+      "$description": "Legenda e unidade: o texto menos contrastado que o sistema admite."
     },
-    "border-strong": {
+    "on-ink": {
       "$type": "color",
-      "$value": "{stone-500}"
-    },
-    "control-border": {
-      "$type": "color",
-      "$value": "{stone-600}"
+      "$value": "{pomes-025}",
+      "$description": "O texto sobre a tinta solida (botao primario, escolhido)."
     },
     "line": {
       "$type": "color",
-      "$value": "{stone-200}"
+      "$value": "{pomes-400}",
+      "$description": "A fissura que separa. Nunca sozinha como limite de controle."
     },
-    "track": {
+    "control": {
       "$type": "color",
-      "$value": "{stone-300}"
+      "$value": "{pomes-600}",
+      "$description": "O limite de controle (campo, chip, segmentado) e o desenho que acompanha texto (chevron, seta)."
     },
-    "text": {
+    "focus": {
       "$type": "color",
-      "$value": "{stone-900}"
+      "$value": "{anil-700}",
+      "$description": "O anel de foco."
     },
-    "text-body": {
+    "ok": {
       "$type": "color",
-      "$value": "{stone-850}"
+      "$value": "{musgo-700}"
     },
-    "text-secondary": {
+    "warn": {
       "$type": "color",
-      "$value": "{stone-800}"
+      "$value": "{ocre-700}"
     },
-    "text-muted": {
+    "bad": {
       "$type": "color",
-      "$value": "{stone-700}"
+      "$value": "{brasa-700}",
+      "$description": "O erro de campo e a acao destrutiva. Sempre com icone e texto."
     },
-    "text-subtle": {
+    "ok-soft": {
       "$type": "color",
-      "$value": "{stone-650}"
+      "$value": "{musgo-050}"
     },
-    "icon-muted": {
+    "warn-soft": {
       "$type": "color",
-      "$value": "{stone-600}"
+      "$value": "{ocre-050}"
     },
-    "accent": {
+    "bad-soft": {
       "$type": "color",
-      "$value": "{amethyst-600}"
+      "$value": "{brasa-050}"
     },
-    "accent-hover": {
+    "on-hora": {
       "$type": "color",
-      "$value": "{amethyst-700}"
+      "$value": "{pomes-950}",
+      "$description": "O texto sobre a cor da hora: a tinta escura, fixa nos dois temas."
     },
-    "accent-contrast": {
+    "scrim": {
       "$type": "color",
-      "$value": "{white}"
+      "$value": "{veu-claro}",
+      "$description": "O veu atras da folha."
     },
-    "accent-soft": {
-      "$type": "color",
-      "$value": "{amethyst-050}"
-    },
-    "status": {
-      "$type": "color",
-      "$value": "{jade-700}"
-    },
-    "status-border": {
-      "$type": "color",
-      "$value": "{jade-200}"
-    },
-    "danger": {
-      "$type": "color",
-      "$value": "{rust-600}"
-    },
-    "danger-soft": {
-      "$type": "color",
-      "$value": "{rust-050}"
-    },
-    "macro-protein": {
-      "$type": "color",
-      "$value": "{amethyst-600}"
-    },
-    "macro-carb": {
-      "$type": "color",
-      "$value": "{jade-700}"
-    },
-    "macro-fat": {
-      "$type": "color",
-      "$value": "{orchid-600}"
-    },
-    "shadow-overlay": {
+    "shadow-float": {
       "$type": "other",
-      "$value": "0 -24px 48px rgba(26, 21, 32, 0.10)"
+      "$value": "0 18px 40px -18px rgba(20, 32, 36, 0.45), 0 2px 6px rgba(20, 32, 36, 0.08)",
+      "$description": "A sombra do que flutua (folha, barra de abas, menu). Cartao comum nao tem sombra."
+    },
+    "shadow-lift": {
+      "$type": "other",
+      "$value": "0 10px 24px -14px rgba(20, 32, 36, 0.40)",
+      "$description": "O degrau curto do destino atual do trilho."
+    },
+    "hora-l": {
+      "$type": "number",
+      "$value": 0.76,
+      "$description": "A luminosidade da cor da hora como preenchimento."
+    },
+    "hora-ink-l": {
+      "$type": "number",
+      "$value": 0.46,
+      "$description": "A luminosidade da cor da hora como texto."
+    },
+    "hora-soft-l": {
+      "$type": "number",
+      "$value": 0.93,
+      "$description": "A luminosidade do lavado de fundo da hora."
+    },
+    "hora-soft-c": {
+      "$type": "number",
+      "$value": 0.04,
+      "$description": "O croma do lavado de fundo da hora."
+    },
+    "role-protein": {
+      "$type": "other",
+      "$value": "oklch(0.70 0.13 25)",
+      "$description": "Os papeis do alimento (prato, macro, legenda): mesma luminosidade e croma por tema, nenhum grita mais que o outro. Sempre com nome e quantidade ao lado (ADR-005)."
+    },
+    "role-carb": {
+      "$type": "other",
+      "$value": "oklch(0.76 0.13 80)"
+    },
+    "role-veg": {
+      "$type": "other",
+      "$value": "oklch(0.70 0.13 150)"
+    },
+    "role-fruit": {
+      "$type": "other",
+      "$value": "oklch(0.70 0.13 350)"
+    },
+    "role-dairy": {
+      "$type": "other",
+      "$value": "oklch(0.70 0.104 240)"
+    },
+    "role-fat": {
+      "$type": "other",
+      "$value": "oklch(0.70 0.13 300)"
     },
     "grain-opacity": {
       "$type": "other",

@@ -626,9 +626,9 @@ describe("SearchField dentro da folha", () => {
     // existir PARADO — não só com o foco dentro, que é quando a pessoa já
     // achou o campo.
     const contorno = bloco(".co-search").filter(([p]) => BORDA.test(p));
-    expect(contorno).toEqual([["border", "var(--co-border-width) solid var(--co-control-border)"]]);
+    expect(contorno).toEqual([["border", "var(--co-border-width) solid var(--co-control)"]]);
     expect(avaliar("var(--co-border-width)", TOKENS)).toBeGreaterThan(0);
-    expect(TOKENS["--co-control-border"], "o token de limite existe no CSS gerado").toMatch(/\S/);
+    expect(TOKENS["--co-control"], "o token de limite existe no CSS gerado").toMatch(/\S/);
 
     // Nenhuma regra que alcança a moldura — a da folha inclusive
     // (`.co-sheet .co-search`, `.co-sheet__body > *`) — a zera, apaga ou deixa
@@ -641,10 +641,10 @@ describe("SearchField dentro da folha", () => {
     expect(apagam, "regras que apagam o contorno da busca").toEqual([]);
 
     // E nenhuma regra da folha troca a cor ou a largura do contorno por baixo
-    // (um `--co-control-border: transparent` dentro de `.co-sheet`).
+    // (um `--co-control: transparent` dentro de `.co-sheet`).
     const redeclaram = REGRAS.flatMap((r) =>
       r.declaracoes
-        .filter(([p]) => p === "--co-control-border" || p === "--co-border-width")
+        .filter(([p]) => p === "--co-control" || p === "--co-border-width")
         .map(([p]) => `${lugar(r)} ${p}`),
     );
     expect(redeclaram, "tokens de contorno redeclarados na folha").toEqual([]);

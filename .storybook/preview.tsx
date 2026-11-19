@@ -14,7 +14,7 @@ const temaGlobal: Decorator = (Story, contexto) => {
   const tema = (contexto.globals["tema"] ?? "system") as ThemePreference;
   return (
     <ThemeProvider theme={tema} attachTo="element" storageKey={null}>
-      <div style={{ background: "var(--co-canvas)", padding: "24px", minHeight: "120px" }}>
+      <div style={{ background: "var(--co-bg)", padding: "24px", minHeight: "120px" }}>
         <Story />
       </div>
     </ThemeProvider>

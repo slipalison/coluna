@@ -187,7 +187,7 @@ describe("a busca presa no topo da folha", () => {
       "lg: 30 estados com a moldura à vista e o rótulo fora do recorte (scrollTop 5 a 34)",
       "camada: z-index auto deixa a lista pintar por cima da busca",
       "fundo: nenhum e não o da folha (var(--co-surface))",
-      "fundo inline: nenhum e não o da folha (var(--co-surface-sunken))",
+      "fundo inline: nenhum e não o da folha (var(--co-surface-2))",
     ]);
   });
 
@@ -200,7 +200,7 @@ describe("a busca presa no topo da folha", () => {
 
     const inlineSemFundo = REGRAS.filter((r) => !r.seletores.includes(SELETOR_INLINE));
     expect(faltas(inlineSemFundo)).toEqual([
-      "fundo inline: var(--co-surface) e não o da folha (var(--co-surface-sunken))",
+      "fundo inline: var(--co-surface) e não o da folha (var(--co-surface-2))",
     ]);
 
     const semMargem = trocar(SELETOR, (d) => d.filter(([p]) => p !== "margin-block"));

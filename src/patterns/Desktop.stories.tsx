@@ -70,7 +70,7 @@ function Marca({ collapsed = false }: Readonly<{ collapsed?: boolean }>) {
           height: "26px",
           flexShrink: 0,
           borderRadius: "var(--co-radius-inset)",
-          background: "var(--co-accent)",
+          background: "var(--co-hora)",
         }}
       />
       {collapsed ? (
@@ -106,8 +106,8 @@ function Moldura({
         width: "1440px",
         height: "900px",
         overflow: "hidden",
-        background: "var(--co-canvas)",
-        color: "var(--co-text)",
+        background: "var(--co-bg)",
+        color: "var(--co-ink)",
       }}
     >
       <Rail

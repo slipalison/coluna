@@ -63,7 +63,7 @@ export const Sobreposto: Story = {
           height: "520px",
           overflow: "hidden",
           borderRadius: "var(--co-radius-container)",
-          background: "var(--co-canvas)",
+          background: "var(--co-bg)",
         }}
       >
         <Stack gap={12} style={{ padding: "20px" }}>
@@ -194,7 +194,7 @@ function FolhaComBusca({ termoInicial = "arroz" }: { termoInicial?: string }) {
         height: "560px",
         overflow: "hidden",
         borderRadius: "var(--co-radius-container)",
-        background: "var(--co-canvas)",
+        background: "var(--co-bg)",
       }}
     >
       <Stack gap={12} style={{ padding: "20px" }}>
@@ -296,7 +296,7 @@ function FolhaDeLeitura() {
         height: "560px",
         overflow: "hidden",
         borderRadius: "var(--co-radius-container)",
-        background: "var(--co-canvas)",
+        background: "var(--co-bg)",
       }}
     >
       <Stack gap={12} style={{ padding: "20px" }}>

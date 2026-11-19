@@ -357,13 +357,13 @@ describe("Tabs, as abas dentro do card", () => {
     expect(bloco(".co-tabs__panel:focus-visible")).toEqual([["outline-offset", "-2px"]]);
     expect(bloco(".co-tabs__tab:focus-visible")).toEqual([["outline-offset", "-2px"]]);
     expect(bloco('.co-tabs__tab[aria-selected="true"]:focus-visible')).toEqual([
-      ["outline-color", "var(--co-accent-contrast)"],
+      ["outline-color", "var(--co-on-ink)"],
     ]);
   });
 
   it("a aba aberta muda de fundo e de peso, e não só de cor; e herda a fonte", () => {
     const aberta = Object.fromEntries(bloco('.co-tabs__tab[aria-selected="true"]'));
-    expect(aberta["background"]).toBe("var(--co-accent)");
+    expect(aberta["background"]).toBe("var(--co-ink)");
     expect(aberta["font-weight"]).toBe("var(--co-weight-semibold)");
     const aba = Object.fromEntries(bloco(".co-tabs__tab"));
     expect(aba["font"]).toBe("inherit");
@@ -407,9 +407,9 @@ describe("o piso das duas peças", () => {
   it("o indicador: vaga vazia é anel no limite de controle, a cheia é traço largo e cheio", () => {
     const vazia = Object.fromEntries(bloco(".co-deck__dot"));
     const cheia = Object.fromEntries(bloco('.co-deck__dot[data-current="true"]'));
-    expect(vazia["border"]).toBe("var(--co-border-width) solid var(--co-control-border)");
+    expect(vazia["border"]).toBe("var(--co-border-width) solid var(--co-control)");
     expect(vazia["background"]).toBe("transparent");
-    expect(cheia["background"]).toBe("var(--co-accent)");
+    expect(cheia["background"]).toBe("var(--co-ink)");
     // Forma diferente, e não só cor: a cheia é mais larga.
     expect(avaliar(cheia["width"] ?? "", SEM_AREA)).toBeGreaterThan(avaliar(vazia["width"] ?? "", SEM_AREA));
   });

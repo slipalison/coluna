@@ -69,7 +69,7 @@ export const SobreOConteúdo: Story = {
           height: "320px",
           overflow: "hidden",
           borderRadius: "var(--co-radius-container)",
-          background: "var(--co-canvas)",
+          background: "var(--co-bg)",
         }}
       >
         <div style={{ height: "100%", overflowY: "auto", padding: "16px 16px 96px" }}>
@@ -81,7 +81,7 @@ export const SobreOConteúdo: Story = {
                 marginBottom: "8px",
                 background: "var(--co-surface)",
                 borderRadius: "var(--co-radius-container)",
-                color: "var(--co-text-secondary)",
+                color: "var(--co-ink-2)",
                 fontSize: "var(--co-text-14)",
               }}
             >

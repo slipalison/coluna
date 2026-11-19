@@ -123,7 +123,7 @@ export const PisoDeLetra: Story = {
  * ainda passa em 4,5:1 sobre a superfície, que é o fundo mais claro do tema
  * escuro e portanto o caso difícil.
  *
- * Abaixo dele existe `--co-icon-muted`, e ele não está nesta lista de
+ * Abaixo dele existe `--co-control`, e ele não está nesta lista de
  * propósito — é para DESENHO (seta, moldura), nunca para texto.
  */
 export const Tons: Story = {

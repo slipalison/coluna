@@ -110,7 +110,7 @@ function AreaDoSistema() {
         height: "5px",
         transform: "translateX(-50%)",
         borderRadius: "var(--co-radius-pill)",
-        background: "var(--co-text)",
+        background: "var(--co-ink)",
       }}
     />
   );
@@ -158,7 +158,7 @@ function TelaDoDiario({
         height: "844px",
         overflow: "hidden",
         borderRadius: "var(--co-radius-container)",
-        background: "var(--co-canvas)",
+        background: "var(--co-bg)",
         ...(iphone ? IPHONE : {}),
       }}
     >

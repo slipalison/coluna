@@ -10,8 +10,8 @@ import { readToken, semanticTokens, type SemanticToken } from "./tokens";
  * Os tokens, lidos do navegador agora — troque o tema na barra de ferramentas
  * e os valores abaixo mudam.
  *
- * Duas camadas: a primitiva guarda o valor (`--co-amethyst-500`) e a semântica
- * guarda o papel (`--co-accent`). **Só a semântica muda com o tema**, e
+ * Duas camadas: a primitiva guarda o valor (`--co-pomes-100`) e a semântica
+ * guarda o papel (`--co-ink`). **Só a semântica muda com o tema**, e
  * componente nenhum lê primitiva.
  *
  * A fonte é `tokens/*.json` no formato W3C Design Tokens; o Style Dictionary
@@ -26,19 +26,21 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const GRUPOS: [string, SemanticToken[]][] = [
-  ["Superfície", ["canvas", "surface", "surface-raised", "surface-sunken", "overlay"]],
-  // `control-border` é o limite do que se toca (campo, busca, chip, marca,
-  // segmentado, stepper), a 3:1 sobre o fundo; `border` e `border-strong`
-  // ficam para o que não se toca (superfície, selo).
-  ["Traço", ["border", "border-strong", "control-border", "line", "track", "overlay-line"]],
-  // Cinco degraus de texto, em contraste decrescente, e `icon-muted` no fim —
-  // que é o único que NÃO serve para texto: ele passa em 3:1, não em 4,5:1.
-  ["Texto", ["text", "text-body", "text-secondary", "text-muted", "text-subtle", "icon-muted"]],
-  ["Acento", ["accent", "accent-hover", "accent-contrast", "accent-soft"]],
-  ["Estado", ["status", "status-border", "danger", "danger-soft"]],
-  // A cor de cada macro é do SISTEMA, não de quem monta a tela: proteína tem
-  // que ser da mesma cor em todas as telas do aplicativo.
-  ["Macro", ["macro-protein", "macro-carb", "macro-fat"]],
+  // A pedra: o fundo, o painel, o rebaixado (fundo de texto) e o pressionado
+  // (trilho de barra, NUNCA fundo de texto).
+  ["Pedra", ["bg", "surface", "surface-2", "surface-3"]],
+  // Três degraus de texto, em contraste decrescente; `on-ink` é o texto sobre a
+  // tinta sólida (o botão primário, o escolhido).
+  ["Tinta", ["ink", "ink-2", "ink-3", "on-ink"]],
+  // `line` é a fissura do que não se toca; `control` é o limite do que se toca
+  // (campo, busca, chip, segmentado), a 3:1 sobre o fundo.
+  ["Traço", ["line", "control", "focus"]],
+  ["Estado", ["ok", "warn", "bad", "ok-soft", "warn-soft", "bad-soft"]],
+  // A cor da hora: cor de LUGAR, nunca de ação. O matiz e o croma vêm do
+  // relógio (`hourStyle`); a luminosidade, do tema.
+  ["Hora", ["hora", "hora-ink", "hora-soft", "on-hora"]],
+  // Os papéis do alimento: a mesma luminosidade, nenhum grita mais que o outro.
+  ["Papel do alimento", ["role-protein", "role-carb", "role-veg", "role-fruit", "role-dairy", "role-fat"]],
 ];
 
 function Amostra({ token, de }: { token: SemanticToken; de: Element | null }) {
@@ -62,7 +64,7 @@ function Amostra({ token, de }: { token: SemanticToken; de: Element | null }) {
           style={{
             height: "52px",
             background: `var(--co-${token})`,
-            border: "1px solid var(--co-border)",
+            border: "1px solid var(--co-line)",
           }}
         />
         <Text variant="caption" style={{ fontFamily: "ui-monospace, Menlo, monospace" }}>
@@ -114,7 +116,7 @@ export const Espaço: Story = {
     <Stack direction="row" gap={8} align="flex-end" wrap>
       {ESPACOS.map((n) => (
         <Stack key={n} gap={6} align="center">
-          <div style={{ width: `${n}px`, height: "16px", background: "var(--co-accent)" }} />
+          <div style={{ width: `${n}px`, height: "16px", background: "var(--co-hora)" }} />
           <Text variant="caption" tone="muted" numeric>
             {n}
           </Text>
@@ -139,8 +141,8 @@ export const Forma: Story = {
               style={{
                 width: "64px",
                 height: "64px",
-                background: "var(--co-surface-raised)",
-                border: "1px solid var(--co-border-strong)",
+                background: "var(--co-surface-2)",
+                border: "1px solid var(--co-line)",
                 borderRadius: `var(--co-radius-${r})`,
               }}
             />
@@ -155,8 +157,8 @@ export const Forma: Story = {
           style={{
             width: "var(--co-target-min)",
             height: "var(--co-target-min)",
-            background: "var(--co-accent-soft)",
-            border: "1px solid var(--co-accent)",
+            background: "var(--co-hora-soft)",
+            border: "1px solid var(--co-hora)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

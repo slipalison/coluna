@@ -478,7 +478,7 @@ it("a faixa é opaca na área do relógio e esmaece só no terço extra, com o d
     ["pointer-events", "none"],
     [
       "background",
-      "linear-gradient(to bottom, var(--co-canvas) 0%, var(--co-canvas) 75%, transparent 100%)",
+      "linear-gradient(to bottom, var(--co-bg) 0%, var(--co-bg) 75%, transparent 100%)",
     ],
     ["backdrop-filter", "blur(22px)"],
     ["-webkit-backdrop-filter", "blur(22px)"],
@@ -501,10 +501,10 @@ it("a faixa é opaca na área do relógio e esmaece só no terço extra, com o d
       classesDe(s).every((nome) => ["co-root", "co-screen", "co-grain"].includes(nome ?? "")),
   );
   expect(alcancam, "regras genéricas que alcançam a faixa").toEqual([]);
-  const canvas = REGRAS.filter((r) => r.declaracoes.some(([p]) => p === "--co-canvas"));
-  expect(canvas.map(lugar), "regras desta folha que redeclaram --co-canvas").toEqual([]);
+  const canvas = REGRAS.filter((r) => r.declaracoes.some(([p]) => p === "--co-bg"));
+  expect(canvas.map(lugar), "regras desta folha que redeclaram --co-bg").toEqual([]);
 
-  // Os dois temas pelo `--co-canvas`: o fundo da faixa é o da própria tela, opaco
+  // Os dois temas pelo `--co-bg`: o fundo da faixa é o da própria tela, opaco
   // até 75% e transparente no fim, no claro e no escuro.
   const temas = ["light", "dark"].map((tema) => {
     const { tela, faixa } = telaMontada(
@@ -521,7 +521,7 @@ it("a faixa é opaca na área do relógio e esmaece só no terço extra, com o d
     cleanup();
     return cor;
   });
-  expect(temas).toEqual(["#f2eef8", "#0d0b11"]);
+  expect(temas).toEqual(["#e9edea", "#101517"]);
 });
 
 it("a faixa tem a área de cima mais um terço, e 0 sem área segura", () => {

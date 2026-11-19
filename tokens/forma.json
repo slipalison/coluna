@@ -19,10 +19,14 @@
     "$type": "dimension",
     "$value": "999px"
   },
-
   "border-width": {
     "$type": "dimension",
     "$value": "1px"
+  },
+  "control-width": {
+    "$type": "dimension",
+    "$value": "1.5px",
+    "$description": "O limite de controle (campo, busca, chip, segmentado, botao comum): 1,5px em --co-control. A fissura (--co-border-width) continua com 1px."
   },
   "marker-width": {
     "$type": "dimension",
@@ -32,7 +36,6 @@
     "$type": "dimension",
     "$value": "44px"
   },
-
   "inset-none": {
     "$type": "other",
     "$value": "0"
@@ -49,7 +52,6 @@
     "$type": "dimension",
     "$value": "52px"
   },
-
   "dot-size": {
     "$type": "dimension",
     "$value": "10px"

@@ -217,7 +217,7 @@ it("tabBar true dá a árvore da 1.7.1: só a reserva, sem nó e sem barra de a�
 
 // ---------------------------------------------------------------- a folha --
 
-it("a barra de ação é fixa, na camada das abas e abaixo do painel, com o vidro delas e nada mais", () => {
+it("a barra de ação é fixa, na camada das abas e abaixo do painel, com o fundo delas e nada mais", () => {
   // As quinze, nesta ordem, num bloco só e no nível de cima da folha.
   expect(bloco(BARRA_DE_ACAO.barra)).toEqual([
     ["position", "fixed"],
@@ -234,10 +234,8 @@ it("a barra de ação é fixa, na camada das abas e abaixo do painel, com o vidr
       "padding",
       `var(--co-space-10) max(var(--co-space-16), var(--co-safe-right)) ${RODAPE} max(var(--co-space-16), var(--co-safe-left))`,
     ],
-    ["background", "var(--co-overlay)"],
-    ["backdrop-filter", "blur(22px)"],
-    ["-webkit-backdrop-filter", "blur(22px)"],
-    ["border-top", "var(--co-border-width) solid var(--co-overlay-line)"],
+    ["background", "var(--co-surface)"],
+    ["border-top", "var(--co-border-width) solid var(--co-line)"],
   ]);
   expect(bloco(BARRA_DE_ACAO.comAbas)).toEqual([
     ["bottom", `calc(73px - var(--co-space-10) + ${RODAPE})`],
@@ -245,12 +243,17 @@ it("a barra de ação é fixa, na camada das abas e abaixo do painel, com o vidr
     ["padding-bottom", "var(--co-space-10)"],
   ]);
 
-  // O vidro é o da barra de abas, propriedade por propriedade.
+  // O fundo é o da barra de abas, propriedade por propriedade, e nenhuma das
+  // duas tem o vidro, que é da F4 do Basalto (ADR-022).
   const abasDeclaradas = Object.fromEntries(bloco(".co-tabbar"));
-  for (const propriedade of ["background", "backdrop-filter", "-webkit-backdrop-filter", "border-top"]) {
+  for (const propriedade of ["background", "border-top"]) {
     expect(valor(bloco(BARRA_DE_ACAO.barra), propriedade), propriedade).toBe(
       abasDeclaradas[propriedade],
     );
+  }
+  for (const propriedade of ["backdrop-filter", "-webkit-backdrop-filter"]) {
+    expect(abasDeclaradas[propriedade], `a barra de abas sem ${propriedade}`).toBeUndefined();
+    expect(valor(bloco(BARRA_DE_ACAO.barra), propriedade), `a barra de ação sem ${propriedade}`).toBe("");
   }
   // A camada das abas, abaixo do véu do painel que sobe do rodapé.
   expect(abasDeclaradas["z-index"]).toBe("20");

@@ -2,19 +2,23 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { hourStops, hourVars } from "../theme/hour";
 import { bloco, type Declaracao } from "../test/folha";
 
 /**
- * O piso de contraste do sistema, conferido na FONTE dos tokens.
+ * O piso de contraste do "Relógio de Sol", conferido na FONTE dos tokens, nos
+ * dois temas (ADR-016, ADR-022).
  *
- * A ADR-005 diz que `--co-text-subtle` é o texto menos contrastado que o
- * sistema admite e que `--co-icon-muted` é para desenho, nunca para texto.
- * Sem este arquivo isso é uma frase num documento: alguém escurece uma
+ * Sem este arquivo o piso é uma frase num documento: alguém clareia uma
  * primitiva por motivo estético, o CSS continua válido, o TypeScript continua
  * compilando, e o defeito só aparece para quem não consegue ler a tela.
  *
- * A conta é a do WCAG 2.2 (luminância relativa e razão de contraste), aplicada
- * ao valor JÁ RESOLVIDO de cada token semântico nos dois temas.
+ * A conta é a do WCAG 2.2 (luminância relativa e razão de contraste), sobre o
+ * valor JÁ RESOLVIDO de cada token. A cor da hora é OKLCH, e o teste a converte
+ * para sRGB ele mesmo (as matrizes da CSS Color 4). Uma cor OKLCH pode cair
+ * fora do sRGB, e os navegadores não a trazem de volta do mesmo jeito: uns
+ * cortam cada canal, a especificação reduz o croma até caber. O teste mede os
+ * DOIS caminhos, e o piso tem de valer nos dois.
  */
 
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -29,52 +33,90 @@ const primitivas = ler("cor.json");
 const claro = (ler("semantico.claro.json")["claro"] ?? {}) as Folha;
 const escuro = (ler("semantico.escuro.json")["escuro"] ?? {}) as Folha;
 
-/** Resolve `{basalt-050}` até o valor cru. */
-function valor(token: unknown): string {
-  const cru = (token as { $value?: string } | undefined)?.$value;
-  if (cru === undefined) throw new Error("token sem $value");
-  const referencia = /^\{(.+)\}$/.exec(cru);
-  if (!referencia?.[1]) return cru;
-  return valor(primitivas[referencia[1]]);
+/** Resolve `{pomes-100}` até o valor cru. */
+function cru(token: unknown): string {
+  const valor = (token as { $value?: string | number } | undefined)?.$value;
+  if (valor === undefined) throw new Error("token sem $value");
+  const referencia = /^\{(.+)\}$/.exec(String(valor));
+  if (!referencia?.[1]) return String(valor);
+  return cru(primitivas[referencia[1]]);
 }
 
-function canal(oitoBits: number): number {
-  const c = oitoBits / 255;
-  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-}
+// ------------------------------------------------------------ as contas --
 
-function luminancia(hex: string): number {
+type Rgb = [number, number, number];
+
+const linear = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+
+function deHex(hex: string): Rgb {
   const casado = /^#([0-9a-f]{6})$/i.exec(hex.trim());
   if (!casado?.[1]) throw new Error(`esperava #rrggbb, veio ${hex}`);
   const n = Number.parseInt(casado[1], 16);
-  return (
-    0.2126 * canal((n >> 16) & 255) +
-    0.7152 * canal((n >> 8) & 255) +
-    0.0722 * canal(n & 255)
-  );
+  return [linear(((n >> 16) & 255) / 255), linear(((n >> 8) & 255) / 255), linear((n & 255) / 255)];
 }
 
-function contraste(frente: string, fundo: string): number {
-  const a = luminancia(frente);
-  const b = luminancia(fundo);
-  const [claro_, escuro_] = a > b ? [a, b] : [b, a];
-  return (claro_ + 0.05) / (escuro_ + 0.05);
+/** OKLCH → sRGB linear, sem cortar (CSS Color 4, § OKLab). */
+function deOklch(l: number, c: number, h: number): Rgb {
+  const a = c * Math.cos((h * Math.PI) / 180);
+  const b = c * Math.sin((h * Math.PI) / 180);
+  const l_ = (l + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m_ = (l - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s_ = (l - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  return [
+    4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699292 * s_,
+    -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_,
+    -0.0041960863 * l_ - 0.7034186147 * m_ + 1.707614701 * s_,
+  ];
 }
 
-/** Texto comum: 4,5:1. Desenho (ícone, barra, ponto): 3:1. */
+const cabe = (rgb: Rgb) => rgb.every((canal) => canal >= -1e-6 && canal <= 1 + 1e-6);
+const corta = (rgb: Rgb): Rgb => rgb.map((canal) => Math.min(1, Math.max(0, canal))) as Rgb;
+
+/** Os dois jeitos de trazer uma OKLCH fora do sRGB de volta. */
+function oklchNosDoisCaminhos(l: number, c: number, h: number): { cortada: Rgb; reduzida: Rgb } {
+  const cortada = corta(deOklch(l, c, h));
+  // A especificação mantém a luminosidade e o matiz e reduz o croma até a cor
+  // caber; a busca binária chega lá com folga de um milésimo de croma.
+  let [baixo, alto] = [0, c];
+  if (cabe(deOklch(l, c, h))) baixo = c;
+  for (let passo = 0; passo < 30 && alto - baixo > 1e-4; passo += 1) {
+    const meio = (baixo + alto) / 2;
+    if (cabe(deOklch(l, meio, h))) baixo = meio;
+    else alto = meio;
+  }
+  return { cortada, reduzida: corta(deOklch(l, baixo, h)) };
+}
+
+const luminancia = ([r, g, b]: Rgb) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+function razao(frente: Rgb, fundo: Rgb): number {
+  const [a, b] = [luminancia(frente), luminancia(fundo)];
+  const [maior, menor] = a > b ? [a, b] : [b, a];
+  return (maior + 0.05) / (menor + 0.05);
+}
+
+/** Uma cor de token: `#rrggbb` ou `oklch(l c h)` literal. */
+function cor(valor: string): Rgb {
+  const ok = /^oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*\)$/.exec(valor);
+  if (ok) return oklchNosDoisCaminhos(Number(ok[1]), Number(ok[2]), Number(ok[3])).cortada;
+  return deHex(valor);
+}
+
 const PISO_TEXTO = 4.5;
 const PISO_DESENHO = 3;
 
-const TEXTO = ["text", "text-body", "text-secondary", "text-muted", "text-subtle"] as const;
-const TEXTO_COLORIDO = ["accent", "status", "danger"] as const;
-const DESENHO = ["icon-muted", "macro-protein", "macro-carb", "macro-fat"] as const;
+const TEMAS: [string, Folha][] = [
+  ["claro", claro],
+  ["escuro", escuro],
+];
+
+// ------------------------------------------------------------ a pedra --
 
 /**
  * Os controles cujo LIMITE é o que diz "aqui se toca" (WCAG 1.4.11): o
  * contorno é desenho, então o piso é 3:1, sobre todo fundo em que um controle
- * mora. O segmentado e o stepper entram aqui mesmo tendo fundo próprio: o
- * fundo `surface` sobre `canvas` mede 1,14:1 no claro e 1,10:1 no escuro, e
- * sem contorno as opções viram texto solto, sem cara de opção.
+ * mora. O segmentado e o stepper entram aqui mesmo tendo fundo próprio: sem o
+ * contorno, as opções viram texto solto, sem cara de opção.
  */
 const CONTROLES = [
   [".co-input", "campo"],
@@ -93,140 +135,205 @@ const CONTROLES = [
 const contorno = (declaracoes: Declaracao[]) =>
   declaracoes.filter(([propriedade]) => /^border(?!-radius)/.test(propriedade));
 
-const TEMAS: [string, Folha][] = [
-  ["claro", claro],
-  ["escuro", escuro],
-];
+describe.each(TEMAS)("a pedra no tema %s", (_nome, tema) => {
+  const valor = (token: string) => cor(cru(tema[token]));
 
-describe.each(TEMAS)("contraste no tema %s", (_nome, tema) => {
-  // Todo fundo em que texto de verdade aparece. O caso difícil é o fundo mais
-  // claro no tema escuro e o mais escuro no claro — e qual é qual muda quando
-  // a paleta muda, por isso a lista inteira, e não o "pior" escolhido a olho.
-  //
-  // `surface-sunken` entrou na lista quando o `Rail` e o `Sheet` em modo
-  // `inline` passaram a usá-lo como fundo de TEXTO — antes ele só segurava
-  // trilho de barra, onde o piso é o de desenho. Um fundo novo que recebe texto
-  // e não entra aqui é um fundo cujo contraste ninguém confere.
-  //
-  // `surface-raised` é o fundo da linha escolhida do `ListRow` e do
-  // `Surface elevation="raised"` — texto de verdade, e no tema escuro o fundo
-  // MAIS CLARO de todos, ou seja, o caso difícil de fato. Ficou de fora até a
-  // história `Escolha` mostrar a legenda sutil da linha marcada a 4,43:1.
-  const fundos = [
-    ["canvas", valor(tema["canvas"])],
-    ["surface", valor(tema["surface"])],
-    ["surface-raised", valor(tema["surface-raised"])],
-    ["surface-sunken", valor(tema["surface-sunken"])],
-  ] as const;
+  // Todo fundo em que texto de verdade aparece. `surface-3` NÃO entra: é o
+  // pressionado e o trilho de barra, e no claro a legenda mede 4,28:1 sobre
+  // ele. Ele tem a prova dele logo abaixo, só com o que pode morar nele.
+  const fundos = ["bg", "surface", "surface-2"] as const;
 
-  it.each(TEXTO)("%s passa em 4,5:1 em todo fundo de texto", (token) => {
-    for (const [nomeFundo, fundo] of fundos) {
-      const razao = contraste(valor(tema[token]), fundo);
-      expect(razao, `${token} sobre ${nomeFundo} deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(
-        PISO_TEXTO,
-      );
+  it.each(["ink", "ink-2", "ink-3"])("%s passa em 4,5:1 em todo fundo de texto", (token) => {
+    for (const fundo of fundos) {
+      const r = razao(valor(token), valor(fundo));
+      expect(r, `${token} sobre ${fundo} deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_TEXTO);
     }
   });
 
-  it.each(TEXTO_COLORIDO)("%s passa em 4,5:1, porque também é texto", (token) => {
-    for (const [nomeFundo, fundo] of fundos) {
-      const razao = contraste(valor(tema[token]), fundo);
-      expect(razao, `${token} sobre ${nomeFundo} deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(
-        PISO_TEXTO,
-      );
+  it.each(["ok", "warn", "bad"])("%s passa em 4,5:1, porque também é texto (o erro, o aviso)", (token) => {
+    for (const fundo of fundos) {
+      const r = razao(valor(token), valor(fundo));
+      expect(r, `${token} sobre ${fundo} deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_TEXTO);
     }
   });
 
-  it.each(DESENHO)("%s passa em 3:1, que é o piso de desenho", (token) => {
-    for (const [nomeFundo, fundo] of fundos) {
-      const razao = contraste(valor(tema[token]), fundo);
-      expect(razao, `${token} sobre ${nomeFundo} deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(
-        PISO_DESENHO,
-      );
+  it.each([
+    ["ok", "ok-soft"],
+    ["warn", "warn-soft"],
+    ["bad", "bad-soft"],
+  ])("sobre %s-soft, a cor do estado, a tinta e a tinta 2 passam em 4,5:1", (estado, suave) => {
+    for (const frente of [estado, "ink", "ink-2"]) {
+      const r = razao(valor(frente), valor(suave));
+      expect(r, `${frente} sobre ${suave} deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_TEXTO);
     }
   });
 
-  it("o rótulo do botão primário lê sobre o acento", () => {
-    // `accent-contrast` existe só para isto, e é o par que quebra primeiro
-    // quando alguém clareia o acento para ele "aparecer mais".
-    const razao = contraste(valor(tema["accent-contrast"]), valor(tema["accent"]));
-    expect(razao, `deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_TEXTO);
-  });
-
-  it("o chip escolhido lê sobre o acento suave", () => {
-    // `accent-soft` é fundo de texto em dois lugares: o chip escolhido e o
-    // aviso. É o par que quebra quando alguém satura o acento suave para ele
-    // "aparecer mais".
-    const razao = contraste(valor(tema["text"]), valor(tema["accent-soft"]));
-    expect(razao, `deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_TEXTO);
-  });
-
-  it("o ícone ligado do botão-ícone se vê sobre o acento suave", () => {
-    // `IconButton pressed` pinta o traço de acento sobre `accent-soft`. É
-    // desenho, então o piso é 3:1 — e é o par que some quando alguém aproxima
-    // o acento suave do acento para o fundo "combinar".
-    const razao = contraste(valor(tema["accent"]), valor(tema["accent-soft"]));
-    expect(razao, `deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
-  });
-
-  it("o limite de controle (campo, busca, chip, radio, checkbox, segmentado, stepper, seta do carrossel e abas) passa em 3:1", () => {
-    // `--co-border` e `--co-border-strong` são o traço do que NÃO se toca
-    // (superfície, selo) e ficam abaixo de 3:1 de propósito: um contorno de
-    // cartão a 3:1 pesaria a tela inteira. O limite de controle é outro papel,
-    // com token próprio, e é sobre ele que mora a conta. `surface-sunken` fica
-    // de fora: é trilho e fundo de texto, e nenhum controle mora nele.
-    const limite = valor(tema["control-border"]);
-    for (const nomeFundo of ["canvas", "surface", "surface-raised"] as const) {
-      const razao = contraste(limite, valor(tema[nomeFundo]));
-      expect(razao, `control-border sobre ${nomeFundo} deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(
-        PISO_DESENHO,
-      );
+  it("surface-3 segura o que mora nele: a tinta e a tinta 2 (o ligado do botão-ícone) e o anel de foco", () => {
+    for (const [frente, piso] of [
+      ["ink", PISO_TEXTO],
+      ["ink-2", PISO_TEXTO],
+      ["focus", PISO_DESENHO],
+    ] as const) {
+      const r = razao(valor(frente), valor("surface-3"));
+      expect(r, `${frente} sobre surface-3 deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(piso);
     }
+  });
+
+  it("o texto sobre a tinta sólida (primário, escolhido) passa em 4,5:1, e no hover também", () => {
+    for (const fundo of ["ink", "ink-2"]) {
+      const r = razao(valor("on-ink"), valor(fundo));
+      expect(r, `on-ink sobre ${fundo} deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_TEXTO);
+    }
+  });
+
+  it("a tinta sólida (o chip e o segmentado escolhidos, a marca ligada) se separa do fundo em 3:1", () => {
+    for (const fundo of fundos) {
+      const r = razao(valor("ink"), valor(fundo));
+      expect(r, `ink sobre ${fundo} deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
+    }
+  });
+
+  it("o limite de controle passa em 3:1 sobre todo fundo onde um controle mora, e os controles o desenham", () => {
+    // `--co-line` é a fissura do que NÃO se toca e fica abaixo de 3:1 de
+    // propósito: um contorno de cartão a 3:1 pesaria a tela inteira. O limite
+    // de controle é outro papel, com token próprio.
+    for (const fundo of fundos) {
+      const r = razao(valor("control"), valor(fundo));
+      expect(r, `control sobre ${fundo} deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
+    }
+    expect(razao(valor("line"), valor("bg")), "a fissura fica abaixo do limite de controle").toBeLessThan(
+      razao(valor("control"), valor("bg")),
+    );
 
     // E o token só vale se os controles o desenham: um chip que volta para
-    // `--co-border` passa na conta acima e some na tela.
+    // `--co-line` passa na conta acima e some na tela.
     for (const [seletor, controle] of CONTROLES) {
       expect(contorno(bloco(seletor)), `o contorno de ${controle} (${seletor})`).toEqual([
-        ["border", "var(--co-border-width) solid var(--co-control-border)"],
+        ["border", "var(--co-border-width) solid var(--co-control)"],
       ]);
     }
 
-    // O chip escolhido troca o contorno de controle por outra cor, sobre o
-    // acento suave, e o limite dele continua passando em 3:1 contra o que está
-    // atrás. Com a borda transparente, o limite seria o próprio acento suave —
-    // 1,19:1 no claro e 1,08:1 no escuro —, e o escolhido sumia junto com o
-    // controle.
+    // O chip escolhido troca o contorno de controle pela tinta, e o limite dele
+    // continua passando em 3:1 contra o que está atrás.
     const escolhido = contorno(bloco('.co-chip[data-selected="true"]'));
-    expect(escolhido.map(([propriedade]) => propriedade), "o contorno do chip escolhido").toEqual([
-      "border-color",
-    ]);
-    const token = /^var\(--co-([\w-]+)\)$/.exec(escolhido[0]?.[1] ?? "")?.[1];
-    expect(token, `o chip escolhido pinta a borda com um token (${escolhido[0]?.[1]})`).toBeDefined();
-    for (const nomeFundo of ["canvas", "surface", "surface-raised"] as const) {
-      const razao = contraste(valor(tema[token ?? ""]), valor(tema[nomeFundo]));
-      expect(razao, `o chip escolhido (${token}) sobre ${nomeFundo} deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(
-        PISO_DESENHO,
-      );
-    }
+    expect(escolhido, "o contorno do chip escolhido").toEqual([["border-color", "var(--co-ink)"]]);
   });
 
   it("o anel de foco passa em 3:1 sobre todo fundo, o corpo da folha inclusive", () => {
-    // O anel é `--co-accent` (`.co-root :focus-visible`), e o corpo da folha
-    // que rola o usa por dentro, sobre `surface` (ADR-018). O piso é o de
-    // desenho (WCAG 1.4.11), e ele vale nos quatro fundos.
-    for (const [nomeFundo, fundo] of fundos) {
-      const razao = contraste(valor(tema["accent"]), fundo);
-      expect(razao, `o anel sobre ${nomeFundo} deu ${razao.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
+    for (const fundo of [...fundos, "surface-3"]) {
+      const r = razao(valor("focus"), valor(fundo));
+      expect(r, `o anel sobre ${fundo} deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
     }
   });
 
-  it("text-subtle é o piso, e icon-muted fica abaixo dele", () => {
-    // A hierarquia importa: se `icon-muted` subisse acima de `text-subtle`,
-    // os dois papéis colapsariam e a regra "isto não é para texto" perderia
-    // o sentido.
-    const fundo = valor(tema["surface"]);
-    expect(contraste(valor(tema["icon-muted"]), fundo)).toBeLessThan(
-      contraste(valor(tema["text-subtle"]), fundo),
+  it("ink-3 é o piso do texto, e control (desenho) fica abaixo dele", () => {
+    // A hierarquia importa: se o desenho subisse acima da legenda, os dois
+    // papéis colapsariam e a regra "isto não é para texto" perderia o sentido.
+    for (const fundo of fundos) {
+      expect(razao(valor("control"), valor(fundo))).toBeLessThan(razao(valor("ink-3"), valor(fundo)));
+    }
+  });
+
+  it("os números da identidade (design/identidade.md, 'Contraste medido') batem, com uma casa", () => {
+    const medido = (frente: string, fundo: string) => Math.round(razao(valor(frente), valor(fundo)) * 10) / 10;
+    const esperado =
+      _nome === "claro"
+        ? { ink: 14.1, "ink-2": 7.5, "ink-3": 5.3, control: 3.7, focus: 5.5 }
+        : { ink: 15.6, "ink-2": 9.8, "ink-3": 6.3, control: 5.1, focus: 8.9 };
+    for (const [token, numero] of Object.entries(esperado)) expect(medido(token, "bg"), token).toBe(numero);
+  });
+});
+
+// ------------------------------------------------------------ a hora --
+
+describe.each(TEMAS)("a cor da hora no tema %s, o dia inteiro", (_nome, tema) => {
+  const numero = (token: string) => Number(cru(tema[token]));
+  const pedra = (token: string) => cor(cru(tema[token]));
+
+  // As cinco paradas e, entre elas, a cada 15 minutos: a interpolação também
+  // tem de passar, e não só as paradas que o desenho escolheu.
+  const horas = Array.from({ length: 96 }, (_, i) => i * 15);
+
+  /** O pior caso de um par ao longo do dia, nos dois caminhos de volta ao sRGB. */
+  function pior(frente: (h: number, c: number) => Rgb[], fundo: (h: number, c: number) => Rgb[]) {
+    let menor = { r: Number.POSITIVE_INFINITY, quando: "" };
+    for (const minuto of horas) {
+      const { h, c } = hourVars(minuto);
+      const fs = frente(h, c);
+      const bs = fundo(h, c);
+      for (let i = 0; i < 2; i += 1) {
+        const r = razao(fs[i % fs.length] as Rgb, bs[i % bs.length] as Rgb);
+        if (r < menor.r) menor = { r, quando: `${Math.floor(minuto / 60)}h${String(minuto % 60).padStart(2, "0")}` };
+      }
+    }
+    return menor;
+  }
+
+  const composta = (l: string, croma?: string) => (h: number, c: number) => {
+    const { cortada, reduzida } = oklchNosDoisCaminhos(numero(l), croma ? numero(croma) : c, h);
+    return [cortada, reduzida];
+  };
+  const fixa = (token: string) => () => [pedra(token)];
+
+  it("as paradas que o teste percorre são as cinco da hourVars", () => {
+    expect(hourStops.map((parada) => parada.time)).toEqual(["06:00", "09:00", "12:00", "16:00", "20:00"]);
+    for (const parada of hourStops) expect(horas).toContain(Number(parada.time.slice(0, 2)) * 60);
+  });
+
+  it.each(["bg", "surface", "surface-2"])("a tinta da hora (texto) passa em 4,5:1 sobre %s", (fundo) => {
+    const { r, quando } = pior(composta("hora-ink-l"), fixa(fundo));
+    expect(r, `hora-ink sobre ${fundo} às ${quando} deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_TEXTO);
+  });
+
+  it("o texto sobre a cor da hora (on-hora) passa em 4,5:1", () => {
+    const { r, quando } = pior(fixa("on-hora"), composta("hora-l"));
+    expect(r, `on-hora sobre hora às ${quando} deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_TEXTO);
+  });
+
+  it("a tinta da hora e a tinta da pedra passam em 4,5:1 sobre o lavado da hora", () => {
+    const tinta = pior(composta("hora-ink-l"), composta("hora-soft-l", "hora-soft-c"));
+    expect(tinta.r, `hora-ink sobre hora-soft às ${tinta.quando} deu ${tinta.r.toFixed(2)}:1`).toBeGreaterThanOrEqual(
+      PISO_TEXTO,
     );
+    const pedraNoLavado = pior(fixa("ink"), composta("hora-soft-l", "hora-soft-c"));
+    expect(pedraNoLavado.r, `ink sobre hora-soft às ${pedraNoLavado.quando}`).toBeGreaterThanOrEqual(PISO_TEXTO);
+  });
+
+  it("a isca: a tinta da hora na luminosidade do preenchimento reprova sobre o fundo", () => {
+    // Prova que a conta morde: trocar a L do texto pela do preenchimento (o
+    // erro mais provável numa edição de token) derruba o contraste.
+    const { r } = pior(composta(_nome === "claro" ? "hora-l" : "hora-soft-l"), fixa("bg"));
+    expect(r).toBeLessThan(PISO_TEXTO);
+  });
+});
+
+// ------------------------------------------------- os papéis do alimento --
+
+describe.each(TEMAS)("os papéis do alimento no tema %s", (_nome, tema) => {
+  const PAPEIS = ["role-protein", "role-carb", "role-veg", "role-fruit", "role-dairy", "role-fat"] as const;
+  const partes = (token: string) => {
+    const casado = /^oklch\(([\d.]+) ([\d.]+) ([\d.]+)\)$/.exec(cru(tema[token]));
+    if (!casado) throw new Error(`${token} não é oklch(l c h)`);
+    return { l: Number(casado[1]), c: Number(casado[2]), h: Number(casado[3]) };
+  };
+
+  it("têm os matizes da identidade e a mesma luminosidade (o carboidrato, +0,06), nenhum grita mais que o outro", () => {
+    expect(PAPEIS.map((papel) => partes(papel).h)).toEqual([25, 80, 150, 350, 240, 300]);
+    const base = partes("role-protein").l;
+    for (const papel of PAPEIS) {
+      expect(partes(papel).l, papel).toBeCloseTo(papel === "role-carb" ? base + 0.06 : base, 5);
+    }
+  });
+
+  it("se separam da tinta de ação: nenhum papel é acromático nem tem a luminosidade da tinta", () => {
+    // A cor do dado nunca é o único sinal (o nome e a quantidade vão junto,
+    // ADR-005), e por isso o piso de 3:1 do WCAG 1.4.11 não se aplica a ela.
+    // O que se garante aqui é que ela não se confunde com a ação (a tinta) nem
+    // com o estado: croma de verdade e luminosidade longe da tinta.
+    const tinta = luminancia(cor(cru(tema["ink"])));
+    for (const papel of PAPEIS) {
+      expect(partes(papel).c, papel).toBeGreaterThan(0.09);
+      expect(Math.abs(luminancia(cor(cru(tema[papel]))) - tinta), papel).toBeGreaterThan(0.2);
+    }
   });
 });

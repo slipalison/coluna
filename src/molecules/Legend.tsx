@@ -45,7 +45,7 @@ export interface LegendProps {
  * ajuda o olho a ligar a marca ao nome; ela não é o lugar da informação.
  *
  * O tom `neutral` é o cinza do traço de tendência da `Series`
- * (`--co-text-subtle`), e não o do trilho: a amostra tem de ser a MESMA cor da
+ * (`--co-ink-3`), e não o do trilho: a amostra tem de ser a MESMA cor da
  * marca que ela nomeia, e um cinza que não passa em 3:1 contra o fundo não é
  * sinal de nada.
  */
