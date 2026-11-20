@@ -5,11 +5,13 @@ import axe from "axe-core";
 import { useRef, useState, type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { Button } from "./atoms/Button";
+import { Icon } from "./atoms/Icon";
 import { Input } from "./atoms/Input";
 import { Screen } from "./atoms/Screen";
 import { Disclosure } from "./molecules/Disclosure";
 import { EmptyState } from "./molecules/EmptyState";
 import { Field } from "./molecules/Field";
+import { Group } from "./molecules/Group";
 import { NavList } from "./molecules/NavList";
 import { Notice } from "./molecules/Notice";
 import { Rail } from "./molecules/Rail";
@@ -135,11 +137,31 @@ describe("Field e Input: o rótulo visível e associado, e o erro em texto junto
     expect(field).not.toBeNull();
     expect(field?.contains(erro)).toBe(true);
     expect(campo.compareDocumentPosition(erro) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    // Texto e ícone, e não só a cor (ADR-005).
-    expect(erro.closest(".co-field__error")?.querySelector("svg")).not.toBeNull();
+    // Texto e ícone, e não só a cor (ADR-005). O ícone é o de ALERTA (o "!"
+    // no círculo), e não o de informação: o erro não é uma nota.
+    const desenho = (nome: "alert" | "info") => {
+      const { container, unmount } = render(<Icon name={nome} />);
+      const d = container.querySelector("path")?.getAttribute("d");
+      unmount();
+      return d;
+    };
+    const doErro = erro.closest(".co-field__error")?.querySelector("svg path")?.getAttribute("d");
+    expect(doErro, "o ícone do erro do campo").toBe(desenho("alert"));
+    expect(desenho("alert")).not.toBe(desenho("info"));
     // Anunciado: o campo se declara inválido e é descrito pelo erro.
     expect(campo).toHaveAttribute("aria-invalid", "true");
     expect(campo).toHaveAccessibleDescription(expect.stringContaining("Escreva um número, como 72,5."));
+  });
+
+  it("o erro do grupo também vem com o ícone de alerta", () => {
+    const { container } = render(
+      <Group label="Refeições" error="Escolha ao menos uma.">
+        <p>Almoço</p>
+      </Group>,
+    );
+    const doErro = container.querySelector(".co-group__error svg path")?.getAttribute("d");
+    const { container: alerta } = render(<Icon name="alert" />);
+    expect(doErro, "o ícone do erro do grupo").toBe(alerta.querySelector("path")?.getAttribute("d"));
   });
 
   it.each(TEMAS)("no tema %s, o campo com dica e erro passa no axe", async (tema) => {

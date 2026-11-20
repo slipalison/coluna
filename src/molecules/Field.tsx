@@ -82,7 +82,7 @@ export function Field({
     // `polite` e não `assertive`: o erro que aparece enquanto a pessoa
     // ainda digita não deve cortar a palavra no meio.
     <p className="co-field__error" id={idErro} aria-live="polite">
-      <Icon className="co-field__error-icon" name="info" size={15} />
+      <Icon className="co-field__error-icon" name="alert" size={15} />
       <span>{error}</span>
     </p>
   ) : null;
