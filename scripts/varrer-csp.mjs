@@ -20,7 +20,8 @@
  *   styled-components, @emotion/*,   bibliotecas de CSS-in-JS
  *   goober, @stitches/*, jss
  *   jsx("style", …)                   o `<style>` depois de compilado
- *   http(s)://, só no .js/.mjs        o que o pacote buscaria de fora
+ *   http(s)://, "//host/…", só no     o que o pacote buscaria de fora
+ *   .js/.mjs
  *
  * Comentário não conta: o navegador não executa comentário, e este sistema
  * escreve "nunca setAttribute('style')" nos comentários para explicar a regra.
@@ -68,8 +69,17 @@ const PADROES = [
  * `http(s)://` no JS que o app carrega é um `fetch`, uma fonte ou uma folha de
  * terceiro esperando para acontecer, que a CSP do Basalto recusaria. No `.ts`
  * do código-fonte ela não conta: o que chega ao app é o pacote.
+ *
+ * A URL SEM esquema (`"//cdn.exemplo.com/a.woff2"`) é a mesma coisa: o
+ * navegador a completa com o esquema da página. Ela só conta quando é o começo
+ * de um texto (aspas, crase ou `url(` antes das barras) e o que vem depois é
+ * nome de servidor seguido de ponto, `/` ou `:`; uma divisão ou uma expressão
+ * regular (`a//b`, `/\/\//`) não começa por aspas.
  */
-const PADROES_DO_PACOTE = [["URL absoluta", /\bhttps?:\/\//i]];
+const PADROES_DO_PACOTE = [
+  ["URL absoluta", /\bhttps?:\/\//i],
+  ["URL sem esquema", /(?:["'`]|\burl\(\s*["']?)\s*\/\/[\w-]+[./:]/i],
+];
 const DO_PACOTE = /\.m?js$/;
 
 const LIDOS = /\.(?:m?js|tsx?)$/;

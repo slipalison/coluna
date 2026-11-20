@@ -515,7 +515,7 @@ describe("a guarda da CSP, no texto", () => {
     expect(varrer(vazia).codigo).toBe(2);
   });
 
-  it("a isca do pacote: o <style> compilado e a URL absoluta no JS são achados", () => {
+  it("a isca do pacote: o <style> compilado e a URL absoluta, com ou sem esquema, no JS são achados", () => {
     const pacote = mkdtempSync(join(iscas, "dist-"));
     writeFileSync(
       join(pacote, "coluna.js"),
@@ -525,6 +525,12 @@ describe("a guarda da CSP, no texto", () => {
         'function b(){return n("style", {children:[".b{}"]})}',
         'const c="https://cdn.exemplo.com/isca.woff2";',
         "fetch('http://exemplo.com/a');",
+        // Sem esquema: o navegador completa com o da página. O texto de uma
+        // barra só (`\"/a//b\"`) e a divisão não são URL.
+        'const d="//cdn.exemplo.com/isca.woff2";',
+        "const e=`//fonts.exemplo.com:8080/x`;",
+        "const f=\"@font-face{src:url(//cdn.exemplo.com/a.woff2)}\";",
+        'const g="/a//b/",h=n//2;',
         // O que é do pacote, e não conta: o `style` do CSSOM e um texto que
         // só começa com "style".
         'function d(e){e.style.setProperty("--x","1");return r("div",{className:"styles"})}',
@@ -543,6 +549,9 @@ describe("a guarda da CSP, no texto", () => {
       'coluna.js:3: <id>("style", …)',
       "coluna.js:4: URL absoluta",
       "coluna.js:5: URL absoluta",
+      "coluna.js:6: URL sem esquema",
+      "coluna.js:7: URL sem esquema",
+      "coluna.js:8: URL sem esquema",
     ]);
   });
 

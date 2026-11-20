@@ -77,8 +77,9 @@ Três camadas, cada uma com a sua isca:
 - **No pacote**: o `npm run build` termina com `node scripts/varrer-csp.mjs
   dist`, sobre o `coluna.js` e o `index.d.ts` publicados, e falha com achado.
   No JS do pacote a varredura acusa também o `<style>` depois de compilado
-  (`jsx("style", …)`) e qualquer URL `http(s)://`: o pacote não busca nada de
-  fora. A isca é um `coluna.js` de mentira com cada caso.
+  (`jsx("style", …)`) e qualquer URL `http(s)://` ou sem esquema
+  (`"//host/…"`, que o navegador completa com o da página): o pacote não busca
+  nada de fora. A isca é um `coluna.js` de mentira com cada caso.
 
 **Uma armadilha do happy-dom, medida:** ali o `CSSStyleDeclaration` reflete o
 CSSOM no atributo chamando `Element.setAttribute("style", …)` — o
@@ -107,3 +108,16 @@ nos dois temas, com todas as peças da F0 montadas, a hora aplicada pela
 - A guarda não vê um `<style>` criado por uma dependência de quem consome (o
   pacote não tem dependência de execução além do React); esse é o veredito da
   CSP no E2E do Basalto (#166).
+
+## Limites conhecidos
+
+O que a guarda não alcança, dito aqui para não parecer que alcança:
+
+- **`setAttribute` com o nome montado dentro de um evento.** A vigia de
+  montagem só vê o que acontece enquanto os componentes montam, abrem e são
+  arrastados. Um `el.setAttribute(nome, valor)` em que `nome` é montado em
+  tempo de execução (`"sty" + "le"`, uma variável) e que só roda dentro de um
+  evento que a guarda não dispara passa pelas três camadas: o teste não chega
+  lá, o padrão do texto não lê `"style"` inteiro, e a vigia nunca vê a
+  chamada. É o mesmo limite das dependências de quem consome (acima): o
+  veredito final é o da CSP no navegador, no E2E do Basalto (#166).
