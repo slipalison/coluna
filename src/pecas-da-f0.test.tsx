@@ -86,6 +86,15 @@ describe("a casca: barra de abas no celular e trilho no desktop, sem o vidro", (
     expect(within(barra).getByRole("button", { name: "Livro" })).not.toHaveAttribute("aria-current");
   });
 
+  it("o rótulo da aba inativa fica em peso médio (500), e o da atual em 600, como a identidade pede", () => {
+    render(<Casca forma="celular" />);
+    const barra = screen.getByRole("navigation", { name: "Principal" });
+    const peso = (nome: string) => getComputedStyle(within(barra).getByRole("button", { name: nome })).fontWeight;
+    expect(peso("Livro"), "a aba inativa").toBe("500");
+    expect(peso("Você"), "a aba inativa").toBe("500");
+    expect(peso("Hoje"), "a aba atual").toBe("600");
+  });
+
   it("no desktop, o trilho marca o destino atual com aria-current", () => {
     render(<Casca forma="desktop" />);
     const trilho = screen.getByRole("navigation", { name: "Principal" });

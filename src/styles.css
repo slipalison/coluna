@@ -1918,6 +1918,9 @@ div.co-sheet-overlay {
   /* 11px é o piso do rótulo da barra de abas, a convenção do iOS, e só ele
    * fica abaixo dos 12px do resto do sistema (ADR-021). */
   font-size: var(--co-text-11);
+  /* "Rótulo de aba 11 px em peso médio" (identidade, Tipografia): 500 na aba
+   * inativa, e o 600 da atual continua um passo acima. */
+  font-weight: var(--co-weight-medium);
   cursor: pointer;
 }
 
