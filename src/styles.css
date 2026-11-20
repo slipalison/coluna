@@ -1915,6 +1915,7 @@ div.co-sheet-overlay {
 }
 
 .co-tabbar__item {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1936,20 +1937,37 @@ div.co-sheet-overlay {
 }
 
 /*
- * A aba atual ganha uma ÁREA, muda de COR, de PESO e ganha `aria-current`. A
- * cor sozinha não bastava: no escuro, a tinta da hora contra o cinza das
- * outras abas mede 1,00 a 1,12:1, e a aba atual se distinguia só pelo matiz.
- * A área é sólida e mais escura que a barra (`--co-surface-2`, a "área mais
- * escura" da s7), com o raio de controle, atrás do ícone e do rótulo; na F4,
- * com o vidro, ela vira translúcida. O rótulo e o ícone sobre ela continuam a
- * 4,5:1 e a 3:1 a todo minuto (`tokens/contraste.test.ts`). Quem usa leitor de
- * tela ouve "página atual" (ADR-005). A cor é a da hora: a aba diz ONDE se
- * está, e a hora é cor de lugar (ADR-022).
+ * A aba atual ganha uma ÁREA, uma MARCA, muda de COR, de PESO e ganha
+ * `aria-current`. A cor e a área sozinhas não bastavam: no escuro, a tinta da
+ * hora contra o cinza das outras abas mede 1,00 a 1,37:1, e a área
+ * (`--co-surface-2`) contra a barra mede só 1,16 a 1,22:1. O sinal que passa de
+ * 3:1 (WCAG 1.4.11) é a MARCA, o traço de 3px no alto da área, na tinta da hora
+ * (`--co-hora-ink`), como a do trilho e a da lista de destinos: contra a barra
+ * e contra a área, a todo minuto do dia, nos dois temas (`tokens/contraste.test.ts`).
+ * A área é sólida e mais escura que a barra (a "área mais escura" da s7), com o
+ * raio de controle, atrás do ícone e do rótulo; na F4, com o vidro, ela vira
+ * translúcida, e a marca continua inteira. O rótulo e o ícone sobre ela
+ * continuam a 4,5:1 e a 3:1. Quem usa leitor de tela ouve "página atual"
+ * (ADR-005). A cor é a da hora: a aba diz ONDE se está, e a hora é cor de
+ * lugar (ADR-022). A marca é reta, porque é conteúdo (ADR-004).
  */
 .co-tabbar__item[aria-current="page"] {
   background: var(--co-surface-2);
   color: var(--co-hora-ink);
   font-weight: var(--co-weight-semibold);
+}
+
+.co-tabbar__item[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--co-mark-size);
+  height: var(--co-marker-width);
+  transform: translateX(-50%);
+  /* A tinta da hora, e não o preenchimento (`--co-hora`, 1,56 a 2,15:1 no
+   * claro): a marca é o desenho que diz "é aqui", 3:1 a todo minuto. */
+  background: var(--co-hora-ink);
 }
 
 .co-tabbar__icon {

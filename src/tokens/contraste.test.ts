@@ -379,25 +379,32 @@ describe.each(TEMAS)("a cor da hora no tema %s, o dia inteiro", (_nome, tema) =>
    * folha, e não escritos aqui: a marca que voltar para `--co-hora` (o
    * preenchimento, 1,56 a 2,15:1 no claro) reprova pela conta.
    */
+  const ABA_ATUAL = '.co-tabbar__item[aria-current="page"]';
   const MARCAS = [
-    ['.co-rail__item[aria-current="page"]::before', '.co-rail__item[aria-current="page"]', "a marca do trilho"],
-    [".co-nav-list__item[aria-current]::after", ".co-nav-list__item[aria-current]", "a marca da lista de destinos"],
-    ['.co-dot[data-tone="accent"]', null, "o Dot accent"],
+    ['.co-rail__item[aria-current="page"]::before', ['.co-rail__item[aria-current="page"]'], "a marca do trilho"],
+    [".co-nav-list__item[aria-current]::after", [".co-nav-list__item[aria-current]"], "a marca da lista de destinos"],
+    // A marca da aba atual mora na área da aba e encosta na barra: 3:1 contra
+    // as duas (a área mede só 1,16 a 1,22:1 contra a barra, e por isso não é o
+    // sinal).
+    [`${ABA_ATUAL}::before`, [ABA_ATUAL, ".co-tabbar"], "a marca da aba atual"],
+    ['.co-dot[data-tone="accent"]', [], "o Dot accent"],
   ] as const;
-  const fundoDe = (seletor: string | null) => {
-    if (!seletor) return ["bg", "surface", "surface-2"];
-    const valor = bloco(seletor).filter(([p]) => p === "background").at(-1)?.[1] ?? "";
-    const token = /^var\(--co-([\w-]+)\)$/.exec(valor)?.[1];
-    if (!token) throw new Error(`o fundo de ${seletor} não é um token: ${valor}`);
-    return [token];
+  const fundoDe = (itens: readonly string[]) => {
+    if (itens.length === 0) return ["bg", "surface", "surface-2"];
+    return itens.map((seletor) => {
+      const valor = bloco(seletor).filter(([p]) => p === "background").at(-1)?.[1] ?? "";
+      const token = /^var\(--co-([\w-]+)\)$/.exec(valor)?.[1];
+      if (!token) throw new Error(`o fundo de ${seletor} não é um token: ${valor}`);
+      return token;
+    });
   };
   const todoMinuto = Array.from({ length: 24 * 60 }, (_, i) => i);
 
-  it.each(MARCAS)("%s passa em 3:1 sobre o fundo do item, todo minuto do dia", (marca, item, nome) => {
+  it.each(MARCAS)("%s passa em 3:1 sobre o fundo do item, todo minuto do dia", (marca, itens, nome) => {
     const valor = bloco(marca).filter(([p]) => p === "background").at(-1)?.[1] ?? "";
     const papel = /^var\(--co-(hora(?:-ink)?)\)$/.exec(valor)?.[1];
     expect(papel, `${nome} pinta com a cor da hora (${valor})`).toBeDefined();
-    for (const fundo of fundoDe(item)) {
+    for (const fundo of fundoDe(itens)) {
       let menor = { r: Number.POSITIVE_INFINITY, quando: 0 };
       for (const minuto of todoMinuto) {
         const { h, c } = hourVars(minuto);
@@ -412,6 +419,17 @@ describe.each(TEMAS)("a cor da hora no tema %s, o dia inteiro", (_nome, tema) =>
         PISO_DESENHO,
       );
     }
+  });
+
+  it("a marca da aba atual é um traço de 3px na tinta da hora, no alto da área, e a aba a posiciona", () => {
+    const marca = bloco(`${ABA_ATUAL}::before`);
+    const de = (propriedade: string) => marca.filter(([p]) => p === propriedade).at(-1)?.[1];
+    expect(de("content"), "a marca existe").toBe('""');
+    expect(de("position")).toBe("absolute");
+    expect(de("top"), "no alto da área").toBe("0");
+    expect(de("height"), "3px de espessura").toBe("var(--co-marker-width)");
+    expect(de("width")).toBe("var(--co-mark-size)");
+    expect(bloco(".co-tabbar__item").find(([p]) => p === "position")?.[1], "a aba é o ponto de referência").toBe("relative");
   });
 
   /*
