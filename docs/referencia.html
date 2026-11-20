@@ -232,7 +232,7 @@
     --co-bg: var(--co-basalto-900); /** O fundo do aplicativo. */
     --co-surface: var(--co-basalto-850); /** O painel elevado: cartao, folha, grupo. */
     --co-surface-2: var(--co-basalto-950); /** O rebaixado: trilho, campo, faixa, linha escolhida, hover. Fundo de texto. */
-    --co-surface-3: var(--co-basalto-800); /** O pressionado e o trilho de barra. NAO e fundo de texto (no claro, ink-3 mede 4,28:1 sobre ele). */
+    --co-surface-3: var(--co-basalto-800); /** O pressionado e o trilho de barra. NAO e fundo de texto: no escuro ink-3 mede 4,92:1 sobre ele, mas no claro mede 4,28:1, e o papel e o mesmo nos dois temas. */
     --co-ink: var(--co-basalto-050); /** O texto principal e o botao primario. */
     --co-ink-2: var(--co-basalto-200); /** O texto secundario. */
     --co-ink-3: var(--co-basalto-400); /** Legenda e unidade: o texto menos contrastado que o sistema admite. */
@@ -270,7 +270,7 @@
   --co-bg: var(--co-basalto-900); /** O fundo do aplicativo. */
   --co-surface: var(--co-basalto-850); /** O painel elevado: cartao, folha, grupo. */
   --co-surface-2: var(--co-basalto-950); /** O rebaixado: trilho, campo, faixa, linha escolhida, hover. Fundo de texto. */
-  --co-surface-3: var(--co-basalto-800); /** O pressionado e o trilho de barra. NAO e fundo de texto (no claro, ink-3 mede 4,28:1 sobre ele). */
+  --co-surface-3: var(--co-basalto-800); /** O pressionado e o trilho de barra. NAO e fundo de texto: no escuro ink-3 mede 4,92:1 sobre ele, mas no claro mede 4,28:1, e o papel e o mesmo nos dois temas. */
   --co-ink: var(--co-basalto-050); /** O texto principal e o botao primario. */
   --co-ink-2: var(--co-basalto-200); /** O texto secundario. */
   --co-ink-3: var(--co-basalto-400); /** Legenda e unidade: o texto menos contrastado que o sistema admite. */
@@ -1194,7 +1194,9 @@ div.co-sheet-overlay {
 .co-dot[data-tone="protein"] { background: var(--co-role-protein); }
 .co-dot[data-tone="carb"] { background: var(--co-role-carb); }
 .co-dot[data-tone="fat"] { background: var(--co-role-fat); }
-.co-dot[data-tone="accent"] { background: var(--co-hora); }
+/* O ponto da hora é marca de estado: a tinta, 3:1 sobre os fundos de texto o
+ * dia inteiro, e não o preenchimento, que no claro some na pedra. */
+.co-dot[data-tone="accent"] { background: var(--co-hora-ink); }
 .co-dot[data-tone="status"] { background: var(--co-ok); }
 
 /* ------------------------------------------------------------------ botão -- */
@@ -1554,22 +1556,51 @@ div.co-sheet-overlay {
  * cerca de 1,1:1 nos dois temas, e sem o contorno as opções não
  * escolhidas viram texto solto, sem cara de opção (WCAG 1.4.11).
  */
+/*
+ * Toda opção tem o alvo de 44px nos DOIS eixos, e o grupo nunca passa da
+ * largura de quem o contém: quando as opções no mínimo não cabem numa fileira
+ * (oito de 44px a 320px, ou "Padrão / Baixa em carbo / Cetogênica / Alta em
+ * carbo"), o grupo quebra em linhas, e a sobra de cada fileira se reparte. A
+ * opção não encolhe (`flex-shrink: 0`) — encolher era o defeito: a 320px seis
+ * opções `full` mediam 40,8 a 43,8px, e os quatro rótulos longos empurravam a
+ * página para o lado. Quebrar não muda o papel: continua um `radiogroup`, uma
+ * parada do Tab, as setas e Home/End.
+ *
+ * O raio é meia altura de UMA fileira (a opção, o respiro e o contorno), e não
+ * 999px: numa fileira só é a mesma pílula; com duas, 999px viraria meia altura
+ * do grupo inteiro, e a opção escolhida no canto sairia da curva da borda.
+ */
 .co-segmented {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   gap: var(--co-space-2);
   padding: var(--co-space-2);
   border: var(--co-control-width) solid var(--co-control);
   background: var(--co-surface);
-  border-radius: var(--co-radius-pill);
+  border-radius: calc(var(--co-target-min) / 2 + var(--co-space-2) + var(--co-control-width));
 }
 
 .co-segmented[data-full="true"] { display: flex; width: 100%; }
 
+/* Com a legenda visível (`legend`): o rótulo em cima, com o mesmo respiro do
+ * rótulo do `Field` até o controle. */
+.co-segmented-field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--co-space-6);
+  max-width: 100%;
+}
+
+.co-segmented-field[data-full="true"] { display: flex; width: 100%; }
+
 .co-segmented__option {
-  flex-grow: 1;
+  flex: 1 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: var(--co-target-min);
+  max-width: 100%;
   min-height: var(--co-target-min);
   padding: 0 var(--co-space-12);
   border: 0;
@@ -1579,7 +1610,9 @@ div.co-sheet-overlay {
   font-family: inherit;
   font-size: var(--co-text-13);
   cursor: pointer;
-  white-space: nowrap;
+  /* Só quebra o rótulo a opção que sozinha passaria da largura do grupo; as
+   * outras ficam numa linha, porque a base delas é o rótulo inteiro. */
+  text-align: center;
 }
 
 .co-segmented__option[aria-checked="true"] {
@@ -2184,16 +2217,25 @@ div.co-sheet-overlay {
   /* 11px é o piso do rótulo da barra de abas, a convenção do iOS, e só ele
    * fica abaixo dos 12px do resto do sistema (ADR-021). */
   font-size: var(--co-text-11);
+  /* "Rótulo de aba 11 px em peso médio" (identidade, Tipografia): 500 na aba
+   * inativa, e o 600 da atual continua um passo acima. */
+  font-weight: var(--co-weight-medium);
   cursor: pointer;
 }
 
 /*
- * A aba atual muda de COR, de PESO e ganha `aria-current`. Três sinais, e não
- * um: quem não separa a cor da hora do cinza ainda vê o rótulo mais pesado, e
- * quem usa leitor de tela ouve "página atual" (ADR-005). A cor é a da hora: a
- * aba diz ONDE se está, e a hora é cor de lugar (ADR-022).
+ * A aba atual ganha uma ÁREA, muda de COR, de PESO e ganha `aria-current`. A
+ * cor sozinha não bastava: no escuro, a tinta da hora contra o cinza das
+ * outras abas mede 1,00 a 1,12:1, e a aba atual se distinguia só pelo matiz.
+ * A área é sólida e mais escura que a barra (`--co-surface-2`, a "área mais
+ * escura" da s7), com o raio de controle, atrás do ícone e do rótulo; na F4,
+ * com o vidro, ela vira translúcida. O rótulo e o ícone sobre ela continuam a
+ * 4,5:1 e a 3:1 a todo minuto (`tokens/contraste.test.ts`). Quem usa leitor de
+ * tela ouve "página atual" (ADR-005). A cor é a da hora: a aba diz ONDE se
+ * está, e a hora é cor de lugar (ADR-022).
  */
 .co-tabbar__item[aria-current="page"] {
+  background: var(--co-surface-2);
   color: var(--co-hora-ink);
   font-weight: var(--co-weight-semibold);
 }
@@ -2894,7 +2936,9 @@ button.co-chip {
   width: 100%;
   max-width: 520px;
   max-height: 88%;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* A área segura de baixo pelo token público, e não pelo `env()` direto
+   * (ADR-011): o consumidor que zera `--co-safe-bottom` zera a folha junto. */
+  padding-bottom: var(--co-safe-bottom);
   border-radius: var(--co-radius-sheet) var(--co-radius-sheet) var(--co-radius-content)
     var(--co-radius-content);
   background: var(--co-surface);
@@ -2962,6 +3006,14 @@ button.co-chip {
 @keyframes co-sheet-subir {
   from {
     transform: translateY(var(--co-space-16));
+    opacity: 0;
+  }
+}
+
+/* A entrada de quem pede menos movimento (`prefers-reduced-motion`): sem
+ * deslocamento nem escala, só a opacidade, em `--co-duration-reduced`. */
+@keyframes co-esmaecer {
+  from {
     opacity: 0;
   }
 }
@@ -3176,7 +3228,10 @@ button.co-chip {
   width: var(--co-marker-width);
   height: var(--co-mark-size);
   transform: translateY(-50%);
-  background: var(--co-hora);
+  /* A tinta da hora, e não o preenchimento: a marca é o desenho que diz "é
+   * aqui", 3:1 contra o fundo do item a todo minuto (WCAG 1.4.11). O
+   * preenchimento (`--co-hora`) media 1,56 a 2,15:1 no claro. */
+  background: var(--co-hora-ink);
 }
 
 .co-rail__icon {
@@ -3308,7 +3363,8 @@ fieldset.co-nav-list {
   width: var(--co-marker-width);
   height: 22px;
   transform: translateY(-50%);
-  background: var(--co-hora);
+  /* A tinta da hora, pelo mesmo motivo da marca do trilho: 3:1 a todo minuto. */
+  background: var(--co-hora-ink);
 }
 
 /* ------------------------------------------------------------------ grão ---- */
@@ -3370,7 +3426,11 @@ fieldset.co-nav-list {
   }
 }
 
-/* Quem pede menos movimento não recebe transição nenhuma.
+/* Quem pede menos movimento não recebe transição nenhuma, e a entrada que
+ * subia passa a esmaecer em 120ms (`--co-duration-reduced`, a identidade:
+ * "deslocamento e escala viram esmaecer de 120 ms"). Um corte seco faria a
+ * folha aparecer de uma vez, sem dizer de onde veio; o esmaecer diz, sem mover
+ * nada.
  *
  * A trava de toque fica (ADR-013, adendos 1.8.1 e 1.8.2): ela não move nada, e
  * zerada devolveria o toque duplo justamente a quem pediu menos movimento. São
@@ -3394,6 +3454,15 @@ fieldset.co-nav-list {
   div.co-sheet-overlay,
   .co-tabbar .co-tabbar__item {
     animation-duration: 400ms !important;
+  }
+
+  /* A folha por cima esmaece, em vez de subir. Mais específica que `.co-root *`
+   * e também `!important`, e por isso vence o corte. A de dentro do cartão
+   * (`inline`) não tem animação nenhuma, e continua sem. */
+  .co-root .co-sheet:not([data-mode="inline"]) {
+    animation-name: co-esmaecer !important;
+    animation-duration: var(--co-duration-reduced) !important;
+    animation-timing-function: var(--co-ease-settle) !important;
   }
 
   /* O card do carrossel não anda nem gira com o dedo: o arrasto só decide,
@@ -4040,7 +4109,8 @@ import "@slipalison/coluna/styles.css";</code></pre>
   "close": "M6 6l12 12M18 6L6 18",
   "search": "M17.5 11a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0M16 16l4 4",
   "refresh": "M4 11a7 7 0 0 1 12-4.5L19 9M19 4v5h-5M20 13a7 7 0 0 1-12 4.5L5 15M5 20v-5h5",
-  "info": "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M12 8v5M12 16h.01",
+  "info": "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M12 16v-4.5M12 8h.01",
+  "alert": "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M12 8v4.5M12 16h.01",
   "bell": "M6 10a6 6 0 0 1 12 0c0 4 1.5 5 1.5 5h-15S6 14 6 10M10.5 19a1.8 1.8 0 0 0 3 0",
   "gear": "M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1",
   "user": "M15.2 9a3.2 3.2 0 1 1-6.4 0 3.2 3.2 0 0 1 6.4 0M5.5 19.5a6.8 6.8 0 0 1 13 0",
