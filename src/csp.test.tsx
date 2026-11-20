@@ -5,7 +5,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { useLayoutEffect, useRef, type ReactNode } from "react";
+import { forwardRef, memo, useLayoutEffect, useRef, type ReactNode } from "react";
 import { afterAll, describe, expect, it } from "vitest";
 import * as coluna from "./index";
 import "./styles.css";
@@ -223,11 +223,25 @@ const MONTAGENS: Record<string, () => ReactNode> = {
   ),
 };
 
-/** Os componentes que o pacote exporta: as funções com nome de componente. */
-const exportados = Object.entries(coluna)
-  .filter(([nome, valor]) => typeof valor === "function" && /^[A-Z]/.test(nome))
-  .map(([nome]) => nome)
-  .sort();
+/**
+ * Os componentes de um módulo: o que tem nome de componente e é uma função, ou
+ * um objeto de componente do React — `memo(...)` e `forwardRef(...)` devolvem
+ * um objeto com `$$typeof`, e não uma função, e um filtro só de função deixaria
+ * o componente embrulhado fora da lista sem ninguém notar.
+ */
+function componentesDe(modulo: Record<string, unknown>): string[] {
+  return Object.entries(modulo)
+    .filter(
+      ([nome, valor]) =>
+        /^[A-Z]/.test(nome) &&
+        (typeof valor === "function" || (typeof valor === "object" && valor !== null && "$$typeof" in valor)),
+    )
+    .map(([nome]) => nome)
+    .sort();
+}
+
+/** Os componentes que o pacote exporta. */
+const exportados = componentesDe(coluna);
 
 /** Uma tela com tudo, a hora aplicada pelo CSSOM e o carrossel arrastado. */
 function Tudo({ extra }: { extra?: ReactNode }) {
@@ -274,6 +288,19 @@ describe("a guarda da CSP, montando tudo", () => {
   it("a lista de montagens é a dos componentes exportados, nem mais nem menos", () => {
     expect(exportados.length).toBeGreaterThan(30);
     expect(Object.keys(MONTAGENS).sort()).toEqual(exportados);
+  });
+
+  it("a isca: o filtro dos exportados vê o componente embrulhado em memo e em forwardRef", () => {
+    const Simples = () => null;
+    const modulo = {
+      Simples,
+      Memorizado: memo(Simples),
+      ComRef: forwardRef<HTMLDivElement>((_props, _ref) => null),
+      CONSTANTE: 1,
+      Objeto: { semTipo: true },
+      utilitario: () => null,
+    };
+    expect(componentesDe(modulo)).toEqual(["ComRef", "Memorizado", "Simples"]);
   });
 
   it("nenhum componente exportado injeta <style> nem chama setAttribute('style')", () => {
