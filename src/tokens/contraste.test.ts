@@ -102,6 +102,79 @@ function cor(valor: string): Rgb {
   return deHex(valor);
 }
 
+// ------------------------------------------------ a conversão, presa --
+
+/*
+ * A conta de contraste da hora só prova alguma coisa se `deOklch` estiver
+ * certa. Sem estas âncoras, zerar o croma, trocar o seno pelo cosseno ou ler o
+ * grau como radiano passavam todos os testes de baixo: o piso tem folga, e uma
+ * cor errada ainda pode passar nele. Os valores esperados vêm do colorjs.io
+ * 0.5.2 (a biblioteca dos autores da CSS Color 4), calculados fora do projeto
+ * e escritos aqui: o colorjs não é dependência.
+ */
+const ANCORAS: [nome: string, oklch: [number, number, number], linear: Rgb][] = [
+  ["o vermelho do sRGB", [0.627955, 0.257683, 29.234], [1, 0, 0]],
+  ["o verde do sRGB", [0.86644, 0.294827, 142.4953], [0, 1, 0]],
+  ["o azul do sRGB", [0.452014, 0.313214, 264.052], [0, 0, 1]],
+  ["um ciano qualquer, oklch(0.6 0.1 200)", [0.6, 0.1, 200], [0.003958, 0.286374, 0.312522]],
+];
+
+/**
+ * A cor de cada parada da hora, por tema, em sRGB linear SEM corte (o colorjs,
+ * `to("srgb-linear")`): a tinta (`hora-ink`) e o preenchimento (`hora`). Prende
+ * a conversão, as paradas da `hourVars` e a luminosidade de cada tema de uma
+ * vez: mudar qualquer um dos três muda o número.
+ */
+const PARADAS_FIXADAS: Record<"claro" | "escuro", Record<string, { "hora-ink": Rgb; hora: Rgb }>> = {
+  claro: {
+    "06:00": { "hora-ink": [0.229739, 0.04347, 0.118452], hora: [0.791277, 0.294625, 0.496154] },
+    "09:00": { "hora-ink": [0.229193, 0.064322, -0.02525], hora: [0.778961, 0.364758, 0.040805] },
+    "12:00": { "hora-ink": [-0.040714, 0.135082, 0.220626], hora: [0.043131, 0.551662, 0.748784] },
+    "16:00": { "hora-ink": [0.317351, 0.028213, -0.00251], hora: [1.007149, 0.265744, 0.127894] },
+    "20:00": { "hora-ink": [0.085776, 0.071095, 0.31105], hora: [0.397862, 0.380408, 0.958192] },
+  },
+  escuro: {
+    "06:00": { "hora-ink": [0.901596, 0.35228, 0.575317], hora: [0.69013, 0.243489, 0.424601] },
+    "09:00": { "hora-ink": [0.886983, 0.431185, 0.065041], hora: [0.67994, 0.305367, 0.021032] },
+    "12:00": { "hora-ink": [0.071758, 0.637676, 0.853068], hora: [0.019441, 0.47365, 0.653299] },
+    "16:00": { "hora-ink": [1.138827, 0.321383, 0.163875], hora: [0.885645, 0.216577, 0.09712] },
+    "20:00": { "hora-ink": [0.46566, 0.448172, 1.08207], hora: [0.337057, 0.319717, 0.843992] },
+  },
+};
+
+const pertoDe = (medido: Rgb, esperado: Rgb, folga: number) =>
+  medido.every((canal, i) => Math.abs(canal - (esperado[i] ?? Number.NaN)) <= folga);
+
+describe("a conversão OKLCH → sRGB do teste, presa a âncoras", () => {
+  it.each(ANCORAS)("%s cai onde o colorjs.io diz, com folga de 1e-3", (_nome, [l, c, h], esperado) => {
+    const medido = deOklch(l, c, h);
+    expect(
+      pertoDe(medido, esperado, 1e-3),
+      `oklch(${l} ${c} ${h}) deu (${medido.map((x) => x.toFixed(4)).join(", ")}), esperava (${esperado.join(", ")})`,
+    ).toBe(true);
+  });
+
+  it.each(["claro", "escuro"] as const)("no tema %s, cada parada da hora tem a cor fixada, na tinta e no preenchimento", (nome) => {
+    const tema = nome === "claro" ? claro : escuro;
+    const l = (token: string) => Number(cru(tema[token]));
+    for (const parada of hourStops) {
+      const fixada = PARADAS_FIXADAS[nome][parada.time];
+      expect(fixada, `a parada ${parada.time} tem valor fixado`).toBeDefined();
+      for (const [papel, luz] of [
+        ["hora-ink", l("hora-ink-l")],
+        ["hora", l("hora-l")],
+      ] as const) {
+        const medido = deOklch(luz, parada.c, parada.h);
+        const esperado = fixada?.[papel] as Rgb;
+        expect(
+          pertoDe(medido, esperado, 1e-4),
+          `${papel} às ${parada.time} deu (${medido.map((x) => x.toFixed(6)).join(", ")}), esperava (${esperado.join(", ")})`,
+        ).toBe(true);
+      }
+    }
+  });
+});
+
 const PISO_TEXTO = 4.5;
 const PISO_DESENHO = 3;
 
