@@ -163,6 +163,17 @@ it("a área segura é pública: quatro custom properties com env() e reserva de 
   expect(resolvido(zerado.cabecalho, "padding-block-start")).toBe("0px");
 });
 
+it("só o :root lê o env() da área segura: nenhum componente o escreve direto, a folha inclusive", () => {
+  // Um `env()` dentro da regra do componente não se zera de fora (ADR-011): a
+  // folha que lia `env(safe-area-inset-bottom)` recuava embaixo mesmo com o
+  // consumidor zerando `--co-safe-bottom`.
+  const diretos = REGRAS.filter((r) => lugar(r) !== ":root").flatMap((r) =>
+    r.declaracoes.filter(([, v]) => /env\(\s*safe-area-inset-/.test(v)).map(([p, v]) => `${lugar(r)} { ${p}: ${v} }`),
+  );
+  expect(diretos).toEqual([]);
+  expect(bloco(".co-sheet").filter(([p]) => p === "padding-bottom")).toEqual([["padding-bottom", "var(--co-safe-bottom)"]]);
+});
+
 it("a moldura soma a área segura de cima ao respiro de 28px", () => {
   const { semBarra, comBarra } = montar(IPHONE);
   expect(blocoResolvido(semBarra)[0]).toBe("calc(28px + 59px)");

@@ -2634,7 +2634,9 @@ button.co-chip {
   width: 100%;
   max-width: 520px;
   max-height: 88%;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* A área segura de baixo pelo token público, e não pelo `env()` direto
+   * (ADR-011): o consumidor que zera `--co-safe-bottom` zera a folha junto. */
+  padding-bottom: var(--co-safe-bottom);
   border-radius: var(--co-radius-sheet) var(--co-radius-sheet) var(--co-radius-content)
     var(--co-radius-content);
   background: var(--co-surface);
