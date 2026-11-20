@@ -381,6 +381,11 @@ describe("a guarda da CSP, no texto", () => {
         'import styled from "styled-components";',
         'import { css } from "@emotion/react";',
         'const url = "https://exemplo.com/a"; el.style.setProperty("--x", "1");',
+        // Um `//` e um `/*` dentro de string não abrem comentário: o que vem
+        // depois deles na linha é código, e é achado.
+        'const s = " //"; el.setAttribute("style", s);',
+        'const a = "/*"; el.setAttribute("style", a); const b = "*/";',
+        "const p = <p>// texto de JSX, e não comentário</p>; el.setAttribute('style', 'x');",
       ].join("\n"),
     );
     const { codigo, saida } = varrer(arquivo);
@@ -403,7 +408,34 @@ describe("a guarda da CSP, no texto", () => {
       "13: document.write",
       "14: CSS-in-JS",
       "15: CSS-in-JS",
+      "17: setAttribute(style)",
+      "18: setAttribute(style)",
+      "19: setAttribute(style)",
     ]);
+  });
+
+  it("a isca do pacote: no JS compilado, o `//` e o `/*` dentro de string também não escondem o que vem depois", () => {
+    // O `dist/` é JavaScript sem tipo nem JSX escrito, e a varredura dele lê o
+    // mesmo analisador (`npm run build` termina com `varrer-csp.mjs dist`).
+    const pacote = mkdtempSync(join(iscas, "dist-"));
+    writeFileSync(
+      join(pacote, "coluna.js"),
+      [
+        "/* comentário de licença: setAttribute('style', x) aqui não conta */",
+        'function a(e){const s=" //";e.setAttribute("style",s)}',
+        'function b(e){const t="/*";e.setAttribute("style",t);const u="*/"}',
+        "// e este, de linha, também não conta: createElement('style')",
+        'function c(e){e.style.setProperty("--co-hora-h","75")}',
+      ].join("\n"),
+    );
+    const { codigo, saida } = varrer(pacote);
+    expect(codigo).toBe(1);
+    expect(
+      saida
+        .split("\n")
+        .filter((linha) => linha.startsWith("  "))
+        .map((linha) => linha.trim().replace(/^.*coluna\.js:/, "")),
+    ).toEqual(["2: setAttribute(style)", "3: setAttribute(style)"]);
   });
 
   it("a isca: uma varredura que não lê nada falha, em vez de passar", () => {

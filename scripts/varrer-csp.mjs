@@ -22,6 +22,8 @@
  *
  * Comentário não conta: o navegador não executa comentário, e este sistema
  * escreve "nunca setAttribute('style')" nos comentários para explicar a regra.
+ * Quem acha o comentário é o analisador do TypeScript, e não um regex: `" //"`
+ * e `"/*"` dentro de uma string não escondem o resto da linha.
  *
  *   node scripts/varrer-csp.mjs <arquivo ou pasta> [...]
  *
@@ -32,6 +34,7 @@
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
+import ts from "typescript";
 
 const PADROES = [
   ["setAttribute(style)", /\bsetAttribute\s*\(\s*["'`]style["'`]/i],
@@ -53,21 +56,65 @@ const LIDOS = /\.(?:m?js|tsx?)$/;
 const PULADOS = /(?:^|[\\/])(?:node_modules|test)(?:[\\/]|$)|\.(?:test|stories)\.[jt]sx?$|\.map$/;
 
 /**
- * Tira os comentários e guarda as quebras de linha, para o número da linha do
- * achado continuar certo. O comentário de bloco sai inteiro; o `//` sai só quando
- * começa a linha ou vem depois de espaço ou de pontuação de código — numa URL
- * entre aspas ele vem depois de `:`, e fica. Heurística de texto, e não um
- * analisador: o que ela erra, erra para o lado de acusar.
+ * As faixas `[início, fim)` de cada comentário do código, achadas pelo
+ * analisador do TypeScript (que já é dependência de desenvolvimento), e não por
+ * regex: só ele sabe que `" //"` e `"/*"` dentro de uma string NÃO abrem
+ * comentário. A heurística de texto que estava aqui apagava o resto da linha
+ * depois de `" //"` e tudo entre um `"/*"` e o próximo `*\/`, e um
+ * `setAttribute("style", …)` escondido ali passava.
+ *
+ * Os comentários são os trívios antes e depois de cada token, em cada nó da
+ * árvore. O texto de JSX (`<p>// x</p>`) é texto, e fica. Um comentário num
+ * lugar que a árvore não visita continua no texto, e erra para o lado de
+ * acusar.
  */
-export function semComentarios(codigo) {
-  return codigo
-    .replace(/\/\*[\s\S]*?\*\//g, (bloco) => bloco.replace(/[^\n]/g, " "))
-    .replace(/(^|[\s;{}(),])\/\/[^\n]*/g, "$1");
+function faixasDeComentario(codigo, arquivo) {
+  const tipo = /\.tsx$/.test(arquivo)
+    ? ts.ScriptKind.TSX
+    : /\.ts$/.test(arquivo)
+      ? ts.ScriptKind.TS
+      : ts.ScriptKind.JSX;
+  const fonte = ts.createSourceFile(arquivo, codigo, ts.ScriptTarget.Latest, false, tipo);
+  // Onde começa um texto de JSX, nenhum trívio é lido: o `>` antes dele e a
+  // lista que o contém começam ali, e o analisador leria o `//` do texto como
+  // comentário.
+  const textosDeJsx = new Set();
+  const acharTextos = (no) => {
+    if (no.kind === ts.SyntaxKind.JsxText) textosDeJsx.add(no.pos);
+    ts.forEachChild(no, acharTextos);
+  };
+  acharTextos(fonte);
+  const faixas = new Map();
+  const juntar = (lista) => {
+    for (const faixa of lista ?? []) faixas.set(faixa.pos, faixa.end);
+  };
+  const visitar = (no) => {
+    if (!textosDeJsx.has(no.pos)) juntar(ts.getLeadingCommentRanges(codigo, no.pos));
+    if (!textosDeJsx.has(no.end)) juntar(ts.getTrailingCommentRanges(codigo, no.end));
+    for (const filho of no.getChildren(fonte)) visitar(filho);
+  };
+  visitar(fonte);
+  return [...faixas].sort(([a], [b]) => a - b);
+}
+
+/**
+ * Tira os comentários e guarda as quebras de linha, para o número da linha do
+ * achado continuar certo.
+ */
+export function semComentarios(codigo, arquivo = "codigo.tsx") {
+  let saida = "";
+  let ate = 0;
+  for (const [inicio, fim] of faixasDeComentario(codigo, arquivo)) {
+    if (inicio < ate) continue;
+    saida += codigo.slice(ate, inicio) + codigo.slice(inicio, fim).replace(/[^\n]/g, " ");
+    ate = fim;
+  }
+  return saida + codigo.slice(ate);
 }
 
 /** Os achados de um texto: `[linha, padrão]`, na ordem. */
-export function achadosNoTexto(codigo) {
-  const linhas = semComentarios(codigo).split("\n");
+export function achadosNoTexto(codigo, arquivo = "codigo.tsx") {
+  const linhas = semComentarios(codigo, arquivo).split("\n");
   const achados = [];
   linhas.forEach((linha, indice) => {
     for (const [nome, padrao] of PADROES) if (padrao.test(linha)) achados.push([indice + 1, nome]);
@@ -99,7 +146,7 @@ if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith
     process.exit(2);
   }
   const achados = lidos.flatMap((arquivo) =>
-    achadosNoTexto(readFileSync(arquivo, "utf8")).map(([linha, nome]) => `${relative(process.cwd(), arquivo)}:${linha}: ${nome}`),
+    achadosNoTexto(readFileSync(arquivo, "utf8"), arquivo).map(([linha, nome]) => `${relative(process.cwd(), arquivo)}:${linha}: ${nome}`),
   );
   if (achados.length > 0) {
     console.error(`varrer-csp: ${achados.length} achado(s) que a CSP style-src 'self' recusaria:`);
