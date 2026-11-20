@@ -228,80 +228,200 @@ describe("SegmentedControl para a data: teclado e alvo", () => {
     expect(await semViolacao(<EscolhaDoDia />, tema)).toEqual([]);
   });
   /*
-   * A dimensão a 320px. O happy-dom não faz layout, então a conta é a da
-   * quebra de linha do flexbox, com os números LIDOS da folha: o tamanho
-   * hipotético de cada opção é o maior entre o conteúdo e o `min-width`, a
-   * fileira cabe o que couber na largura de dentro do grupo, e a sobra se
-   * reparte pelo `flex-grow`. Um número de 1 a 8 a 13px mede bem menos que os
-   * 44px, então a opção dele É o mínimo — a conta não depende da fonte. Os
-   * rótulos longos dependem da fonte: para eles a prova é a regra que impede o
-   * transbordo (o grupo e a opção limitados a 100%, com quebra), e o número
-   * medido no Chromium está na entrega do lote.
+   * A dimensão a 320px e a 390px. O happy-dom não faz layout, então a conta é a
+   * da folha: o mínimo de cada trilho da grade (`grid-template-columns`) é
+   * AVALIADO aqui, com os números que o componente escreve (`--co-seg-n`, o
+   * número de opções, e `--co-seg-chars`, o rótulo mais longo) e a largura de
+   * dentro do grupo no lugar do `100%`, e a grade enche os trilhos como o
+   * navegador faz: o maior número de trilhos de mínimo M que cabe na largura,
+   * sem passar do número de opções (o `auto-fit` recolhe os vazios), todos
+   * iguais. O pixel de verdade, no Chromium, está na entrega do lote.
+   *
+   * A mesma conta lê a regra ANTERIOR (`flex-wrap`, a opção `1 0 auto`), escrita
+   * abaixo como dado: ela é a isca, e tem de reprovar no mesmo critério.
    */
   const ultima = (declaracoes: readonly (readonly [string, string])[], propriedade: string) =>
     declaracoes.filter(([p]) => p === propriedade).at(-1)?.[1];
 
-  function fileirasA(largura: number, opcoes: number, full: boolean) {
-    const grupo = bloco(".co-segmented");
-    const opcao = bloco(".co-segmented__option");
-    const larguraMinima = ultima(opcao, "min-width");
-    expect(larguraMinima, "a opção tem min-width").toBeDefined();
-    const minimo = avaliar(larguraMinima ?? "0px", TOKENS);
-    const vao = avaliar(ultima(grupo, "gap") ?? "0px", TOKENS);
-    const respiro = avaliar(ultima(grupo, "padding") ?? "0px", TOKENS);
-    const contorno = avaliar((ultima(grupo, "border") ?? "0px").split(" ")[0] ?? "0px", TOKENS);
-    const dentro = largura - 2 * (respiro + contorno);
-    const quebra = ultima(grupo, "flex-wrap") === "wrap";
-    // `flex-shrink: 0`: a opção não encolhe abaixo do hipotético.
-    const encolhe = !/^\S+ 0(\s|$)/.test(ultima(opcao, "flex") ?? "") && ultima(opcao, "flex-shrink") !== "0";
+  const regraDe = (seletor: string) => {
+    const achadas = REGRAS.filter((r) => r.profundidade === 0 && r.seletores.includes(seletor));
+    return achadas.flatMap((r) => r.declaracoes);
+  };
+
+  /** O primeiro argumento de `minmax(`, até a vírgula de primeiro nível. */
+  function primeiroDoMinmax(valor: string) {
+    const inicio = valor.indexOf("minmax(") + "minmax(".length;
+    let nivel = 0;
+    for (let k = inicio; k < valor.length; k++) {
+      if (valor[k] === "(") nivel++;
+      else if (valor[k] === ")") nivel--;
+      else if (valor[k] === "," && nivel === 0) return valor.slice(inicio, k);
+    }
+    throw new Error(`minmax sem segundo argumento: ${valor}`);
+  }
+
+  interface Entrada {
+    /** A largura do contêiner (a janela menos o respiro da coluna). */
+    contêiner: number;
+    opcoes: number;
+    /** O rótulo mais longo, em letras. */
+    letras: number;
+    full: boolean;
+  }
+
+  /** As opções de cada fileira, com a largura de cada uma, e se o grupo cabe no contêiner. */
+  function fileirasDe(entrada: Entrada, grupo: readonly (readonly [string, string])[], opcao: readonly (readonly [string, string])[]) {
+    const { contêiner, opcoes, letras, full } = entrada;
+    const sheetVars: Record<string, string> = Object.fromEntries(
+      regraDe(".co-segmented").filter(([p]) => p.startsWith("--co-seg-")),
+    );
+    const base: Valores = { ...TOKENS, ...sheetVars, "--co-seg-n": String(opcoes), "--co-seg-chars": String(letras) };
+    const respiro = avaliar(ultima(grupo, "padding") ?? "0px", base);
+    const contorno = avaliar((ultima(grupo, "border") ?? "0px").split(" ")[0] ?? "0px", base);
+    const vao = avaliar(ultima(grupo, "gap") ?? "0px", base);
+    const minimo = avaliar(ultima(opcao, "min-width") ?? "0px", base);
+    const grade = ultima(grupo, "grid-template-columns");
+
+    if (grade) {
+      // Largura do grupo: a do contêiner, ou a que as opções pedem se for menor
+      // (`width: min(100%, var(--co-seg-outer))`).
+      const pedida = avaliar(sheetVars["--co-seg-outer"] ?? "0px", { ...base, "%": `${contêiner}px` });
+      const largura = full ? contêiner : Math.min(contêiner, pedida);
+      const dentro = largura - 2 * (respiro + contorno);
+      const trilho = avaliar(primeiroDoMinmax(grade), { ...base, "%": `${dentro}px` });
+      const colunas = Math.max(1, Math.min(opcoes, Math.floor((dentro + vao) / (trilho + vao))));
+      const cada = (dentro - (colunas - 1) * vao) / colunas;
+      const fileiras: number[][] = [];
+      for (let k = 0; k < opcoes; k += colunas) fileiras.push(Array.from({ length: Math.min(colunas, opcoes - k) }, () => cada));
+      return { fileiras, dentro, vao };
+    }
+
+    // A regra anterior: `flex-wrap`, a opção `flex: 1 0 auto` (o grupo
+    // `inline-flex` ocupa o contêiner quando as opções não cabem).
+    const dentro = contêiner - 2 * (respiro + contorno);
     const fileiras: number[][] = [];
     let atual: number[] = [];
     let ocupado = 0;
     for (let k = 0; k < opcoes; k++) {
-      const extra = atual.length === 0 ? minimo : vao + minimo;
-      if (quebra && atual.length > 0 && ocupado + extra > dentro) {
+      const extra = (atual.length === 0 ? 0 : vao) + minimo;
+      if (atual.length > 0 && ocupado + extra > dentro) {
         fileiras.push(atual);
         atual = [];
         ocupado = 0;
       }
-      ocupado += atual.length === 0 ? minimo : vao + minimo;
+      ocupado += (atual.length === 0 ? 0 : vao) + minimo;
       atual.push(minimo);
     }
     fileiras.push(atual);
-    // A sobra (ou a falta) de cada fileira se reparte igual: todas têm o mesmo
-    // `flex-grow`, e sem `full` a opção só cresce até a largura do grupo.
-    return fileiras.map((fileira) => {
-      const soma = fileira.reduce((a, b) => a + b, 0) + vao * (fileira.length - 1);
-      const sobra = dentro - soma;
-      const passo = sobra < 0 && encolhe ? sobra / fileira.length : full || fileiras.length > 1 ? Math.max(sobra, 0) / fileira.length : 0;
-      return { larguras: fileira.map((l) => l + passo), soma: soma + passo * fileira.length, dentro };
-    });
+    return {
+      fileiras: fileiras.map((fileira) => {
+        const soma = fileira.reduce((a, b) => a + b, 0) + vao * (fileira.length - 1);
+        return fileira.map((l) => l + (dentro - soma) / fileira.length);
+      }),
+      dentro,
+      vao,
+    };
   }
 
-  it.each([
-    [6, true],
-    [8, true],
-    [8, false],
-  ] as const)("a 320px (288px dentro do respiro de 16px), com %i opções (full: %s), cada uma tem 44px de largura e nada passa da largura", (opcoes, full) => {
-    for (const largura of [288, 320]) {
-      const fileiras = fileirasA(largura, opcoes, full);
-      for (const { larguras, soma, dentro } of fileiras) {
-        for (const l of larguras) {
-          expect(l, `opção a ${largura}px com ${opcoes} opções mediu ${l.toFixed(1)}px`).toBeGreaterThanOrEqual(44);
+  const ANTERIOR = {
+    grupo: [
+      ["display", "inline-flex"],
+      ["flex-wrap", "wrap"],
+      ["max-width", "100%"],
+      ["gap", "var(--co-space-2)"],
+      ["padding", "var(--co-space-2)"],
+      ["border", "var(--co-control-width) solid var(--co-control)"],
+    ] as const,
+    opcao: [
+      ["flex", "1 0 auto"],
+      ["min-width", "var(--co-target-min)"],
+    ] as const,
+  };
+
+  const razaoDasOpcoes = (fileiras: number[][]) => {
+    const todas = fileiras.flat();
+    return Math.max(...todas) / Math.min(...todas);
+  };
+
+  const ATUAL = () => ({ grupo: regraDe(".co-segmented"), opcao: bloco(".co-segmented__option") });
+
+  // 320px e 390px de janela, com o respiro de 16px de cada lado da coluna.
+  const COLUNAS = [288, 358] as const;
+
+  it.each(COLUNAS)(
+    "a %ipx de coluna, o grupo quebrado tem fileiras de largura igual (a maior opção até 1,5 vezes a menor) e nenhuma opção abaixo de 44px",
+    (contêiner) => {
+      const { grupo, opcao } = ATUAL();
+      for (const [opcoes, letras] of [[6, 1], [8, 1], [12, 2], [6, 3], [8, 3], [4, 14], [5, 14]] as const) {
+        for (const full of [true, false]) {
+          const { fileiras, dentro } = fileirasDe({ contêiner, opcoes, letras, full }, grupo, opcao);
+          const nome = `${opcoes} opções de ${letras} letras (full: ${full}) a ${contêiner}px`;
+          expect(razaoDasOpcoes(fileiras), `a razão entre a maior e a menor opção: ${nome}`).toBeLessThanOrEqual(1.5);
+          for (const l of fileiras.flat()) expect(l, `opção de ${nome}`).toBeGreaterThanOrEqual(44);
+          // Nada passa da largura de dentro.
+          for (const fileira of fileiras) {
+            const soma = fileira.reduce((a, b) => a + b, 0) + 2 * (fileira.length - 1);
+            expect(soma, `fileira de ${nome}`).toBeLessThanOrEqual(dentro + 0.01);
+          }
         }
-        expect(soma, `fileira a ${largura}px com ${opcoes} opções`).toBeLessThanOrEqual(dentro + 0.01);
       }
-    }
+    },
+  );
+
+  it.each([
+    // [coluna, opções, letras do rótulo mais longo, fileiras]
+    [288, 6, 1, [6]],
+    [288, 8, 1, [4, 4]],
+    [288, 6, 3, [3, 3]],
+    [288, 4, 14, [2, 2]],
+    [358, 6, 1, [6]],
+    [358, 8, 1, [4, 4]],
+    [358, 6, 3, [6]],
+    [358, 4, 14, [2, 2]],
+    [600, 4, 14, [4]],
+    [600, 8, 1, [8]],
+  ] as const)("a %ipx de coluna, %i opções de %i letras ficam em %j: equilibradas, e uma pílula só quando cabem", (contêiner, opcoes, letras, esperado) => {
+    const { grupo, opcao } = ATUAL();
+    const { fileiras } = fileirasDe({ contêiner, opcoes, letras, full: true }, grupo, opcao);
+    expect(fileiras.map((f) => f.length)).toEqual(esperado);
   });
 
-  it("os quatro rótulos longos ('Padrão / Baixa em carbo / Cetogênica / Alta em carbo') não transbordam: o grupo e a opção param em 100% e quebram em linhas", () => {
+  it("a isca: a regra anterior (flex-wrap, opção 1 0 auto) deixa a última fileira esticada e reprova no mesmo critério", () => {
+    // Oito opções a 320px: 6 + 2, com as duas de baixo a 140px contra 44px.
+    const { fileiras } = fileirasDe({ contêiner: 288, opcoes: 8, letras: 1, full: true }, ANTERIOR.grupo, ANTERIOR.opcao);
+    expect(fileiras.map((f) => f.length)).toEqual([6, 2]);
+    expect(razaoDasOpcoes(fileiras)).toBeGreaterThan(1.5);
+    // E a regra de hoje, na mesma entrada, passa.
+    const { grupo, opcao } = ATUAL();
+    const agora = fileirasDe({ contêiner: 288, opcoes: 8, letras: 1, full: true }, grupo, opcao);
+    expect(razaoDasOpcoes(agora.fileiras)).toBeLessThanOrEqual(1.5);
+  });
+
+  it("o componente escreve as duas contas, pela prop style (CSSOM): o número de opções e o rótulo mais longo", () => {
+    const { container } = render(
+      <SegmentedControl
+        label="Estilo"
+        value="a"
+        onChange={vi.fn()}
+        options={[
+          { value: "a", label: "Padrão" },
+          { value: "b", label: "Baixa em carbo" },
+          { value: "c", label: "Cetogênica" },
+        ]}
+      />,
+    );
+    const grupo = container.querySelector<HTMLElement>(".co-segmented");
+    expect(grupo?.style.getPropertyValue("--co-seg-n")).toBe("3");
+    expect(grupo?.style.getPropertyValue("--co-seg-chars")).toBe("14");
+  });
+
+  it("os quatro rótulos longos ('Padrão / Baixa em carbo / Cetogênica / Alta em carbo') não transbordam: o grupo e a opção param em 100%", () => {
     const grupo = bloco(".co-segmented");
     const opcao = bloco(".co-segmented__option");
     expect(ultima(grupo, "max-width"), "o grupo para na largura de quem o contém").toBe("100%");
-    expect(ultima(grupo, "flex-wrap"), "o grupo quebra em linhas").toBe("wrap");
     expect(ultima(opcao, "max-width"), "uma opção sozinha para na largura do grupo").toBe("100%");
-    // Sem `nowrap`: a opção que sozinha passaria da largura quebra o próprio
-    // rótulo, em vez de empurrar a página para o lado.
+    // Sem `nowrap`: a opção que passaria da célula quebra o próprio rótulo, em
+    // vez de empurrar a página para o lado.
     expect(ultima(opcao, "white-space"), "o rótulo pode quebrar").not.toBe("nowrap");
     render(
       <SegmentedControl
@@ -316,7 +436,7 @@ describe("SegmentedControl para a data: teclado e alvo", () => {
         ]}
       />,
     );
-    // Quebrar em linhas não tira o grupo do papel dele: continua um radiogroup
+    // Quebrar em fileiras não tira o grupo do papel dele: continua um radiogroup
     // de quatro, com uma parada do Tab.
     const grupoNaTela = screen.getByRole("radiogroup", { name: "Estilo" });
     expect(within(grupoNaTela).getAllByRole("radio")).toHaveLength(4);

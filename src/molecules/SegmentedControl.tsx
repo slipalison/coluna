@@ -1,4 +1,4 @@
-import { useId, useRef, type KeyboardEvent } from "react";
+import { useId, useRef, type CSSProperties, type KeyboardEvent } from "react";
 import { Text } from "../atoms/Text";
 
 export interface SegmentedOption<T extends string> {
@@ -101,6 +101,16 @@ export function SegmentedControl<T extends string>({
     }
   }
 
+  // Duas contas sobre os DADOS, e não medidas do DOM: quantas opções e o rótulo
+  // mais longo. É com elas que o CSS decide quantas fileiras e de que largura
+  // (`styles.css`, "controle segmentado"). Vão pela prop `style`, que o React
+  // escreve pelo CSSOM, e não pelo atributo (ADR-024). Com `legend` vão no
+  // embrulho, que também lê a largura, e o grupo as herda.
+  const contas = {
+    "--co-seg-n": options.length,
+    "--co-seg-chars": Math.max(0, ...options.map((opcao) => [...opcao.label].length)),
+  } as CSSProperties;
+
   const grupo = (
     <div
       className={legend ? "co-segmented" : classeDeFora("co-segmented")}
@@ -108,6 +118,7 @@ export function SegmentedControl<T extends string>({
       aria-label={legend ? undefined : label}
       aria-labelledby={legend ? idLegenda : undefined}
       data-full={full ? "true" : undefined}
+      style={legend ? undefined : contas}
     >
       {options.map((opcao, indice) => {
         const marcado = opcao.value === value;
@@ -139,7 +150,7 @@ export function SegmentedControl<T extends string>({
   // A legenda e o grupo juntos, com o respiro do rótulo do `Field` até o
   // controle: os dois se leem como uma peça só.
   return (
-    <div className={classeDeFora("co-segmented-field")} data-full={full ? "true" : undefined}>
+    <div className={classeDeFora("co-segmented-field")} data-full={full ? "true" : undefined} style={contas}>
       <Text as="span" id={idLegenda} variant="label" tone="subtle" className="co-segmented__legend">
         {label}
       </Text>

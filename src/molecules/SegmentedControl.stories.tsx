@@ -117,13 +117,16 @@ function A320({ children }: { children: ReactNode }) {
 
 /**
  * A 320px, o mínimo da tela (WCAG 1.4.10). Toda opção continua com 44px de
- * largura e de altura, e o grupo nunca passa da largura: quando as opções no
- * mínimo não cabem numa fileira, ele quebra em linhas. Continua um
- * `radiogroup`, com uma parada do Tab, as setas e Home/End.
+ * largura e de altura, e o grupo nunca passa da largura: quando as opções não
+ * cabem numa fileira, ele quebra em fileiras EQUILIBRADAS e de largura igual
+ * (oito viram 4 + 4, os quatro estilos 2 + 2), e quando cabem continua uma
+ * pílula só. Continua um `radiogroup`, com uma parada do Tab, as setas e
+ * Home/End.
  *
  * **O que conferir.** Nenhuma das três rola a página de lado; nenhuma opção
- * fica mais estreita que 44px; os quatro rótulos longos ficam inteiros, em
- * duas fileiras.
+ * fica mais estreita que 44px; nenhuma fica esticada: todas as opções do grupo
+ * têm a mesma largura; os quatro rótulos longos ficam inteiros, em duas
+ * fileiras.
  */
 export const A320px: Story = {
   name: "A 320px — 6 e 8 opções, rótulos longos",

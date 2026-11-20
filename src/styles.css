@@ -1269,45 +1269,93 @@ div.co-sheet-overlay {
  * escolhidas viram texto solto, sem cara de opção (WCAG 1.4.11).
  */
 /*
- * Toda opção tem o alvo de 44px nos DOIS eixos, e o grupo nunca passa da
- * largura de quem o contém: quando as opções no mínimo não cabem numa fileira
- * (oito de 44px a 320px, ou "Padrão / Baixa em carbo / Cetogênica / Alta em
- * carbo"), o grupo quebra em linhas, e a sobra de cada fileira se reparte. A
- * opção não encolhe (`flex-shrink: 0`) — encolher era o defeito: a 320px seis
- * opções `full` mediam 40,8 a 43,8px, e os quatro rótulos longos empurravam a
- * página para o lado. Quebrar não muda o papel: continua um `radiogroup`, uma
- * parada do Tab, as setas e Home/End.
+ * Toda opção tem o alvo de 44px nos DOIS eixos, o grupo nunca passa da largura
+ * de quem o contém, e quando as opções não cabem numa fileira o grupo quebra em
+ * fileiras EQUILIBRADAS e de largura igual: seis opções viram 3 + 3, oito viram
+ * 4 + 4, os quatro estilos ("Padrão / Baixa em carbo / Cetogênica / Alta em
+ * carbo") viram 2 + 2. Quando cabem, continua uma pílula só.
+ *
+ * A quebra do `flex-wrap` não serve: ele enche a primeira fileira até onde
+ * cabe e deixa o resto na última (a 320px, seis opções viravam 5 + 1, com o
+ * "6" esticado a 234-266px; oito, 7 + 1, com a de baixo a 76px contra 44px).
+ * Aqui é uma grade de trilhos iguais (`repeat(auto-fit, minmax(M, 1fr))`), e o
+ * que o CSS escolhe é o M, o mínimo de cada trilho, pela largura de dentro:
+ *
+ *   cabe numa fileira (`--co-seg-fit1`)   M = a célula: n trilhos, uma fileira
+ *   senão, cabe em duas (`--co-seg-fit2`) M = a largura de k2 trilhos que
+ *                                         enchem a fileira, e só k2 cabem
+ *   senão, em três                        o mesmo, com k3
+ *   senão                                 M = a célula, e a grade enche como der
+ *
+ * O "senão" é um degrau, e o CSS não tem `if`: `min(M2, 10000 * (fit1 - 100%))`
+ * vale M2 enquanto o grupo é mais estreito que `fit1` por mais de 3 centésimos
+ * de pixel, e zero ou negativo (e some no `max()`) quando cabe. A célula é a
+ * maior entre os 44px do alvo e o rótulo mais longo, estimado em 0,6 do corpo
+ * por caractere (`--co-seg-chars`, o número de letras, que o componente
+ * escreve): é conta sobre o texto, e não medida do DOM. O `-0,5px` do M2 e do
+ * M3 dá folga ao arredondamento: sem ele a conta que dá exatamente k trilhos
+ * às vezes dá k - 1.
+ *
+ * `--co-seg-n` e `--co-seg-chars` são escritos pelo componente na prop `style`
+ * (o CSSOM, e não o atributo: ADR-024). O resto são contas daqui.
  *
  * O raio é meia altura de UMA fileira (a opção, o respiro e o contorno), e não
  * 999px: numa fileira só é a mesma pílula; com duas, 999px viraria meia altura
  * do grupo inteiro, e a opção escolhida no canto sairia da curva da borda.
  */
+.co-segmented,
+.co-segmented-field {
+  --co-seg-gap: var(--co-space-2);
+  --co-seg-cell: max(var(--co-target-min), calc(var(--co-seg-chars, 0) * 0.6 * var(--co-text-13) + 2 * var(--co-space-12)));
+  --co-seg-k2: round(up, calc(var(--co-seg-n, 1) / 2), 1);
+  --co-seg-k3: round(up, calc(var(--co-seg-n, 1) / 3), 1);
+  --co-seg-fit1: calc(var(--co-seg-n, 1) * var(--co-seg-cell) + (var(--co-seg-n, 1) - 1) * var(--co-seg-gap));
+  --co-seg-fit2: calc(var(--co-seg-k2) * var(--co-seg-cell) + (var(--co-seg-k2) - 1) * var(--co-seg-gap));
+  --co-seg-m2: calc((100% - (var(--co-seg-k2) - 1) * var(--co-seg-gap)) / var(--co-seg-k2) - 0.5px);
+  --co-seg-m3: calc((100% - (var(--co-seg-k3) - 1) * var(--co-seg-gap)) / var(--co-seg-k3) - 0.5px);
+  --co-seg-outer: calc(var(--co-seg-fit1) + 2 * (var(--co-space-2) + var(--co-control-width)));
+}
+
 .co-segmented {
-  display: inline-flex;
-  flex-wrap: wrap;
+  display: inline-grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(
+      max(
+        var(--co-seg-cell),
+        min(var(--co-seg-m2), calc(10000 * (var(--co-seg-fit1) - 100%))),
+        min(var(--co-seg-m3), calc(10000 * (var(--co-seg-fit2) - 100%)))
+      ),
+      1fr
+    )
+  );
+  width: min(100%, var(--co-seg-outer));
   max-width: 100%;
-  gap: var(--co-space-2);
+  gap: var(--co-seg-gap);
   padding: var(--co-space-2);
   border: var(--co-control-width) solid var(--co-control);
   background: var(--co-surface);
   border-radius: calc(var(--co-target-min) / 2 + var(--co-space-2) + var(--co-control-width));
 }
 
-.co-segmented[data-full="true"] { display: flex; width: 100%; }
+.co-segmented[data-full="true"] { display: grid; width: 100%; }
 
 /* Com a legenda visível (`legend`): o rótulo em cima, com o mesmo respiro do
- * rótulo do `Field` até o controle. */
+ * rótulo do `Field` até o controle. O embrulho tem a largura do grupo, que lê
+ * as mesmas contas (o componente escreve `--co-seg-*` nele, e o grupo as herda). */
 .co-segmented-field {
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
   gap: var(--co-space-6);
+  width: min(100%, var(--co-seg-outer));
   max-width: 100%;
 }
 
-.co-segmented-field[data-full="true"] { display: flex; width: 100%; }
+.co-segmented-field[data-full="true"] { width: 100%; }
+
+.co-segmented-field > .co-segmented { width: 100%; }
 
 .co-segmented__option {
-  flex: 1 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1322,8 +1370,7 @@ div.co-sheet-overlay {
   font-family: inherit;
   font-size: var(--co-text-13);
   cursor: pointer;
-  /* Só quebra o rótulo a opção que sozinha passaria da largura do grupo; as
-   * outras ficam numa linha, porque a base delas é o rótulo inteiro. */
+  /* Só quebra o rótulo que passa da célula; o resto fica numa linha. */
   text-align: center;
 }
 
