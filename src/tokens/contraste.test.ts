@@ -414,6 +414,48 @@ describe.each(TEMAS)("a cor da hora no tema %s, o dia inteiro", (_nome, tema) =>
     }
   });
 
+  /*
+   * A aba atual da `TabBar` não pode se distinguir só pelo matiz: no escuro, a
+   * tinta da hora contra o cinza das outras abas mede 1,00 a 1,12:1. Ela ganha
+   * uma área de fundo sólida, mais escura que a barra (a s7 pede "área mais
+   * escura"), com o raio de controle. A área não precisa de 3:1 contra a barra
+   * (não é o único sinal: o peso e o `aria-current` vão junto), mas o rótulo e
+   * o ícone sobre ela continuam a 4,5:1 e a 3:1, a todo minuto.
+   */
+  it("a aba atual da TabBar tem área de fundo sólida, e o rótulo e o ícone sobre ela passam em 4,5:1 e 3:1 todo minuto", () => {
+    const atual = bloco('.co-tabbar__item[aria-current="page"]');
+    const valor = (propriedade: string) => atual.filter(([p]) => p === propriedade).at(-1)?.[1] ?? "";
+    const area = /^var\(--co-(surface-[23])\)$/.exec(valor("background"))?.[1];
+    expect(area, `a aba atual tem área sólida em surface-2 ou -3 (veio "${valor("background")}")`).toBeDefined();
+    expect(bloco(".co-tabbar__item").find(([p]) => p === "border-radius")?.[1]).toBe("var(--co-radius-control)");
+    // Mais escura que a barra, nos dois temas.
+    const barra = bloco(".co-tabbar").filter(([p]) => p === "background").at(-1)?.[1] ?? "";
+    const fundoDaBarra = /^var\(--co-([\w-]+)\)$/.exec(barra)?.[1] ?? "";
+    expect(luminancia(pedra(area ?? "bg")), "a área é mais escura que a barra").toBeLessThan(luminancia(pedra(fundoDaBarra)));
+
+    const corDe = (seletor: string) =>
+      /^var\(--co-([\w-]+)\)$/.exec(bloco(seletor).filter(([p]) => p === "color").at(-1)?.[1] ?? "")?.[1] ?? "";
+    const rotulo = corDe('.co-tabbar__item[aria-current="page"]');
+    const icone = corDe('.co-tabbar__item[aria-current="page"] .co-tabbar__icon');
+    for (const [papel, piso, nome] of [
+      [rotulo, PISO_TEXTO, "o rótulo"],
+      [icone, PISO_DESENHO, "o ícone"],
+    ] as const) {
+      expect(papel, `${nome} da aba atual pinta com a tinta da hora`).toBe("hora-ink");
+      let menor = { r: Number.POSITIVE_INFINITY, quando: 0 };
+      for (let minuto = 0; minuto < 24 * 60; minuto += 1) {
+        const { h, c } = hourVars(minuto);
+        const { cortada, reduzida } = oklchNosDoisCaminhos(numero("hora-ink-l"), c, h);
+        for (const frente of [cortada, reduzida]) {
+          const r = razao(frente, pedra(area ?? "bg"));
+          if (r < menor.r) menor = { r, quando: minuto };
+        }
+      }
+      const quando = `${Math.floor(menor.quando / 60)}h${String(menor.quando % 60).padStart(2, "0")}`;
+      expect(menor.r, `${nome} da aba atual sobre ${area} às ${quando} deu ${menor.r.toFixed(2)}:1`).toBeGreaterThanOrEqual(piso);
+    }
+  });
+
   it("a isca: a tinta da hora na luminosidade do preenchimento reprova sobre o fundo", () => {
     // Prova que a conta morde: trocar a L do texto pela do preenchimento (o
     // erro mais provável numa edição de token) derruba o contraste.

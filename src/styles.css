@@ -1922,12 +1922,18 @@ div.co-sheet-overlay {
 }
 
 /*
- * A aba atual muda de COR, de PESO e ganha `aria-current`. Três sinais, e não
- * um: quem não separa a cor da hora do cinza ainda vê o rótulo mais pesado, e
- * quem usa leitor de tela ouve "página atual" (ADR-005). A cor é a da hora: a
- * aba diz ONDE se está, e a hora é cor de lugar (ADR-022).
+ * A aba atual ganha uma ÁREA, muda de COR, de PESO e ganha `aria-current`. A
+ * cor sozinha não bastava: no escuro, a tinta da hora contra o cinza das
+ * outras abas mede 1,00 a 1,12:1, e a aba atual se distinguia só pelo matiz.
+ * A área é sólida e mais escura que a barra (`--co-surface-2`, a "área mais
+ * escura" da s7), com o raio de controle, atrás do ícone e do rótulo; na F4,
+ * com o vidro, ela vira translúcida. O rótulo e o ícone sobre ela continuam a
+ * 4,5:1 e a 3:1 a todo minuto (`tokens/contraste.test.ts`). Quem usa leitor de
+ * tela ouve "página atual" (ADR-005). A cor é a da hora: a aba diz ONDE se
+ * está, e a hora é cor de lugar (ADR-022).
  */
 .co-tabbar__item[aria-current="page"] {
+  background: var(--co-surface-2);
   color: var(--co-hora-ink);
   font-weight: var(--co-weight-semibold);
 }
