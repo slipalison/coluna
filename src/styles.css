@@ -906,7 +906,9 @@ div.co-sheet-overlay {
 .co-dot[data-tone="protein"] { background: var(--co-role-protein); }
 .co-dot[data-tone="carb"] { background: var(--co-role-carb); }
 .co-dot[data-tone="fat"] { background: var(--co-role-fat); }
-.co-dot[data-tone="accent"] { background: var(--co-hora); }
+/* O ponto da hora é marca de estado: a tinta, 3:1 sobre os fundos de texto o
+ * dia inteiro, e não o preenchimento, que no claro some na pedra. */
+.co-dot[data-tone="accent"] { background: var(--co-hora-ink); }
 .co-dot[data-tone="status"] { background: var(--co-ok); }
 
 /* ------------------------------------------------------------------ botão -- */
@@ -2908,7 +2910,10 @@ button.co-chip {
   width: var(--co-marker-width);
   height: var(--co-mark-size);
   transform: translateY(-50%);
-  background: var(--co-hora);
+  /* A tinta da hora, e não o preenchimento: a marca é o desenho que diz "é
+   * aqui", 3:1 contra o fundo do item a todo minuto (WCAG 1.4.11). O
+   * preenchimento (`--co-hora`) media 1,56 a 2,15:1 no claro. */
+  background: var(--co-hora-ink);
 }
 
 .co-rail__icon {
@@ -3040,7 +3045,8 @@ fieldset.co-nav-list {
   width: var(--co-marker-width);
   height: 22px;
   transform: translateY(-50%);
-  background: var(--co-hora);
+  /* A tinta da hora, pelo mesmo motivo da marca do trilho: 3:1 a todo minuto. */
+  background: var(--co-hora-ink);
 }
 
 /* ------------------------------------------------------------------ grão ---- */

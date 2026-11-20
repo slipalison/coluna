@@ -372,6 +372,48 @@ describe.each(TEMAS)("a cor da hora no tema %s, o dia inteiro", (_nome, tema) =>
     expect(pedraNoLavado.r, `ink sobre hora-soft às ${pedraNoLavado.quando}`).toBeGreaterThanOrEqual(PISO_TEXTO);
   });
 
+  /*
+   * A marca de estado — o traço do destino atual no `Rail` e no `NavList`, e o
+   * `Dot tone="accent"` — é desenho que diz "é aqui" (WCAG 1.4.11): 3:1 contra
+   * o fundo em que ela está, a TODO minuto do dia. A cor e o fundo são lidos da
+   * folha, e não escritos aqui: a marca que voltar para `--co-hora` (o
+   * preenchimento, 1,56 a 2,15:1 no claro) reprova pela conta.
+   */
+  const MARCAS = [
+    ['.co-rail__item[aria-current="page"]::before', '.co-rail__item[aria-current="page"]', "a marca do trilho"],
+    [".co-nav-list__item[aria-current]::after", ".co-nav-list__item[aria-current]", "a marca da lista de destinos"],
+    ['.co-dot[data-tone="accent"]', null, "o Dot accent"],
+  ] as const;
+  const fundoDe = (seletor: string | null) => {
+    if (!seletor) return ["bg", "surface", "surface-2"];
+    const valor = bloco(seletor).filter(([p]) => p === "background").at(-1)?.[1] ?? "";
+    const token = /^var\(--co-([\w-]+)\)$/.exec(valor)?.[1];
+    if (!token) throw new Error(`o fundo de ${seletor} não é um token: ${valor}`);
+    return [token];
+  };
+  const todoMinuto = Array.from({ length: 24 * 60 }, (_, i) => i);
+
+  it.each(MARCAS)("%s passa em 3:1 sobre o fundo do item, todo minuto do dia", (marca, item, nome) => {
+    const valor = bloco(marca).filter(([p]) => p === "background").at(-1)?.[1] ?? "";
+    const papel = /^var\(--co-(hora(?:-ink)?)\)$/.exec(valor)?.[1];
+    expect(papel, `${nome} pinta com a cor da hora (${valor})`).toBeDefined();
+    for (const fundo of fundoDe(item)) {
+      let menor = { r: Number.POSITIVE_INFINITY, quando: 0 };
+      for (const minuto of todoMinuto) {
+        const { h, c } = hourVars(minuto);
+        const { cortada, reduzida } = oklchNosDoisCaminhos(numero(`${papel}-l`), c, h);
+        for (const frente of [cortada, reduzida]) {
+          const r = razao(frente, pedra(fundo));
+          if (r < menor.r) menor = { r, quando: minuto };
+        }
+      }
+      const quando = `${Math.floor(menor.quando / 60)}h${String(menor.quando % 60).padStart(2, "0")}`;
+      expect(menor.r, `${nome} (--co-${papel}) sobre ${fundo} às ${quando} deu ${menor.r.toFixed(2)}:1`).toBeGreaterThanOrEqual(
+        PISO_DESENHO,
+      );
+    }
+  });
+
   it("a isca: a tinta da hora na luminosidade do preenchimento reprova sobre o fundo", () => {
     // Prova que a conta morde: trocar a L do texto pela do preenchimento (o
     // erro mais provável numa edição de token) derruba o contraste.
