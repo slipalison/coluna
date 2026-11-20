@@ -353,6 +353,21 @@ describe("SegmentedControl para a data: teclado e alvo", () => {
     expect(screen.getByRole("radio", { name: "Amanhã" })).toBeChecked();
   });
 
+  it("o className vai para o elemento de fora: o grupo sem legend, o embrulho com legend", () => {
+    const { unmount } = render(
+      <SegmentedControl label="Dia" options={DIAS} value="hoje" onChange={vi.fn()} className="de-fora" />,
+    );
+    expect(screen.getByRole("radiogroup")).toHaveClass("co-segmented", "de-fora");
+    unmount();
+    const comLegenda = render(
+      <SegmentedControl legend label="Dia" options={DIAS} value="hoje" onChange={vi.fn()} className="de-fora" />,
+    );
+    const embrulho = comLegenda.container.firstElementChild;
+    expect(embrulho, "o elemento de fora").toHaveClass("co-segmented-field", "de-fora");
+    expect(screen.getByRole("radiogroup")).toHaveClass("co-segmented");
+    expect(screen.getByRole("radiogroup")).not.toHaveClass("de-fora");
+  });
+
   it("sem legend (o padrão), o nome continua no aria-label e nada de rótulo aparece", () => {
     render(<EscolhaDoDia />);
     const grupo = screen.getByRole("radiogroup", { name: "Dia" });

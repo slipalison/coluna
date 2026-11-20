@@ -21,6 +21,10 @@ export interface SegmentedControlProps<T extends string> {
   value: T;
   onChange: (value: T) => void;
   full?: boolean;
+  /**
+   * Vai para o elemento de fora: o grupo, ou o embrulho (`.co-segmented-field`)
+   * quando há `legend`, que é o que ocupa o lugar do controle na tela.
+   */
   className?: string | undefined;
 }
 
@@ -47,7 +51,7 @@ export function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const idLegenda = useId();
-  const classe = className ? `co-segmented ${className}` : "co-segmented";
+  const classeDeFora = (base: string) => (className ? `${base} ${className}` : base);
 
   // Onde o tabindex itinerante pousa quando NENHUMA opção casa o `value`.
   //
@@ -99,7 +103,7 @@ export function SegmentedControl<T extends string>({
 
   const grupo = (
     <div
-      className={classe}
+      className={legend ? "co-segmented" : classeDeFora("co-segmented")}
       role="radiogroup"
       aria-label={legend ? undefined : label}
       aria-labelledby={legend ? idLegenda : undefined}
@@ -135,7 +139,7 @@ export function SegmentedControl<T extends string>({
   // A legenda e o grupo juntos, com o respiro do rótulo do `Field` até o
   // controle: os dois se leem como uma peça só.
   return (
-    <div className="co-segmented-field" data-full={full ? "true" : undefined}>
+    <div className={classeDeFora("co-segmented-field")} data-full={full ? "true" : undefined}>
       <Text as="span" id={idLegenda} variant="label" tone="subtle" className="co-segmented__legend">
         {label}
       </Text>
