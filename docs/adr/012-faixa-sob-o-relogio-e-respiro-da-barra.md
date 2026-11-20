@@ -258,3 +258,36 @@ O teste de unidade (`src/area-segura.test.tsx`)
 prova o texto: um `scroll-padding` só na folha, no `:root` do nível de cima,
 igual à altura da faixa. Também prova a conta (0, 32 e 78,67) e o valor que o
 happy-dom resolve no `:root`. O número da rolagem é do navegador.
+
+## Adendo 2.0 (2026-11-19) — a camada de baixo fica 8px acima da área, e não dentro dela
+
+**Contexto.** O piso da área segura do Basalto refundado (plano s7, "Área
+segura"; `.claude/rules/ux.md` §2 do Basalto) diz que a camada de baixo fica
+no recuo **mais** 8px — 42px no iPhone com a ilha, 32px no Android com furo —, e
+o E2E dele (`@area-segura`, Chromium com o recuo emulado pelo CDP em 59/34) o
+mede. Com o termo da decisão 1, a aba terminava a 20px da borda: 14px dentro da
+faixa que o gesto do indicador de início disputa. O alvo não sai da faixa só
+porque o gesto costuma disparar mais embaixo.
+
+**Decisão.** O termo do rodapé passa a ser
+
+```css
+max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8)))
+```
+
+o MESMO texto em toda regra que o usava: o rodapé da `.co-tabbar`, a reserva
+da tela com abas, com a barra de ação e com as duas, o `scroll-padding-bottom`
+do `:root` nos três casos, e a altura, o rodapé e o `bottom` da barra de ação.
+A folga de 31px até a última linha e o encaixe da barra de ação sobre as abas
+continuam iguais, porque todos crescem o mesmo termo.
+
+| recuo de baixo | rodapé 1.x | rodapé 2.0 | barra de abas 2.0 |
+|---|---|---|---|
+| 0 | 10 | 10 | 73 |
+| 24 (Android com furo) | 10 | 32 | 95 |
+| 34 (iPhone) | 20 | 42 | 105 |
+
+**Consequências.** Sem área segura nada muda. Com ela, a barra cresce 22px no
+iPhone e a reserva da tela cresce junto (114 → 136px com as abas). Os testes de
+unidade (`src/area-segura.test.tsx`, `src/barra-de-acao.test.tsx`) provam o
+texto e as contas; com o termo antigo eles falham.

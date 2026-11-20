@@ -102,7 +102,7 @@ const valor = (declaracoes: Declaracao[], propriedade: string) =>
   Object.fromEntries(declaracoes)[propriedade] ?? "";
 
 /** O termo do rodapé das barras de baixo (ADR-012), o mesmo texto em toda regra. */
-const RODAPE = "max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14)))";
+const RODAPE = "max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8)))";
 const RESERVA_DAS_ABAS = '.co-screen[data-tabbar="true"]';
 
 /** A barra de abas montada: respiro de cima, destino, fio e rodapé (ADR-012). */
@@ -388,9 +388,9 @@ it("com a barra de ação, a última linha fica 31px acima dela, com e sem área
   });
   const esperadas = [
     [0, 169, 96],
-    [21, 169, 96],
-    [34, 179, 106],
-    [48, 193, 120],
+    [21, 188, 115],
+    [34, 201, 128],
+    [48, 215, 142],
   ].map(([baixo, comAbas, semAbas]) => ({
     baixo,
     vao: 0,
@@ -406,9 +406,9 @@ it("com a barra de ação, a última linha fica 31px acima dela, com e sem área
   // aparelho) declara num ancestral chega à reserva, que chega ao rodapé.
   for (const [baixo, comAsAbas, esperada] of [
     [0, true, 169],
-    [34, true, 179],
+    [34, true, 201],
     [0, false, 96],
-    [34, false, 106],
+    [34, false, 128],
   ] as const) {
     const { container } = render(
       <Por area={{ "--co-safe-bottom": `${baixo}px` }}>
@@ -578,16 +578,16 @@ it("o recuo de baixo da rolagem é 0 sem barras e o mesmo termo da reserva com e
     expect(recuo, reserva).toBe(`:root:has(${naTela})`);
   }
 
-  // Os números: 104/114 com as abas, 96/106 só com a barra, 169/179 com as duas.
+  // Os números: 104/136 com as abas, 96/128 só com a barra, 169/201 com as duas.
   const recuos = pares.map(([recuo]) =>
     [0, 34].map((baixo) =>
       avaliar(valor(bloco(recuo), "scroll-padding-bottom"), aparelho(0, 0, baixo, 0)),
     ),
   );
   expect(recuos).toEqual([
-    [104, 114],
-    [96, 106],
-    [169, 179],
+    [104, 136],
+    [96, 128],
+    [169, 201],
   ]);
 });
 
