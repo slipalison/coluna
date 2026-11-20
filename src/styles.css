@@ -2708,6 +2708,14 @@ button.co-chip {
   }
 }
 
+/* A entrada de quem pede menos movimento (`prefers-reduced-motion`): sem
+ * deslocamento nem escala, só a opacidade, em `--co-duration-reduced`. */
+@keyframes co-esmaecer {
+  from {
+    opacity: 0;
+  }
+}
+
 .co-sheet__header {
   display: flex;
   align-items: center;
@@ -3116,7 +3124,11 @@ fieldset.co-nav-list {
   }
 }
 
-/* Quem pede menos movimento não recebe transição nenhuma.
+/* Quem pede menos movimento não recebe transição nenhuma, e a entrada que
+ * subia passa a esmaecer em 120ms (`--co-duration-reduced`, a identidade:
+ * "deslocamento e escala viram esmaecer de 120 ms"). Um corte seco faria a
+ * folha aparecer de uma vez, sem dizer de onde veio; o esmaecer diz, sem mover
+ * nada.
  *
  * A trava de toque fica (ADR-013, adendos 1.8.1 e 1.8.2): ela não move nada, e
  * zerada devolveria o toque duplo justamente a quem pediu menos movimento. São
@@ -3140,6 +3152,15 @@ fieldset.co-nav-list {
   div.co-sheet-overlay,
   .co-tabbar .co-tabbar__item {
     animation-duration: 400ms !important;
+  }
+
+  /* A folha por cima esmaece, em vez de subir. Mais específica que `.co-root *`
+   * e também `!important`, e por isso vence o corte. A de dentro do cartão
+   * (`inline`) não tem animação nenhuma, e continua sem. */
+  .co-root .co-sheet:not([data-mode="inline"]) {
+    animation-name: co-esmaecer !important;
+    animation-duration: var(--co-duration-reduced) !important;
+    animation-timing-function: var(--co-ease-settle) !important;
   }
 
   /* O card do carrossel não anda nem gira com o dedo: o arrasto só decide,

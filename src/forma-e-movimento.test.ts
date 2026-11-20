@@ -194,4 +194,21 @@ describe("o movimento", () => {
       ["transform", "none"],
     ]);
   });
+
+  it("com prefers-reduced-motion, a folha não sobe nem corta: esmaece em --co-duration-reduced (120ms), como a identidade pede", () => {
+    // "deslocamento e escala viram esmaecer de 120 ms" (identidade, Movimento).
+    // O corte de 0,01ms da regra geral deixava a folha aparecer de uma vez; a
+    // de dentro do cartão (`inline`) continua sem animação nenhuma.
+    expect(TOKENS["--co-duration-reduced"]).toBe("120ms");
+    const reduzido = dentroDe("@media (prefers-reduced-motion: reduce)");
+    const daFolha = reduzido.filter((regra) => regra.seletores.some((s) => s.includes("co-sheet")) && !regra.seletores.some((s) => s.includes("overlay")));
+    expect(daFolha.map((regra) => regra.seletores.join(", "))).toEqual(['.co-root .co-sheet:not([data-mode="inline"])']);
+    expect(Object.fromEntries(daFolha[0]?.declaracoes ?? [])).toEqual({
+      "animation-name": "co-esmaecer !important",
+      "animation-duration": "var(--co-duration-reduced) !important",
+      "animation-timing-function": "var(--co-ease-settle) !important",
+    });
+    // O esmaecer só mexe na opacidade: nada se desloca nem escala.
+    expect(animadas(folha).filter((p) => p.startsWith("co-esmaecer:"))).toEqual(["co-esmaecer: opacity"]);
+  });
 });

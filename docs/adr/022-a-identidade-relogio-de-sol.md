@@ -149,8 +149,12 @@ do `EmptyState` é o hexágono, o sinal da marca, por `clip-path` no CSS.
 `-roll` 700ms; `--co-ease-settle`, `-spring`, `-move` e `-exit`. O botão
 assenta em 0,97 no tempo do toque, abaixo dos 100ms do piso de resposta. As
 animações só mexem em `transform` e `opacity` (e nas travas de toque do
-ADR-013, que não movem nada). Com `prefers-reduced-motion` tudo vira corte, o
-botão não escala, e as travas de toque continuam.
+ADR-013, que não movem nada). Com `prefers-reduced-motion` a transição vira
+corte, o botão não escala, e as travas de toque continuam; a entrada que subia
+(a folha por cima) não corta, esmaece em `--co-duration-reduced`, 120ms, só na
+opacidade (`@keyframes co-esmaecer`), como a identidade pede ("deslocamento e
+escala viram esmaecer de 120 ms"). Adendo do lote 1: a primeira redação desta
+seção dizia "tudo vira corte", e o token de 120ms existia sem uso.
 
 ### 6. A escala de letra e o botão por ponteiro
 

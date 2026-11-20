@@ -1117,6 +1117,16 @@ it("o movimento reduzido não zera a trava da barra, das abas nem da folha", () 
       ],
     ],
     [TRAVA_DE_TOQUE.excecao, [["animation-duration", `${duracao} !important`]]],
+    // A folha por cima esmaece em vez de subir (lote 1, item 12): troca a
+    // animação do painel, e não toca na trava, que é da camada.
+    [
+      '.co-root .co-sheet:not([data-mode="inline"])',
+      [
+        ["animation-name", "co-esmaecer !important"],
+        ["animation-duration", "var(--co-duration-reduced) !important"],
+        ["animation-timing-function", "var(--co-ease-settle) !important"],
+      ],
+    ],
     // O card do carrossel que não anda com o dedo (slipalison/basalto#120):
     // não mexe em duração, e não toca na trava.
     ['.co-root .co-deck__card[data-dragging="true"]', [["transform", "none"]]],
@@ -1142,8 +1152,8 @@ it("o movimento reduzido não zera a trava da barra, das abas nem da folha", () 
   // Na cascata, com o aparelho pedindo menos movimento: o resto da página fica
   // sem duração (o zero vale, então o `@media` foi lido), e os controles da
   // barra, os destinos das abas e a camada da folha `overlay` ficam com a
-  // janela inteira. O painel, que sobe, o que está dentro dele (que não anima)
-  // e a folha `inline` ficam no zero.
+  // janela inteira. O painel, que subia, esmaece em 120ms; o que está dentro
+  // dele (que não anima) e a folha `inline` ficam no zero.
   const [barra, folha, inline] = comMenosMovimento(() => [
     cascataDosControles("animation-duration"),
     cascataDaFolha("overlay", "animation-duration"),
@@ -1158,7 +1168,9 @@ it("o movimento reduzido não zera a trava da barra, das abas nem da folha", () 
     ["Gasto", "400ms"],
     ["Fora da tela", "0.01ms"],
   ]);
-  expect(folha).toEqual(NA_FOLHA.map((nome) => [nome, nome === "camada" ? "400ms" : "0.01ms"]));
+  expect(folha).toEqual(
+    NA_FOLHA.map((nome) => [nome, nome === "camada" ? "400ms" : nome === "painel" ? "120ms" : "0.01ms"]),
+  );
   expect(inline).toEqual(
     NA_FOLHA.filter((nome) => !["camada", "véu"].includes(nome)).map((nome) => [nome, "0.01ms"]),
   );
