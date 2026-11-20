@@ -4,6 +4,7 @@ import { Grid } from "../atoms/Grid";
 import { Stack } from "../atoms/Stack";
 import { Surface } from "../atoms/Surface";
 import { Text } from "../atoms/Text";
+import { hourStops, hourStyle, hourVars } from "../theme/hour";
 import { readToken, semanticTokens, type SemanticToken } from "./tokens";
 
 /**
@@ -51,7 +52,7 @@ function Amostra({ token, de }: { token: SemanticToken; de: Element | null }) {
   // render, ele viria um quadro atrasado. O React desiste sozinho quando a
   // string não mudou, então isto assenta numa passada extra e para.
   //
-  // Lido do ELEMENTO, e não do documento: com tema por subárvore o acento daqui
+  // Lido do ELEMENTO, e não do documento: com tema por subárvore a cor daqui
   // e o da página podem ser cores diferentes ao mesmo tempo.
   useEffect(() => {
     definir(de ? readToken(token, de) : "");
@@ -127,52 +128,131 @@ export const Espaço: Story = {
 };
 
 /**
- * O raio máximo do sistema é 4px, e a maior parte dos componentes usa 0.
- * Basalto lasca em coluna hexagonal, não em pílula — é decisão de marca, não
- * economia.
+ * O raio é do PAPEL (ADR-004, ADR-022): o que se toca tem 14px, a vitrine que
+ * segura conteúdo 22px, a folha 28px em cima, o diálogo 24px, o chip e o
+ * segmentado são pílula, e o conteúdo (ponto, ripa, fio) é reto.
  */
 export const Forma: Story = {
   render: () => (
     <Stack gap={16}>
-      <Stack direction="row" gap={12} align="center">
-        {[0, 2, 4].map((r) => (
-          <Stack key={r} gap={6} align="center">
+      <Stack direction="row" gap={16} align="flex-end" wrap>
+        {(
+          [
+            ["content", "conteúdo · 0"],
+            ["inset", "dentro do trilho · 10,5"],
+            ["control", "controle · 14"],
+            ["container", "cartão · 22"],
+            ["dialog", "diálogo · 24"],
+            ["sheet", "folha · 28"],
+            ["pill", "pílula"],
+          ] as const
+        ).map(([papel, legenda]) => (
+          <Stack key={papel} gap={6} align="center">
             <div
               style={{
-                width: "64px",
-                height: "64px",
-                background: "var(--co-surface-2)",
-                border: "1px solid var(--co-line)",
-                borderRadius: `var(--co-radius-${r})`,
+                width: "72px",
+                height: "56px",
+                background: "var(--co-surface)",
+                border: "var(--co-control-width) solid var(--co-control)",
+                borderRadius: `var(--co-radius-${papel})`,
               }}
             />
             <Text variant="caption" tone="muted">
-              radius-{r}
+              {legenda}
             </Text>
           </Stack>
         ))}
       </Stack>
-      <Stack direction="row" gap={12} align="center">
-        <div
-          style={{
-            width: "var(--co-target-min)",
-            height: "var(--co-target-min)",
-            background: "var(--co-hora-soft)",
-            border: "1px solid var(--co-hora)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text variant="caption" tone="accent" numeric>
-            44
-          </Text>
-        </div>
-        <Text variant="caption" tone="muted" style={{ maxWidth: "44ch" }}>
-          Alvo mínimo de toque. É piso da API, não recomendação: não existe <code>size="sm"</code>{" "}
-          no botão.
-        </Text>
-      </Stack>
+      <Text variant="caption" tone="muted" style={{ maxWidth: "52ch" }}>
+        O limite de controle tem 1,5px em <code>--co-control</code>; a fissura que só separa tem 1px em{" "}
+        <code>--co-line</code>. A sombra fica só no que flutua.
+      </Text>
     </Stack>
+  ),
+};
+
+function CartaoDaHora({ time, nome }: { time: string; nome: string }) {
+  // A hora entra pelo CSSOM (a prop `style`), e nunca pelo atributo: a CSP do
+  // Basalto barra o atributo `style` na marcação (ADR-024).
+  return (
+    <div style={hourStyle(time)}>
+      <Surface padding={16}>
+        <Stack gap={10}>
+          <div style={{ height: "40px", borderRadius: "var(--co-radius-control)", background: "var(--co-hora)" }} />
+          <div
+            style={{
+              padding: "var(--co-space-8) var(--co-space-12)",
+              borderRadius: "var(--co-radius-control)",
+              background: "var(--co-hora-soft)",
+            }}
+          >
+            <Text variant="callout" tone="accent" weight="semibold">
+              {nome}
+            </Text>
+          </div>
+          <Text variant="caption" tone="muted" numeric>
+            {time} · h {hourVars(time).h} · c {hourVars(time).c}
+          </Text>
+        </Stack>
+      </Surface>
+    </div>
+  );
+}
+
+/**
+ * A cor da hora: o relógio dá o matiz e o croma (`hourStyle`), o tema dá a
+ * luminosidade. As cinco paradas da identidade e, entre elas, a interpolação
+ * (12:30 já anda do céu para o entardecer). A faixa é o preenchimento
+ * (`--co-hora`), o texto é a tinta da hora (`--co-hora-ink`) sobre o lavado
+ * (`--co-hora-soft`). É cor de lugar, nunca de ação.
+ */
+export const Hora: Story = {
+  render: () => (
+    <Stack gap={16}>
+      <Grid columns={3} gap={12}>
+        <CartaoDaHora time="06:00" nome="Aurora" />
+        <CartaoDaHora time="09:00" nome="Manhã" />
+        <CartaoDaHora time="12:00" nome="Meio-dia" />
+        <CartaoDaHora time="12:30" nome="Almoço" />
+        <CartaoDaHora time="16:00" nome="Entardecer" />
+        <CartaoDaHora time="20:00" nome="Noite" />
+      </Grid>
+      <Text variant="caption" tone="muted" style={{ maxWidth: "58ch" }}>
+        Paradas: {hourStops.map((parada) => parada.time).join(", ")}. Das 20h às 6h a noite atravessa a meia-noite sem salto.
+      </Text>
+    </Stack>
+  ),
+};
+
+/**
+ * "A pedra assenta, o sol desliza": os tempos e as curvas da identidade. A
+ * resposta ao toque leva 90ms, abaixo dos 100ms do piso.
+ */
+export const Movimento: Story = {
+  render: () => (
+    <Grid columns={2} gap={12}>
+      {(
+        [
+          ["--co-duration-press", "o toque (escala 0,97)"],
+          ["--co-duration-quick", "hover, troca de estado"],
+          ["--co-duration-base", "entrada de bloco, tema"],
+          ["--co-duration-slow", "folha, tela, painel"],
+          ["--co-duration-roll", "o número que rola"],
+          ["--co-ease-settle", "a entrada (padrão)"],
+          ["--co-ease-spring", "selo, célula, check"],
+          ["--co-ease-move", "deslocamento"],
+          ["--co-ease-exit", "a saída"],
+        ] as const
+      ).map(([token, uso]) => (
+        <Surface key={token} padding={12}>
+          <Text variant="caption" style={{ fontFamily: "ui-monospace, Menlo, monospace" }}>
+            {token}
+          </Text>
+          <Text variant="caption" tone="muted">
+            {uso}
+          </Text>
+        </Surface>
+      ))}
+    </Grid>
   ),
 };

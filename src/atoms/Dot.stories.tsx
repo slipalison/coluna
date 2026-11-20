@@ -63,8 +63,9 @@ export const Macros: Story = {
 /**
  * O que o componente recusa a fazer.
  *
- * À esquerda, a cor sozinha: três pontos e nenhum nome. Quem não distingue
- * ametista de jade de orquídea — 8% dos homens — não lê nada ali. À direita, o
+ * À esquerda, a cor sozinha: três pontos e nenhum nome. Os papéis do alimento
+ * têm a mesma luminosidade de propósito (ADR-022), e quem não distingue um
+ * matiz do outro — 8% dos homens — não lê nada ali. À direita, o
  * mesmo dado com o texto que o ponto só resume.
  */
 export const CorNuncaSozinha: Story = {
