@@ -1295,6 +1295,17 @@ div.co-sheet-overlay {
 
 .co-segmented[data-full="true"] { display: flex; width: 100%; }
 
+/* Com a legenda visível (`legend`): o rótulo em cima, com o mesmo respiro do
+ * rótulo do `Field` até o controle. */
+.co-segmented-field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--co-space-6);
+  max-width: 100%;
+}
+
+.co-segmented-field[data-full="true"] { display: flex; width: 100%; }
+
 .co-segmented__option {
   flex: 1 0 auto;
   display: inline-flex;

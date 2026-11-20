@@ -1,4 +1,5 @@
-import { useRef, type KeyboardEvent } from "react";
+import { useId, useRef, type KeyboardEvent } from "react";
+import { Text } from "../atoms/Text";
 
 export interface SegmentedOption<T extends string> {
   value: T;
@@ -8,6 +9,14 @@ export interface SegmentedOption<T extends string> {
 export interface SegmentedControlProps<T extends string> {
   /** Obrigatório: um grupo de escolha sem nome é mudo no leitor de tela. */
   label: string;
+  /**
+   * Mostra o `label` em cima do grupo, visível, com o estilo do rótulo do
+   * `Field` (o versalete). O nome do grupo passa a ser esse texto, por
+   * `aria-labelledby`, e não um `aria-label` invisível: o que se vê é o que o
+   * leitor de tela lê (WCAG 2.5.3). Sem ele (o padrão), o nome é o `label`
+   * invisível, para quando o título da seção já diz o que se escolhe.
+   */
+  legend?: boolean;
   options: readonly SegmentedOption<T>[];
   value: T;
   onChange: (value: T) => void;
@@ -29,6 +38,7 @@ export interface SegmentedControlProps<T extends string> {
  */
 export function SegmentedControl<T extends string>({
   label,
+  legend = false,
   options,
   value,
   onChange,
@@ -36,6 +46,7 @@ export function SegmentedControl<T extends string>({
   className,
 }: SegmentedControlProps<T>) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const idLegenda = useId();
   const classe = className ? `co-segmented ${className}` : "co-segmented";
 
   // Onde o tabindex itinerante pousa quando NENHUMA opção casa o `value`.
@@ -86,8 +97,14 @@ export function SegmentedControl<T extends string>({
     }
   }
 
-  return (
-    <div className={classe} role="radiogroup" aria-label={label} data-full={full ? "true" : undefined}>
+  const grupo = (
+    <div
+      className={classe}
+      role="radiogroup"
+      aria-label={legend ? undefined : label}
+      aria-labelledby={legend ? idLegenda : undefined}
+      data-full={full ? "true" : undefined}
+    >
       {options.map((opcao, indice) => {
         const marcado = opcao.value === value;
         return (
@@ -111,6 +128,18 @@ export function SegmentedControl<T extends string>({
           </button>
         );
       })}
+    </div>
+  );
+
+  if (!legend) return grupo;
+  // A legenda e o grupo juntos, com o respiro do rótulo do `Field` até o
+  // controle: os dois se leem como uma peça só.
+  return (
+    <div className="co-segmented-field" data-full={full ? "true" : undefined}>
+      <Text as="span" id={idLegenda} variant="label" tone="subtle" className="co-segmented__legend">
+        {label}
+      </Text>
+      {grupo}
     </div>
   );
 }

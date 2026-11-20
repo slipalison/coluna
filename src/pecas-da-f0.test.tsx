@@ -323,6 +323,50 @@ describe("SegmentedControl para a data: teclado e alvo", () => {
     expect(within(grupoNaTela).getAllByRole("radio").filter((r) => r.tabIndex === 0)).toHaveLength(1);
   });
 
+  it("com legend, o rótulo aparece em cima, visível, no estilo do rótulo do Field, e é o nome do grupo", async () => {
+    const usuario = userEvent.setup();
+    function ComLegenda() {
+      const [dia, definir] = useState<(typeof DIAS)[number]["value"]>("hoje");
+      return <SegmentedControl legend label="Dia" options={DIAS} value={dia} onChange={definir} />;
+    }
+    render(
+      <>
+        <ComLegenda />
+        <Field label="Peso">{(controle) => <Input {...controle} />}</Field>
+      </>,
+    );
+    const grupo = screen.getByRole("radiogroup", { name: "Dia" });
+    const legenda = screen.getByText("Dia");
+    // Visível, e o nome do grupo vem dele, e não de um `aria-label` escondido.
+    expect(legenda.closest(".co-visually-hidden")).toBeNull();
+    expect(grupo).not.toHaveAttribute("aria-label");
+    expect(grupo).toHaveAttribute("aria-labelledby", legenda.id);
+    // Antes do grupo, na ordem do documento.
+    expect(legenda.compareDocumentPosition(grupo) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // O mesmo estilo do rótulo do Field: a mesma variante e o mesmo tom.
+    const doCampo = screen.getByText("Peso");
+    expect([legenda.dataset["variant"], legenda.dataset["tone"]]).toEqual([doCampo.dataset["variant"], doCampo.dataset["tone"]]);
+    // O teclado é o mesmo: uma parada do Tab, as setas.
+    await usuario.tab();
+    expect(screen.getByRole("radio", { name: "Hoje" })).toHaveFocus();
+    await usuario.keyboard("{End}");
+    expect(screen.getByRole("radio", { name: "Amanhã" })).toBeChecked();
+  });
+
+  it("sem legend (o padrão), o nome continua no aria-label e nada de rótulo aparece", () => {
+    render(<EscolhaDoDia />);
+    const grupo = screen.getByRole("radiogroup", { name: "Dia" });
+    expect(grupo).toHaveAttribute("aria-label", "Dia");
+    expect(grupo).not.toHaveAttribute("aria-labelledby");
+    expect(screen.queryByText("Dia")).toBeNull();
+  });
+
+  it.each(TEMAS)("no tema %s, com legend, passa no axe", async (tema) => {
+    expect(
+      await semViolacao(<SegmentedControl legend full label="Refeições por dia" options={DIAS} value="hoje" onChange={vi.fn()} />, tema),
+    ).toEqual([]);
+  });
+
   it("quebrado em linhas, o grupo continua pílula na fileira e a opção do canto não sai da borda", () => {
     // O raio do grupo é meia altura de UMA fileira (a opção de 44px, o respiro
     // e o contorno), e não 999px: com duas fileiras, 999px viraria meia altura

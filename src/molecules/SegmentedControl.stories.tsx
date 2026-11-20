@@ -137,3 +137,27 @@ export const A320px: Story = {
     );
   },
 };
+
+/**
+ * Com `legend`: o `label` aparece em cima do grupo, visível, com o estilo do
+ * rótulo do `Field`, e é ele o nome do grupo (`aria-labelledby`). É o que se usa
+ * quando o segmentado mora num formulário, ao lado de campos com rótulo; sem
+ * `legend`, o nome continua no `aria-label`, para quando o título da seção já
+ * diz o que se escolhe.
+ */
+export const ComLegenda: Story = {
+  name: "Com legenda",
+  render: () => {
+    const [valor, definir] = useState("4");
+    return (
+      <SegmentedControl
+        legend
+        full
+        label="Refeições por dia"
+        options={NUMEROS.slice(0, 6)}
+        value={valor}
+        onChange={definir}
+      />
+    );
+  },
+};
