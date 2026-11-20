@@ -6,33 +6,28 @@ claro e escuro, e componentes atômicos em React.
 > Coluna basáltica é o prisma que a lava deixa ao esfriar devagar. É de onde
 > vêm o grid, as ripas das barras e a aresta viva do conteúdo.
 
+Desde a 2.0, na identidade **"Relógio de Sol"**: uma pedra quieta que segura a
+interface e uma cor que anda com a hora de cada refeição
+([ADR-022](docs/adr/022-a-identidade-relogio-de-sol.md)).
+
 ```bash
 npm install @slipalison/coluna
 ```
 
 ```tsx
-import { ThemeProvider, Stat, Reckoning, Group, MacroBar } from "@slipalison/coluna";
+import { Button, Stat, ThemeProvider, hourStyle } from "@slipalison/coluna";
 import "@slipalison/coluna/styles.css";
 
 export function App() {
   return (
     <ThemeProvider>
-      <Stat label="Restante" value="995" unit="kcal" size="hero" />
+      <Stat label="Meta do dia" value="1.950" unit="kcal" caption="Na medida da sua meta." />
 
-      {/* A conta que produziu o número fica aberta embaixo dele. */}
-      <Reckoning
-        lines={[
-          { label: "Meta do dia", value: "1.917" },
-          { label: "Alimentos registrados", value: "− 922" },
-          { label: "Restante", value: "995", total: true },
-        ]}
-      />
+      {/* A cor da hora é cor de lugar: o bloco do almoço leva a hora dele. */}
+      <section style={hourStyle("12:30")}>…</section>
 
-      <Group label="Macros" inset="dot">
-        <MacroBar name="Proteína" value={68} target={135} kind="protein" />
-        <MacroBar name="Carboidrato" value={95} target={225} kind="carb" />
-        <MacroBar name="Gordura" value={30} target={53} kind="fat" />
-      </Group>
+      {/* O primário é a pedra: a tinta sólida, nunca a cor da hora. */}
+      <Button size="lg">Comer esta hoje</Button>
     </ThemeProvider>
   );
 }
@@ -85,10 +80,10 @@ Duas camadas, e a separação entre elas é o que faz o tema funcionar:
 
 | camada | exemplo | muda com o tema? |
 |---|---|---|
-| primitiva | `--co-amethyst-500: #a882f5` | não |
-| semântica | `--co-accent: var(--co-amethyst-500)` | **sim** |
+| primitiva | `--co-pomes-100: #e9edea` | não |
+| semântica | `--co-bg: var(--co-pomes-100)` | **sim** |
 
-Componente nenhum lê primitiva, e nenhum escreve cor literal. Um `#a882f5`
+Componente nenhum lê primitiva, e nenhum escreve cor literal. Um `#e9edea`
 escrito à mão sobrevive ao tema claro sem reclamar — e o defeito só aparece na
 tela de quem ligou o claro.
 
@@ -116,12 +111,45 @@ com o aplicativo aberto.
 <ThemeProvider attachTo="element">         {/* tema só nesta subárvore */}
 ```
 
-### 44px é piso, não sugestão
+### A pedra e a hora
+
+A paleta tem dois papéis, e eles não se misturam
+([ADR-022](docs/adr/022-a-identidade-relogio-de-sol.md)):
+
+- **a pedra** — `--co-bg`, `--co-surface`, `--co-surface-2` (o rebaixado, fundo
+  de texto), `--co-surface-3` (o pressionado, nunca fundo de texto), as tintas
+  `--co-ink`, `--co-ink-2`, `--co-ink-3`, a fissura `--co-line`, o limite de
+  controle `--co-control`, o foco `--co-focus` e os estados `--co-ok`,
+  `--co-warn`, `--co-bad` com os lavados `-soft`. O botão principal é a própria
+  pedra: `--co-ink` sólido.
+- **a hora** — `--co-hora` (preenchimento), `--co-hora-ink` (texto) e
+  `--co-hora-soft` (lavado), em OKLCH. O tema dá a luminosidade; o relógio dá o
+  matiz e o croma, por elemento, sem violar a CSP
+  ([ADR-024](docs/adr/024-a-hora-pelo-cssom-e-a-guarda-da-csp.md)):
+
+  ```tsx
+  import { applyHour, hourStyle, hourVars } from "@slipalison/coluna";
+
+  hourVars("12:30");                              // { h: 193.1, c: 0.124 }
+  <section style={hourStyle("12:30")}>…</section> // pelo CSSOM, nunca pelo atributo
+  applyHour(elemento, "20:00");                   // o mesmo, fora do React
+  ```
+
+  As paradas são as da identidade — aurora 06h, manhã 09h, meio-dia 12h,
+  entardecer 16h, noite 20h —, com interpolação entre elas e pela meia-noite.
+  A hora é cor de **lugar** (a aba atual, o selo da refeição), nunca de ação.
+
+### 44px é piso no toque
 
 Não existe `size="sm"` no `Button`. A ausência é a decisão: um alvo de 32px
 passa no desenho, some no uso, e volta como "o app é difícil de clicar no
 celular". Quem precisa de algo menor não precisa de um botão — precisa de um
 link dentro de um texto.
+
+No aparelho de toque o botão comum tem 44px e o principal 50px; com ponteiro
+fino (o desktop), 40 e 46px, acima dos 24px que o WCAG 2.5.8 pede com
+ponteiro. A pergunta é o ponteiro (`@media (pointer: fine)`), e não a largura:
+o telefone deitado continua de toque.
 
 ### O piso de UX não se negocia
 
@@ -132,11 +160,12 @@ token ou de um componente é provado aqui, com teste, nos dois temas
 ([ADR-016](docs/adr/016-o-piso-de-ux-mora-no-sistema.md)). Achado do piso não
 vira aviso: o PR não entra.
 
-Desde a 1.13.1 a letra cumpre o piso em toda a folha: corpo de 16px, nota e
-texto secundário de 14px, legenda e versalete de 12px, e só o rótulo da barra
-de abas em 11px. Cada variante do `Text` e cada letra de componente têm um
-papel, e um teste reprova a letra que fica abaixo do piso dele
-([ADR-021](docs/adr/021-a-escala-de-letra-no-piso.md)).
+Desde a 1.13.1 a letra cumpre o piso em toda a folha, e um teste reprova a
+letra que fica abaixo do piso do papel dela
+([ADR-021](docs/adr/021-a-escala-de-letra-no-piso.md)). Desde a 2.0 a escala é
+a do "Relógio de Sol", acima do piso: corpo, campo e botão de 17px, legenda e
+texto secundário de 14px, caixa alta de 13px, rótulo de aba de 11px, e o título
+de tela de 26px no toque e de 30px com ponteiro fino.
 
 ### Aviso informa, nunca bloqueia
 
@@ -146,24 +175,31 @@ literatura sustenta, o app **diz** o que mudou e por quê, e depois registra a
 escolha da pessoa do mesmo jeito
 ([ADR-006 do Basalto](https://github.com/slipalison/basalto/blob/main/docs/adr/006-limites-de-escopo.md)).
 
-O único vermelho do sistema é o `Button variant="danger"`, e ele existe por uma
-razão concreta: apagar a conta apaga os dados de verdade.
+O único vermelho de ação do sistema é o `Button variant="danger"`, e ele existe
+por uma razão concreta: apagar a conta apaga os dados de verdade. O outro dono
+do `--co-bad` é o erro de campo, sempre com ícone e texto.
 
 ### O contêiner arredonda, o conteúdo é reto
 
-O raio depende do **papel** do elemento, e não do gosto de quem monta a tela:
+O raio depende do **papel** do elemento, e não do gosto de quem monta a tela
+(os números são os da identidade, [ADR-022](docs/adr/022-a-identidade-relogio-de-sol.md)):
 
 | papel | token | onde |
 |---|---|---|
-| vitrine que segura conteúdo | `--co-radius-container` (16px) | cartão, grupo, aviso |
-| objeto que se toca | `--co-radius-control` (12px) | botão, trilho do segmentado |
-| o que mora dentro do trilho | `--co-radius-inset` (9px) | opção do segmentado |
-| selo | `--co-radius-pill` | `Badge` |
+| vitrine que segura conteúdo | `--co-radius-container` (22px) | cartão, grupo, aviso |
+| objeto que se toca | `--co-radius-control` (14px) | botão, campo, trilho do stepper |
+| o que mora dentro do trilho | `--co-radius-inset` (10,5px) | botão do stepper e do paginador, aba |
+| a folha que sobe do rodapé | `--co-radius-sheet` (28px, em cima) | `Sheet` |
+| diálogo | `--co-radius-dialog` (24px) | |
+| selo, chip, segmentado | `--co-radius-pill` | `Badge`, `Chip`, `SegmentedControl` |
 | **pedra** | `--co-radius-content` (0) | ponto, ripa, barra, marca, fio |
 
-`inset` não é número solto: raio interno = raio externo − folga. Com 12 por fora
-e 3 de folga, o de dentro é 9 — qualquer outro valor faz o canto de dentro
-correr paralelo ao de fora com espessura variável.
+`inset` não é número solto: raio interno = raio externo − folga. Com 14 por fora,
+1,5 de limite e 2 de respiro, o de dentro é 10,5 — qualquer outro valor faz o
+canto de dentro correr paralelo ao de fora com espessura variável.
+
+O limite de controle tem 1,5px (`--co-control-width`) em `--co-control`; a
+fissura que só separa tem 1px em `--co-line`. A sombra fica só no que flutua.
 
 A curva organiza os blocos; a aresta viva continua onde o desenho tem textura, e
 é ali que a identidade mora ([ADR-004](docs/adr/004-raio-conteiner-e-conteudo.md)).
@@ -171,14 +207,17 @@ A curva organiza os blocos; a aresta viva continua onde o desenho tem textura, e
 ### Cor nunca é o único sinal
 
 `Dot` é sempre `aria-hidden`. `MacroBar` renderiza ponto, **nome** e
-**quantidade** — os três, sempre. `TabBar` marca a aba atual com cor, **peso** e
-`aria-current`. `ListRow` com `mark` vira `role="radio"`, e não um botão que só
-parece marcado.
+**quantidade** — os três, sempre. `TabBar` marca a aba atual com a cor da hora,
+**peso** e `aria-current`. `ListRow` com `mark` vira `role="radio"`, e não um
+botão que só parece marcado.
 
-Junto vem um piso de token: **`--co-text-subtle` é o texto menos contrastado que
-o sistema admite**, e ele passa em 4,5:1 sobre `--co-surface`. Abaixo dele só
-existe `--co-icon-muted`, que passa em 3:1 e serve para **desenho**, nunca para
-texto ([ADR-005](docs/adr/005-cor-nunca-sozinha.md)).
+Junto vem um piso de token: **`--co-ink-3` é o texto menos contrastado que o
+sistema admite**, e ele passa em 4,5:1 sobre todo fundo de texto, nos dois
+temas. Abaixo dele só existe `--co-control`, que passa em 3:1 e serve para
+**desenho** e para o limite de controle, nunca para texto
+([ADR-005](docs/adr/005-cor-nunca-sozinha.md), [ADR-022](docs/adr/022-a-identidade-relogio-de-sol.md)).
+Os papéis do alimento (`--co-role-*`) têm a mesma luminosidade de propósito:
+nenhum grita mais que o outro, e o nome e a quantidade vão sempre ao lado.
 
 ---
 
@@ -193,11 +232,13 @@ texto ([ADR-005](docs/adr/005-cor-nunca-sozinha.md)).
 `NavList` `Pager` `Field` `Sheet` `Legend` `Ruler` `Disclosure` `EmptyState`
 `Diff` `Deck` `Tabs`
 
-**Padrões** — no catálogo, `Padrões/Tela do diário` monta a tela do telefone e
-`Padrões/Desktop` monta três do desktop (diário, ajustes, receitas), só com
-peças do sistema.
+**Padrões** — no catálogo, `Padrões/Casca` monta a casca vazia do Basalto
+(Hoje, Livro e Você) no celular, com e sem a área segura emulada pelos tokens, e
+no desktop, só com peças do sistema.
 
 **Tema** — `ThemeProvider` `useTheme` `readToken` `semanticTokens`
+
+**Hora** — `hourVars` `hourStyle` `applyHour` `hourStops`
 
 Alguns que merecem nota:
 
@@ -326,7 +367,7 @@ Alguns que merecem nota:
   relógio e a ilha —, declarada no `:root` como `var(--co-safe-top)`. A faixa
   sob o relógio a lê: a `Screen` monta sempre, como primeiro filho, um
   `.co-screen__statusbar` `aria-hidden`, fixo no topo, com a área de cima mais
-  um terço, opaco em `--co-canvas` até 75% e esmaecendo no resto, com o
+  um terço, opaco em `--co-bg` até 75% e esmaecendo no resto, com o
   desfoque na mesma máscara. Com a tela rolada, o conteúdo passa por trás dele,
   e não por trás do relógio; sem área segura ele tem 0px. Por ser resolvida no
   `:root`, ela sobrevive ao zero que o consumidor escreve em `--co-safe-top`
@@ -339,11 +380,11 @@ Alguns que merecem nota:
   Sem área segura o recuo vale 0. Quem rola dentro de um contêiner próprio põe
   o mesmo recuo nele (adendo 1.7.1 do ADR-012).
 - **A barra de ação** é a `Screen` com `actionBar`: o nó vai numa barra fixa
-  acima da barra de abas (ou na área segura de baixo, sem abas), com o vidro
-  dela, à mão do polegar em qualquer rolagem. A barra tem a altura de UMA
+  acima da barra de abas (ou na área segura de baixo, sem abas), com o fundo
+  opaco dela, à mão do polegar em qualquer rolagem. A barra tem a altura de UMA
   fileira de botão — `--co-actionbar-height`, 65px, declarada no `:root` —, e
   um botão ou dois dão a mesma barra, dividindo a largura; a reserva da tela
-  cresce essa fileira, e a última linha continua 31px acima do vidro, com e sem
+  cresce essa fileira, e a última linha continua 31px acima da barra, com e sem
   área segura. Com a `TabBar` como nó em `tabBar`, a ordem do documento — a do
   Tab e a do leitor de tela — é a da tela: conteúdo, barra de ação, abas.
   Vazia (nenhum descendente com conteúdo, atravessando o hospedeiro de um
@@ -445,9 +486,9 @@ quer um tipo carregaria a folha inteira, inclusive em teste e em Node.
 
 ### As fontes vêm junto
 
-A **Instrument Serif** (títulos e numerais) e a **Archivo** (todo o resto)
-moram no pacote, em `dist/fonts/`, e o `styles.css` as declara com
-`@font-face` e `url()` relativa. Quem consome **não faz nada** além do
+A **Bricolage Grotesque** (títulos), a **Figtree** (texto) e a **Sofia Sans
+Extra Condensed** (números) moram no pacote, em `dist/fonts/`, e o
+`styles.css` as declara com `@font-face` e `url()` relativa. Quem consome **não faz nada** além do
 `import "@slipalison/coluna/styles.css"`: o bundler (o Vite, no Basalto)
 resolve o caminho e serve cada `.woff2` da própria origem, então a CSP precisa
 só de `font-src 'self'` — nenhum CDN de fontes, nenhum `<link>` para o Google
@@ -455,22 +496,30 @@ Fonts.
 
 - Dois subconjuntos por família, `latin` e `latin-ext`, com o
   `unicode-range` de cada um: numa página só em português o navegador baixa
-  dois arquivos, 21 KB de serifa e 35 KB de Archivo.
-- A Archivo é variável no `wght` (100 a 900): os pesos 400, 500 e 600 dos
-  tokens e o 700 do `<strong>` saem do mesmo arquivo, todos desenhados.
-- A serifa só tem o peso 400, e o `title-lg` e o `numeral` o escrevem: num
-  `<h1>`, que o navegador pinta em negrito, o título não sai mais em negrito
-  sintético. Não combine `weight` com essas duas variantes.
+  os três `latin`, 139 KB.
+- As três são variáveis, e cada `@font-face` declara o intervalo do arquivo:
+  todo peso pedido sai desenhado. A Bricolage traz também a largura, e o
+  `title-lg` escreve 700 e 88%; o `numeral` escreve 900, na Sofia. Não combine
+  `weight` com essas duas variantes.
 - `font-display: swap`: o texto aparece na fonte de reserva do token e troca
   quando a fonte chega.
 - O `tokens.css` sozinho **não** traz as fontes: ele só as nomeia.
 - Para valer offline, o service worker do aplicativo precisa guardar `woff2`
   (o padrão do `vite-plugin-pwa` guarda só `js`, `css` e `html`).
 
-As duas são SIL Open Font License 1.1, e a licença de cada uma vai ao lado dos
+As três são SIL Open Font License 1.1, e a licença de cada uma vai ao lado dos
 arquivos (`dist/fonts/OFL-*.txt`). Origem, versão e o que ficou de fora
-(itálico, outros subconjuntos) estão no
-[ADR-014](docs/adr/014-as-fontes-moram-no-pacote.md).
+(o tamanho óptico, itálico, outros subconjuntos) estão no
+[ADR-023](docs/adr/023-as-fontes-do-relogio-de-sol.md); o porquê de morarem no
+pacote, no [ADR-014](docs/adr/014-as-fontes-moram-no-pacote.md).
+
+### Nada que a CSP recuse
+
+Nenhum componente injeta `<style>` nem escreve o atributo `style`: a CSP de quem
+consome (`style-src 'self'`) recusaria. Movimento e cor por elemento vão pelo
+CSS de arquivo e pelo CSSOM. Um teste monta todo componente exportado sob uma
+vigia, uma varredura lê `src/` e o `npm run build` lê o `dist/`
+([ADR-024](docs/adr/024-a-hora-pelo-cssom-e-a-guarda-da-csp.md)).
 
 ---
 
@@ -479,8 +528,8 @@ arquivos (`dist/fonts/OFL-*.txt`). Origem, versão e o que ficou de fora
 ```bash
 npm install       # o `prepare` já gera os tokens
 npm run tokens    # tokens/*.json -> src/tokens/{tokens.css,gerado.ts}
-npm test          # 327 testes, piso de 80% em linha, ramo, função e comando
-npm run build     # dist/coluna.js + dist/index.d.ts + os dois CSS + dist/fonts/
+npm test          # 457 testes, piso de 80% em linha, ramo, função e comando
+npm run build     # dist/coluna.js + dist/index.d.ts + os dois CSS + dist/fonts/, e a varredura da CSP
 npm run referencia # docs/referencia.html, pintada pelo CSS que o pacote publica
 ```
 
@@ -515,3 +564,6 @@ a esteira reprova o que estiver fora.
 - [ADR-019 — o carrossel de cards e as abas dentro do card](docs/adr/019-o-carrossel-de-cards-e-as-abas-no-card.md)
 - [ADR-020 — a folha de altura cheia](docs/adr/020-a-folha-de-altura-cheia.md)
 - [ADR-021 — a escala de letra cumpre o piso](docs/adr/021-a-escala-de-letra-no-piso.md)
+- [ADR-022 — a identidade "Relógio de Sol" (Coluna 2.0)](docs/adr/022-a-identidade-relogio-de-sol.md)
+- [ADR-023 — as fontes do "Relógio de Sol"](docs/adr/023-as-fontes-do-relogio-de-sol.md)
+- [ADR-024 — a hora pelo CSSOM, e a guarda da CSP](docs/adr/024-a-hora-pelo-cssom-e-a-guarda-da-csp.md)

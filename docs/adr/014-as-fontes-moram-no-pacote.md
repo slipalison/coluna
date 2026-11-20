@@ -1,7 +1,7 @@
 # ADR-014 — As fontes moram no pacote
 
 **Data:** 2026-10-09
-**Status:** aceito
+**Status:** aceito; a tabela de arquivos (§2) e a regra da serifa no 400 (§3) foram substituídas pelo [ADR-023](023-as-fontes-do-relogio-de-sol.md) — o resto continua.
 
 ## Contexto
 

@@ -1,7 +1,7 @@
 # ADR-005 — Cor nunca é o único sinal
 
 Data: 2026-09-16
-Situação: aceita
+Situação: aceita; o piso de token (`--co-text-subtle`, `--co-icon-muted`) e o 3:1 da paleta de macro foram substituídos no [ADR-022](022-a-identidade-relogio-de-sol.md) (`--co-ink-3`, `--co-control`, os papéis do alimento) — a regra "cor nunca é o único sinal" continua.
 
 ## Contexto
 
