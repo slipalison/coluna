@@ -19,6 +19,8 @@
  *   innerHTML/outerHTML =, insertAdjacentHTML, document.write
  *   styled-components, @emotion/*,   bibliotecas de CSS-in-JS
  *   goober, @stitches/*, jss
+ *   jsx("style", …)                   o `<style>` depois de compilado
+ *   http(s)://, só no .js/.mjs        o que o pacote buscaria de fora
  *
  * Comentário não conta: o navegador não executa comentário, e este sistema
  * escreve "nunca setAttribute('style')" nos comentários para explicar a regra.
@@ -50,7 +52,25 @@ const PADROES = [
   ["document.write", /\bdocument\s*\.\s*write(?:ln)?\s*\(/],
   ["CSS-in-JS", /\bfrom\s*["'](?:styled-components|@emotion\/[\w-]+|goober|@stitches\/[\w-]+|jss)["']/],
   ["CSS-in-JS", /\brequire\s*\(\s*["'](?:styled-components|@emotion\/[\w-]+|goober|@stitches\/[\w-]+|jss)["']\s*\)/],
+  // O `<style>` depois de compilado: `jsx("style", …)`, `jsxs("style", …)`,
+  // `e("style", …)` — o JSX vira uma chamada com o nome da tag como texto, e o
+  // padrão `<style>` acima não o vê mais. O `setAttribute` e o `createElement`
+  // têm o padrão deles, e não contam duas vezes.
+  [
+    '<id>("style", …)',
+    /(?<![\w$])(?!(?:setAttribute|setAttributeNS|createElement|createElementNS)\s*\()[\w$]+\s*\(\s*["'`]style["'`]\s*,/,
+  ],
 ];
+
+/**
+ * Só no JavaScript do pacote (`.js`, `.mjs`): qualquer URL absoluta. O pacote
+ * não busca nada de fora — as fontes moram nele (ADR-014, ADR-023) —, e uma URL
+ * `http(s)://` no JS que o app carrega é um `fetch`, uma fonte ou uma folha de
+ * terceiro esperando para acontecer, que a CSP do Basalto recusaria. No `.ts`
+ * do código-fonte ela não conta: o que chega ao app é o pacote.
+ */
+const PADROES_DO_PACOTE = [["URL absoluta", /\bhttps?:\/\//i]];
+const DO_PACOTE = /\.m?js$/;
 
 const LIDOS = /\.(?:m?js|tsx?)$/;
 const PULADOS = /(?:^|[\\/])(?:node_modules|test)(?:[\\/]|$)|\.(?:test|stories)\.[jt]sx?$|\.map$/;
@@ -115,9 +135,10 @@ export function semComentarios(codigo, arquivo = "codigo.tsx") {
 /** Os achados de um texto: `[linha, padrão]`, na ordem. */
 export function achadosNoTexto(codigo, arquivo = "codigo.tsx") {
   const linhas = semComentarios(codigo, arquivo).split("\n");
+  const padroes = DO_PACOTE.test(arquivo) ? [...PADROES, ...PADROES_DO_PACOTE] : PADROES;
   const achados = [];
   linhas.forEach((linha, indice) => {
-    for (const [nome, padrao] of PADROES) if (padrao.test(linha)) achados.push([indice + 1, nome]);
+    for (const [nome, padrao] of padroes) if (padrao.test(linha)) achados.push([indice + 1, nome]);
   });
   return achados;
 }

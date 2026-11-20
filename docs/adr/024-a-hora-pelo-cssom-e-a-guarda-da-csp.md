@@ -59,7 +59,9 @@ Três camadas, cada uma com a sua isca:
   pacote, montado no `ThemeProvider`, com a hora aplicada pelos dois caminhos,
   a folha aberta e o carrossel arrastado, sob a vigia de `src/test/csp.ts`, que
   acusa todo `<style>` que entra no documento (inclusive o que sai logo depois)
-  e toda chamada a `setAttribute("style")`/`setAttributeNS`. A lista de
+  e toda chamada a `setAttribute("style")`/`setAttributeNS`, todo
+  `<link rel="stylesheet">` e toda `FontFace` com `url()` de outra origem (o que
+  `style-src 'self'` e `font-src 'self'` recusam; adendo do lote 1). A lista de
   montagens tem de ser exatamente a dos componentes exportados: um componente
   novo que ninguém montou reprova. As iscas plantam um `<style>`, um atributo e
   um `<style>` que pisca, e reprovam pela mensagem da guarda.
@@ -67,11 +69,16 @@ Três camadas, cada uma com a sua isca:
   caminhos recusados — `setAttribute("style")`, `createElement("style")`,
   `<style>`, `insertRule`, `adoptedStyleSheets`, `new CSSStyleSheet`, HTML cru
   (`dangerouslySetInnerHTML`, `innerHTML =`, `insertAdjacentHTML`,
-  `document.write`) e as bibliotecas de CSS-in-JS —, fora dos comentários. A
-  isca planta cada um num arquivo e confere a linha de cada achado; a varredura
-  que não lê arquivo nenhum falha em vez de passar.
+  `document.write`) e as bibliotecas de CSS-in-JS —, fora dos comentários.
+  Quem acha o comentário é o analisador do TypeScript, e não um regex: um
+  `" //"` ou um `"/*"` dentro de string não esconde o resto da linha (adendo do
+  lote 1). A isca planta cada um num arquivo e confere a linha de cada achado;
+  a varredura que não lê arquivo nenhum falha em vez de passar.
 - **No pacote**: o `npm run build` termina com `node scripts/varrer-csp.mjs
   dist`, sobre o `coluna.js` e o `index.d.ts` publicados, e falha com achado.
+  No JS do pacote a varredura acusa também o `<style>` depois de compilado
+  (`jsx("style", …)`) e qualquer URL `http(s)://`: o pacote não busca nada de
+  fora. A isca é um `coluna.js` de mentira com cada caso.
 
 **Uma armadilha do happy-dom, medida:** ali o `CSSStyleDeclaration` reflete o
 CSSOM no atributo chamando `Element.setAttribute("style", …)` — o

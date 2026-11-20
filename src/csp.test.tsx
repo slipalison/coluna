@@ -323,6 +323,51 @@ describe("a guarda da CSP, montando tudo", () => {
     expect(montarTudo(<PiscaFolha />).map((achado) => achado.tipo)).toEqual(["<style>"]);
   });
 
+  it("a isca: um componente que põe uma folha de outra origem reprova pela mensagem da guarda", () => {
+    function PlantaLink() {
+      useLayoutEffect(() => {
+        const folha = document.createElement("link");
+        folha.rel = "stylesheet";
+        folha.href = "https://fonts.googleapis.com/css2?family=Isca";
+        document.head.append(folha);
+        return () => folha.remove();
+      }, []);
+      return null;
+    }
+    const achados = montarTudo(<PlantaLink />);
+    expect(mensagemDaVigia("a coluna montada", achados)).toBe(
+      "a coluna montada violaria a CSP (style-src 'self'): <link rel=stylesheet> https://fonts.googleapis.com/css2",
+    );
+  });
+
+  it("a isca: uma FontFace de outra origem reprova pela mensagem da guarda", () => {
+    function PlantaFonte() {
+      useLayoutEffect(() => {
+        const Fonte = (globalThis as unknown as { FontFace: new (familia: string, fonte: string) => object }).FontFace;
+        new Fonte("Isca", 'url("https://fonts.gstatic.com/s/isca.woff2?v=1") format("woff2")');
+      }, []);
+      return null;
+    }
+    const achados = montarTudo(<PlantaFonte />);
+    expect(mensagemDaVigia("a coluna montada", achados)).toBe(
+      "a coluna montada violaria a CSP (style-src 'self'): FontFace Isca https://fonts.gstatic.com/s/isca.woff2",
+    );
+  });
+
+  it("a folha e a fonte da própria origem não são acusadas, e a vigia devolve a FontFace do ambiente", () => {
+    const antes = (globalThis as { FontFace?: unknown }).FontFace;
+    const vigia = vigiarCsp();
+    const folha = document.createElement("link");
+    folha.rel = "stylesheet";
+    folha.href = "/coluna/styles.css";
+    document.head.append(folha);
+    const Fonte = (globalThis as unknown as { FontFace: new (familia: string, fonte: string) => object }).FontFace;
+    new Fonte("Figtree", 'url("./fonts/figtree.woff2") format("woff2"), local("Figtree")');
+    expect(vigia.parar()).toEqual([]);
+    folha.remove();
+    expect((globalThis as { FontFace?: unknown }).FontFace).toBe(antes);
+  });
+
   it("o CSSOM não é acusado: a prop style, o setProperty e o cssText", () => {
     const vigia = vigiarCsp();
     const elemento = document.createElement("div");
@@ -441,6 +486,37 @@ describe("a guarda da CSP, no texto", () => {
   it("a isca: uma varredura que não lê nada falha, em vez de passar", () => {
     const vazia = mkdtempSync(join(iscas, "vazia-"));
     expect(varrer(vazia).codigo).toBe(2);
+  });
+
+  it("a isca do pacote: o <style> compilado e a URL absoluta no JS são achados", () => {
+    const pacote = mkdtempSync(join(iscas, "dist-"));
+    writeFileSync(
+      join(pacote, "coluna.js"),
+      [
+        'import{jsx as r,jsxs as n}from"react/jsx-runtime";',
+        'function a(){return r("style",{children:".a{}"})}',
+        'function b(){return n("style", {children:[".b{}"]})}',
+        'const c="https://cdn.exemplo.com/isca.woff2";',
+        "fetch('http://exemplo.com/a');",
+        // O que é do pacote, e não conta: o `style` do CSSOM e um texto que
+        // só começa com "style".
+        'function d(e){e.style.setProperty("--x","1");return r("div",{className:"styles"})}',
+      ].join("\n"),
+    );
+    writeFileSync(join(pacote, "index.d.ts"), 'export declare const docs = "https://exemplo.com";');
+    const { codigo, saida } = varrer(pacote);
+    expect(codigo).toBe(1);
+    expect(
+      saida
+        .split("\n")
+        .filter((linha) => linha.startsWith("  "))
+        .map((linha) => linha.trim().replace(/^.*(coluna\.js|index\.d\.ts):/, "$1:")),
+    ).toEqual([
+      'coluna.js:2: <id>("style", …)',
+      'coluna.js:3: <id>("style", …)',
+      "coluna.js:4: URL absoluta",
+      "coluna.js:5: URL absoluta",
+    ]);
   });
 
   it("o build varre o pacote: o npm run build chama a varredura sobre dist/", async () => {

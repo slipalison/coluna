@@ -17,13 +17,45 @@
  * - todo `<style>` que entra no documento depois de a vigia começar, mesmo o
  *   que sai logo depois (o `MutationObserver` vê os dois). Os `<style>` que já
  *   estavam lá — o Vite põe a folha do sistema num `<style>` quando o teste a
- *   importa — não contam.
+ *   importa — não contam;
+ * - todo `<link rel="stylesheet">` de OUTRA origem que entra no documento (a
+ *   folha de terceiro que `style-src 'self'` recusa), e toda `FontFace` com uma
+ *   `url()` de outra origem (a fonte de terceiro que `font-src 'self'` recusa,
+ *   e que entrega o IP de quem abre o app a quem a serve; ADR-014). O happy-dom
+ *   não tem `FontFace`: enquanto vigia, a vigia põe no lugar uma que só anota,
+ *   e tira ao parar.
  */
 
 export interface Achado {
-  tipo: "setAttribute(style)" | "<style>";
+  tipo: "setAttribute(style)" | "<style>" | "<link rel=stylesheet>" | "FontFace";
   detalhe: string;
 }
+
+/**
+ * A URL é de outra origem que a da página? `data:` e `blob:` também contam:
+ * `style-src 'self'` e `font-src 'self'` recusam as duas.
+ */
+function deOutraOrigem(url: string): boolean {
+  try {
+    return new URL(url, document.baseURI).origin !== location.origin;
+  } catch {
+    return true;
+  }
+}
+
+/** A URL sem consulta nem fragmento, para o achado não carregar o que vem nelas. */
+function semConsulta(url: string): string {
+  try {
+    const lida = new URL(url, document.baseURI);
+    return lida.protocol === "data:" || lida.protocol === "blob:" ? `${lida.protocol}…` : `${lida.origin}${lida.pathname}`;
+  } catch {
+    return "(URL ilegível)";
+  }
+}
+
+/** As URLs de um `src` de fonte: `url(a) format("woff2"), local(b)`. */
+const urlsDaFonte = (fonte: string) =>
+  [...fonte.matchAll(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^)\s]*))\s*\)/g)].map((m) => m[1] ?? m[2] ?? m[3] ?? "");
 
 export interface Vigia {
   /** O que a vigia viu até agora, na ordem. */
@@ -63,13 +95,41 @@ export function vigiarCsp(raiz: Node = document): Vigia {
     return originalNS.call(this, espaco, nome, valor);
   };
 
+  // A `FontFace` do ambiente (o navegador; o happy-dom não tem), embrulhada:
+  // a de outra origem é anotada, e a construção segue para a de verdade.
+  const escopo = globalThis as { FontFace?: unknown };
+  const tinhaFontFace = "FontFace" in escopo;
+  const FontFaceOriginal = escopo.FontFace as (new (...args: unknown[]) => object) | undefined;
+  const Anotada = class {
+    family: string;
+    constructor(familia: string, fonte: unknown, descritores?: unknown) {
+      this.family = familia;
+      if (typeof fonte === "string") {
+        for (const url of urlsDaFonte(fonte)) {
+          if (deOutraOrigem(url)) achados.push({ tipo: "FontFace", detalhe: `${familia} ${semConsulta(url).slice(0, 60)}` });
+        }
+      }
+      if (FontFaceOriginal) return new FontFaceOriginal(familia, fonte, descritores) as this;
+    }
+    load() {
+      return Promise.resolve(this);
+    }
+  };
+  escopo.FontFace = Anotada;
+
   const antes = new Set(document.querySelectorAll("style"));
   const acusarEstilo = (no: Node) => {
-    const estilos = no instanceof Element ? [...(no.localName === "style" ? [no] : []), ...no.querySelectorAll("style")] : [];
+    if (!(no instanceof Element)) return;
+    const estilos = [...(no.localName === "style" ? [no] : []), ...no.querySelectorAll("style")];
     for (const estilo of estilos) {
       if (!antes.has(estilo as HTMLStyleElement)) {
         achados.push({ tipo: "<style>", detalhe: (estilo.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, 60) });
       }
+    }
+    const folhas = [...(no.matches('link[rel~="stylesheet" i]') ? [no] : []), ...no.querySelectorAll('link[rel~="stylesheet" i]')];
+    for (const folha of folhas) {
+      const href = folha.getAttribute("href") ?? "";
+      if (deOutraOrigem(href)) achados.push({ tipo: "<link rel=stylesheet>", detalhe: semConsulta(href).slice(0, 60) });
     }
   };
   const observador = new MutationObserver((mudancas) => {
@@ -86,6 +146,8 @@ export function vigiarCsp(raiz: Node = document): Vigia {
       observador.disconnect();
       Element.prototype.setAttribute = original;
       Element.prototype.setAttributeNS = originalNS;
+      if (tinhaFontFace) escopo.FontFace = FontFaceOriginal;
+      else delete escopo.FontFace;
     }
     return [...achados];
   };
