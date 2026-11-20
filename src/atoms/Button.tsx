@@ -33,8 +33,11 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children?: ReactNode;
   /**
    * O `<button>` que o `Button` monta. No React 19 o `ref` chega a ele pela
-   * prop, sem `forwardRef`: é o que deixa a folha de confirmação pôr o foco no
-   * "Apagar de vez" ao abrir (`Sheet initialFocus`).
+   * prop, sem `forwardRef`: é o que deixa uma folha pôr o foco num botão dela
+   * ao abrir (`Sheet initialFocus`). Numa confirmação destrutiva o foco vai
+   * para "Cancelar", a ação menos destrutiva (o padrão de diálogo de alerta da
+   * WAI-ARIA), e nunca para "Apagar de vez": quem abre pelo teclado e tecla
+   * Enter de novo sem ler cancela, e apagar pede um Tab a mais.
    */
   ref?: Ref<HTMLButtonElement> | undefined;
 }

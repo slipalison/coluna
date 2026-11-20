@@ -29,7 +29,7 @@ import tokensCss from "./tokens/tokens.css?raw";
  *   Field e Input         o rótulo visível e associado; o erro em texto junto do campo
  *   SegmentedControl      teclado e alvo (a escolha da data)
  *   Notice e EmptyState   render e acessibilidade
- *   Sheet                 o foco cai na confirmação e volta ao fechar (apagar a conta)
+ *   Sheet                 o foco cai em Cancelar e volta ao fechar (apagar a conta)
  *   NavList e Disclosure  teclado e acessibilidade (Você, Privacidade, "Por que perguntamos")
  *
  * O resto de cada peça já tem a sua prova no arquivo dela (`atoms.test.tsx`,
@@ -241,9 +241,16 @@ describe("Notice e EmptyState: render e acessibilidade", () => {
 
 // ----------------------------------------- a confirmação de apagar a conta --
 
+/**
+ * A folha de confirmação como o app a monta: o foco inicial vai para
+ * "Cancelar", a ação MENOS destrutiva (o padrão de diálogo de alerta da
+ * WAI-ARIA). Abrir pelo teclado e teclar Enter de novo não pode apagar a conta:
+ * o segundo Enter de quem abriu sem olhar cai em "Cancelar", e apagar pede um
+ * Tab a mais, de propósito.
+ */
 function ApagarConta({ aoApagar }: { aoApagar: () => void }) {
   const [aberta, abrir] = useState(false);
-  const confirmar = useRef<HTMLButtonElement>(null);
+  const cancelar = useRef<HTMLButtonElement>(null);
   return (
     <>
       <Button variant="danger" onClick={() => abrir(true)}>
@@ -253,14 +260,13 @@ function ApagarConta({ aoApagar }: { aoApagar: () => void }) {
         open={aberta}
         onClose={() => abrir(false)}
         title="Apagar a conta?"
-        initialFocus={confirmar}
+        initialFocus={cancelar}
         footer={
           <>
-            <Button variant="secondary" onClick={() => abrir(false)}>
+            <Button ref={cancelar} variant="secondary" onClick={() => abrir(false)}>
               Cancelar
             </Button>
             <Button
-              ref={confirmar}
               variant="danger"
               onClick={() => {
                 aoApagar();
@@ -278,20 +284,50 @@ function ApagarConta({ aoApagar }: { aoApagar: () => void }) {
   );
 }
 
-describe("Sheet de confirmação: o foco cai na confirmação e volta ao fechar", () => {
-  it("abrir põe o foco em 'Apagar de vez'; Esc fecha e o foco volta a quem abriu", async () => {
+describe("Sheet de confirmação: o foco cai em Cancelar e volta ao fechar", () => {
+  it("abrir põe o foco em 'Cancelar'; Esc fecha e o foco volta a quem abriu", async () => {
     const usuario = userEvent.setup();
     render(<ApagarConta aoApagar={vi.fn()} />);
     const abrir = screen.getByRole("button", { name: "Apagar minha conta" });
     await usuario.click(abrir);
     const dialogo = screen.getByRole("dialog", { name: "Apagar a conta?" });
-    expect(within(dialogo).getByRole("button", { name: "Apagar de vez" })).toHaveFocus();
+    expect(within(dialogo).getByRole("button", { name: "Cancelar" })).toHaveFocus();
     await usuario.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(abrir).toHaveFocus();
   });
 
-  it("cancelar também devolve o foco, e só a confirmação apaga", async () => {
+  it("aberta pelo teclado, o Enter logo ao abrir NÃO apaga: cancela, e o foco volta a quem abriu", async () => {
+    const usuario = userEvent.setup();
+    const aoApagar = vi.fn();
+    render(<ApagarConta aoApagar={aoApagar} />);
+    const abrir = screen.getByRole("button", { name: "Apagar minha conta" });
+    await usuario.tab();
+    expect(abrir).toHaveFocus();
+    await usuario.keyboard("{Enter}");
+    expect(screen.getByRole("dialog", { name: "Apagar a conta?" })).toBeInTheDocument();
+    await usuario.keyboard("{Enter}");
+    expect(aoApagar, "o Enter logo ao abrir chamou a ação destrutiva").not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(abrir).toHaveFocus();
+  });
+
+  it("apagar pede um Tab a mais: Tab + Enter chama a ação, e o foco volta a quem abriu", async () => {
+    const usuario = userEvent.setup();
+    const aoApagar = vi.fn();
+    render(<ApagarConta aoApagar={aoApagar} />);
+    const abrir = screen.getByRole("button", { name: "Apagar minha conta" });
+    await usuario.tab();
+    await usuario.keyboard("{Enter}");
+    await usuario.tab();
+    expect(screen.getByRole("button", { name: "Apagar de vez" })).toHaveFocus();
+    await usuario.keyboard("{Enter}");
+    expect(aoApagar).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(abrir).toHaveFocus();
+  });
+
+  it("cancelar com o ponteiro também devolve o foco, e só a confirmação apaga", async () => {
     const usuario = userEvent.setup();
     const aoApagar = vi.fn();
     render(<ApagarConta aoApagar={aoApagar} />);
@@ -301,24 +337,27 @@ describe("Sheet de confirmação: o foco cai na confirmação e volta ao fechar"
     expect(abrir).toHaveFocus();
     expect(aoApagar).not.toHaveBeenCalled();
     await usuario.click(abrir);
-    await usuario.keyboard("{Enter}");
+    await usuario.click(screen.getByRole("button", { name: "Apagar de vez" }));
     expect(aoApagar).toHaveBeenCalledTimes(1);
     expect(abrir).toHaveFocus();
   });
 
   it.each(TEMAS)("no tema %s, a confirmação aberta passa no axe", async (tema) => {
     function Aberta() {
-      const confirmar = useRef<HTMLButtonElement>(null);
+      const cancelar = useRef<HTMLButtonElement>(null);
       return (
         <Sheet
           open
           onClose={vi.fn()}
           title="Apagar a conta?"
-          initialFocus={confirmar}
+          initialFocus={cancelar}
           footer={
-            <Button ref={confirmar} variant="danger">
-              Apagar de vez
-            </Button>
+            <>
+              <Button ref={cancelar} variant="secondary">
+                Cancelar
+              </Button>
+              <Button variant="danger">Apagar de vez</Button>
+            </>
           }
         >
           Isto apaga os seus dados.

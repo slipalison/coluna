@@ -51,7 +51,8 @@ export interface SheetProps {
    * - `"first-field"`: o primeiro campo do corpo (`input`, `select` ou
    *   `textarea` ligado) — a folha que existe para buscar ou digitar, em que a
    *   pessoa abre e já escreve.
-   * - um `ref`: o elemento dele, para o alvo que não é campo.
+   * - um `ref`: o elemento dele, para o alvo que não é campo. Numa
+   *   confirmação destrutiva, o "Cancelar" — nunca a ação que apaga.
    *
    * Sem alvo na hora de abrir (o `ref` vazio, o corpo sem campo), o foco fica
    * no painel.
