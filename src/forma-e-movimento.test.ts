@@ -65,7 +65,9 @@ describe("a forma", () => {
     expect(raio(".co-surface")).toBe("var(--co-radius-container)");
     expect(raio(".co-notice")).toBe("var(--co-radius-container)");
     expect(raio(".co-chip")).toBe("var(--co-radius-pill)");
-    expect(raio(".co-segmented")).toBe("var(--co-radius-pill)");
+    // O segmentado é pílula de UMA fileira: meia altura dela, e não 999px, para
+    // a quebra em linhas não tirar a opção do canto da curva (lote 1, item 2).
+    expect(raio(".co-segmented")).toBe("calc(var(--co-target-min) / 2 + var(--co-space-2) + var(--co-control-width))");
     expect(raio(".co-segmented__option")).toBe("var(--co-radius-pill)");
     // A folha arredonda só em cima, com o raio dela; a de dentro do cartão
     // (`inline`) é cartão.

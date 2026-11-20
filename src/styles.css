@@ -1266,22 +1266,40 @@ div.co-sheet-overlay {
  * cerca de 1,1:1 nos dois temas, e sem o contorno as opções não
  * escolhidas viram texto solto, sem cara de opção (WCAG 1.4.11).
  */
+/*
+ * Toda opção tem o alvo de 44px nos DOIS eixos, e o grupo nunca passa da
+ * largura de quem o contém: quando as opções no mínimo não cabem numa fileira
+ * (oito de 44px a 320px, ou "Padrão / Baixa em carbo / Cetogênica / Alta em
+ * carbo"), o grupo quebra em linhas, e a sobra de cada fileira se reparte. A
+ * opção não encolhe (`flex-shrink: 0`) — encolher era o defeito: a 320px seis
+ * opções `full` mediam 40,8 a 43,8px, e os quatro rótulos longos empurravam a
+ * página para o lado. Quebrar não muda o papel: continua um `radiogroup`, uma
+ * parada do Tab, as setas e Home/End.
+ *
+ * O raio é meia altura de UMA fileira (a opção, o respiro e o contorno), e não
+ * 999px: numa fileira só é a mesma pílula; com duas, 999px viraria meia altura
+ * do grupo inteiro, e a opção escolhida no canto sairia da curva da borda.
+ */
 .co-segmented {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   gap: var(--co-space-2);
   padding: var(--co-space-2);
   border: var(--co-control-width) solid var(--co-control);
   background: var(--co-surface);
-  border-radius: var(--co-radius-pill);
+  border-radius: calc(var(--co-target-min) / 2 + var(--co-space-2) + var(--co-control-width));
 }
 
 .co-segmented[data-full="true"] { display: flex; width: 100%; }
 
 .co-segmented__option {
-  flex-grow: 1;
+  flex: 1 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: var(--co-target-min);
+  max-width: 100%;
   min-height: var(--co-target-min);
   padding: 0 var(--co-space-12);
   border: 0;
@@ -1291,7 +1309,9 @@ div.co-sheet-overlay {
   font-family: inherit;
   font-size: var(--co-text-13);
   cursor: pointer;
-  white-space: nowrap;
+  /* Só quebra o rótulo a opção que sozinha passaria da largura do grupo; as
+   * outras ficam numa linha, porque a base delas é o rótulo inteiro. */
+  text-align: center;
 }
 
 .co-segmented__option[aria-checked="true"] {

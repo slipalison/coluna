@@ -18,7 +18,7 @@ import { Sheet } from "./molecules/Sheet";
 import { TabBar } from "./molecules/TabBar";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import "./styles.css";
-import { avaliar, dentroDe, REGRAS, type Valores } from "./test/folha";
+import { avaliar, bloco, dentroDe, REGRAS, type Valores } from "./test/folha";
 import tokensCss from "./tokens/tokens.css?raw";
 
 /**
@@ -195,6 +195,114 @@ describe("SegmentedControl para a data: teclado e alvo", () => {
 
   it.each(TEMAS)("no tema %s, passa no axe", async (tema) => {
     expect(await semViolacao(<EscolhaDoDia />, tema)).toEqual([]);
+  });
+  /*
+   * A dimensão a 320px. O happy-dom não faz layout, então a conta é a da
+   * quebra de linha do flexbox, com os números LIDOS da folha: o tamanho
+   * hipotético de cada opção é o maior entre o conteúdo e o `min-width`, a
+   * fileira cabe o que couber na largura de dentro do grupo, e a sobra se
+   * reparte pelo `flex-grow`. Um número de 1 a 8 a 13px mede bem menos que os
+   * 44px, então a opção dele É o mínimo — a conta não depende da fonte. Os
+   * rótulos longos dependem da fonte: para eles a prova é a regra que impede o
+   * transbordo (o grupo e a opção limitados a 100%, com quebra), e o número
+   * medido no Chromium está na entrega do lote.
+   */
+  const ultima = (declaracoes: readonly (readonly [string, string])[], propriedade: string) =>
+    declaracoes.filter(([p]) => p === propriedade).at(-1)?.[1];
+
+  function fileirasA(largura: number, opcoes: number, full: boolean) {
+    const grupo = bloco(".co-segmented");
+    const opcao = bloco(".co-segmented__option");
+    const larguraMinima = ultima(opcao, "min-width");
+    expect(larguraMinima, "a opção tem min-width").toBeDefined();
+    const minimo = avaliar(larguraMinima ?? "0px", TOKENS);
+    const vao = avaliar(ultima(grupo, "gap") ?? "0px", TOKENS);
+    const respiro = avaliar(ultima(grupo, "padding") ?? "0px", TOKENS);
+    const contorno = avaliar((ultima(grupo, "border") ?? "0px").split(" ")[0] ?? "0px", TOKENS);
+    const dentro = largura - 2 * (respiro + contorno);
+    const quebra = ultima(grupo, "flex-wrap") === "wrap";
+    // `flex-shrink: 0`: a opção não encolhe abaixo do hipotético.
+    const encolhe = !/^\S+ 0(\s|$)/.test(ultima(opcao, "flex") ?? "") && ultima(opcao, "flex-shrink") !== "0";
+    const fileiras: number[][] = [];
+    let atual: number[] = [];
+    let ocupado = 0;
+    for (let k = 0; k < opcoes; k++) {
+      const extra = atual.length === 0 ? minimo : vao + minimo;
+      if (quebra && atual.length > 0 && ocupado + extra > dentro) {
+        fileiras.push(atual);
+        atual = [];
+        ocupado = 0;
+      }
+      ocupado += atual.length === 0 ? minimo : vao + minimo;
+      atual.push(minimo);
+    }
+    fileiras.push(atual);
+    // A sobra (ou a falta) de cada fileira se reparte igual: todas têm o mesmo
+    // `flex-grow`, e sem `full` a opção só cresce até a largura do grupo.
+    return fileiras.map((fileira) => {
+      const soma = fileira.reduce((a, b) => a + b, 0) + vao * (fileira.length - 1);
+      const sobra = dentro - soma;
+      const passo = sobra < 0 && encolhe ? sobra / fileira.length : full || fileiras.length > 1 ? Math.max(sobra, 0) / fileira.length : 0;
+      return { larguras: fileira.map((l) => l + passo), soma: soma + passo * fileira.length, dentro };
+    });
+  }
+
+  it.each([
+    [6, true],
+    [8, true],
+    [8, false],
+  ] as const)("a 320px (288px dentro do respiro de 16px), com %i opções (full: %s), cada uma tem 44px de largura e nada passa da largura", (opcoes, full) => {
+    for (const largura of [288, 320]) {
+      const fileiras = fileirasA(largura, opcoes, full);
+      for (const { larguras, soma, dentro } of fileiras) {
+        for (const l of larguras) {
+          expect(l, `opção a ${largura}px com ${opcoes} opções mediu ${l.toFixed(1)}px`).toBeGreaterThanOrEqual(44);
+        }
+        expect(soma, `fileira a ${largura}px com ${opcoes} opções`).toBeLessThanOrEqual(dentro + 0.01);
+      }
+    }
+  });
+
+  it("os quatro rótulos longos ('Padrão / Baixa em carbo / Cetogênica / Alta em carbo') não transbordam: o grupo e a opção param em 100% e quebram em linhas", () => {
+    const grupo = bloco(".co-segmented");
+    const opcao = bloco(".co-segmented__option");
+    expect(ultima(grupo, "max-width"), "o grupo para na largura de quem o contém").toBe("100%");
+    expect(ultima(grupo, "flex-wrap"), "o grupo quebra em linhas").toBe("wrap");
+    expect(ultima(opcao, "max-width"), "uma opção sozinha para na largura do grupo").toBe("100%");
+    // Sem `nowrap`: a opção que sozinha passaria da largura quebra o próprio
+    // rótulo, em vez de empurrar a página para o lado.
+    expect(ultima(opcao, "white-space"), "o rótulo pode quebrar").not.toBe("nowrap");
+    render(
+      <SegmentedControl
+        label="Estilo"
+        value="padrao"
+        onChange={vi.fn()}
+        options={[
+          { value: "padrao", label: "Padrão" },
+          { value: "low", label: "Baixa em carbo" },
+          { value: "keto", label: "Cetogênica" },
+          { value: "high", label: "Alta em carbo" },
+        ]}
+      />,
+    );
+    // Quebrar em linhas não tira o grupo do papel dele: continua um radiogroup
+    // de quatro, com uma parada do Tab.
+    const grupoNaTela = screen.getByRole("radiogroup", { name: "Estilo" });
+    expect(within(grupoNaTela).getAllByRole("radio")).toHaveLength(4);
+    expect(within(grupoNaTela).getAllByRole("radio").filter((r) => r.tabIndex === 0)).toHaveLength(1);
+  });
+
+  it("quebrado em linhas, o grupo continua pílula na fileira e a opção do canto não sai da borda", () => {
+    // O raio do grupo é meia altura de UMA fileira (a opção de 44px, o respiro
+    // e o contorno), e não 999px: com duas fileiras, 999px viraria meia altura
+    // do grupo inteiro, e a pílula escolhida no canto sairia da curva.
+    const grupo = bloco(".co-segmented");
+    const raio = avaliar(ultima(grupo, "border-radius") ?? "0px", TOKENS);
+    const fileira =
+      avaliar("var(--co-target-min)", TOKENS) +
+      2 * avaliar(ultima(grupo, "padding") ?? "0px", TOKENS) +
+      2 * avaliar((ultima(grupo, "border") ?? "0px").split(" ")[0] ?? "0px", TOKENS);
+    expect(raio).toBeCloseTo(fileira / 2, 5);
   });
 });
 
