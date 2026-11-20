@@ -18,7 +18,7 @@
     "surface-3": {
       "$type": "color",
       "$value": "{basalto-800}",
-      "$description": "O pressionado e o trilho de barra. NAO e fundo de texto (no claro, ink-3 mede 4,28:1 sobre ele)."
+      "$description": "O pressionado e o trilho de barra. NAO e fundo de texto: no escuro ink-3 mede 4,92:1 sobre ele, mas no claro mede 4,28:1, e o papel e o mesmo nos dois temas."
     },
     "ink": {
       "$type": "color",
