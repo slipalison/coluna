@@ -559,6 +559,7 @@ function ConfirmarApagar() {
         open={aberta}
         onClose={() => abrir(false)}
         title="Apagar a conta?"
+        role="alertdialog"
         position="absolute"
         initialFocus={cancelar}
         footer={
@@ -585,7 +586,8 @@ function ConfirmarApagar() {
 }
 
 /**
- * A confirmação de uma ação destrutiva: apagar a conta. O foco inicial vai para
+ * A confirmação de uma ação destrutiva: apagar a conta. É `role="alertdialog"`:
+ * o leitor de tela a anuncia como alerta e lê o corpo junto do título. O foco inicial vai para
  * **Cancelar**, a ação menos destrutiva (o padrão de diálogo de alerta da
  * WAI-ARIA), por `initialFocus` com o `ref` do `Button`.
  *

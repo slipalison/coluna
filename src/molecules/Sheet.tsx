@@ -20,6 +20,14 @@ export interface SheetProps {
    */
   mode?: "overlay" | "inline";
   /**
+   * O papel da folha em `overlay`. `dialog` (padrão) é a folha que a pessoa
+   * abre para fazer algo. `alertdialog` é a que interrompe para pedir uma
+   * resposta — a confirmação de uma ação destrutiva —: o leitor de tela a
+   * anuncia como alerta e lê o corpo junto do título (`aria-describedby`).
+   * Em `inline` a folha é um `group` e a prop não muda nada.
+   */
+  role?: "dialog" | "alertdialog";
+  /**
    * Só vale em `overlay`. `fixed` gruda na janela; `absolute` faz o mesmo dentro
    * de uma moldura posicionada — a pré-visualização de aparelho no catálogo.
    */
@@ -123,6 +131,7 @@ export function Sheet({
   title,
   children,
   mode = "overlay",
+  role = "dialog",
   position = "fixed",
   size = "auto",
   footer,
@@ -133,6 +142,7 @@ export function Sheet({
   const corpo = useRef<HTMLDivElement>(null);
   const quemAbriu = useRef<HTMLElement | null>(null);
   const idTitulo = useId();
+  const idCorpo = useId();
   const sobreposto = mode === "overlay";
 
   // Só `open` dispara: o alvo é lido na hora de abrir. Reabrir o efeito
@@ -190,9 +200,10 @@ export function Sheet({
       className={classe}
       data-mode={sobreposto ? undefined : "inline"}
       data-size={sobreposto && size === "full" ? "full" : undefined}
-      role={sobreposto ? "dialog" : "group"}
+      role={sobreposto ? role : "group"}
       aria-modal={sobreposto ? true : undefined}
       aria-labelledby={idTitulo}
+      aria-describedby={sobreposto && role === "alertdialog" ? idCorpo : undefined}
       tabIndex={-1}
       onKeyDown={aoTeclar}
     >
@@ -218,6 +229,7 @@ export function Sheet({
       */}
       <div
         ref={corpo}
+        id={sobreposto && role === "alertdialog" ? idCorpo : undefined}
         className="co-sheet__body"
         role={sobreposto ? "region" : undefined}
         aria-labelledby={sobreposto ? idTitulo : undefined}

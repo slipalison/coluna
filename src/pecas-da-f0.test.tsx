@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { useRef, useState, type ReactNode } from "react";
@@ -443,6 +443,7 @@ function ApagarConta({ aoApagar }: { aoApagar: () => void }) {
         open={aberta}
         onClose={() => abrir(false)}
         title="Apagar a conta?"
+        role="alertdialog"
         initialFocus={cancelar}
         footer={
           <>
@@ -473,7 +474,7 @@ describe("Sheet de confirmação: o foco cai em Cancelar e volta ao fechar", () 
     render(<ApagarConta aoApagar={vi.fn()} />);
     const abrir = screen.getByRole("button", { name: "Apagar minha conta" });
     await usuario.click(abrir);
-    const dialogo = screen.getByRole("dialog", { name: "Apagar a conta?" });
+    const dialogo = screen.getByRole("alertdialog", { name: "Apagar a conta?" });
     expect(within(dialogo).getByRole("button", { name: "Cancelar" })).toHaveFocus();
     await usuario.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).toBeNull();
@@ -488,7 +489,7 @@ describe("Sheet de confirmação: o foco cai em Cancelar e volta ao fechar", () 
     await usuario.tab();
     expect(abrir).toHaveFocus();
     await usuario.keyboard("{Enter}");
-    expect(screen.getByRole("dialog", { name: "Apagar a conta?" })).toBeInTheDocument();
+    expect(screen.getByRole("alertdialog", { name: "Apagar a conta?" })).toBeInTheDocument();
     await usuario.keyboard("{Enter}");
     expect(aoApagar, "o Enter logo ao abrir chamou a ação destrutiva").not.toHaveBeenCalled();
     expect(screen.queryByRole("dialog")).toBeNull();
@@ -525,6 +526,32 @@ describe("Sheet de confirmação: o foco cai em Cancelar e volta ao fechar", () 
     expect(abrir).toHaveFocus();
   });
 
+  it("a confirmação é um alertdialog, descrito pelo corpo; a folha comum continua dialog; inline ignora o papel", () => {
+    const { unmount } = render(<ApagarConta aoApagar={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Apagar minha conta" }));
+    const alerta = screen.getByRole("alertdialog", { name: "Apagar a conta?" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(alerta).toHaveAttribute("aria-modal", "true");
+    expect(alerta).toHaveAccessibleDescription("Isto apaga o seu livro, a sua meta e o seu histórico.");
+    unmount();
+
+    const comum = render(
+      <Sheet open onClose={vi.fn()} title="Escolha">
+        Corpo
+      </Sheet>,
+    );
+    expect(screen.getByRole("dialog", { name: "Escolha" })).not.toHaveAttribute("aria-describedby");
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    comum.unmount();
+
+    render(
+      <Sheet open onClose={vi.fn()} title="No cartão" mode="inline" role="alertdialog">
+        Corpo
+      </Sheet>,
+    );
+    expect(screen.getByRole("group", { name: "No cartão" })).not.toHaveAttribute("aria-describedby");
+  });
+
   it.each(TEMAS)("no tema %s, a confirmação aberta passa no axe", async (tema) => {
     function Aberta() {
       const cancelar = useRef<HTMLButtonElement>(null);
@@ -533,6 +560,7 @@ describe("Sheet de confirmação: o foco cai em Cancelar e volta ao fechar", () 
           open
           onClose={vi.fn()}
           title="Apagar a conta?"
+          role="alertdialog"
           initialFocus={cancelar}
           footer={
             <>
