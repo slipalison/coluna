@@ -78,6 +78,13 @@ describe("hourVars", () => {
       expect(() => hourVars(errado), String(errado)).toThrow(RangeError);
     }
   });
+
+  it("o que não é texto nem número (vindo de um JSON, de um JS sem tipo) também é RangeError, e não TypeError", () => {
+    for (const errado of [null, undefined, {}, ["12:00"], new Date(0), true]) {
+      expect(() => hourVars(errado as unknown as string), String(errado)).toThrow(RangeError);
+      expect(() => hourVars(errado as unknown as string), String(errado)).toThrow(/hora fora do formato HH:MM/);
+    }
+  });
 });
 
 const DIA_FINAL = 24 * 60 - 1;

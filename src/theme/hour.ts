@@ -46,7 +46,8 @@ export const hourStops: readonly { time: string; h: number; c: number }[] = PARA
 /**
  * Lê `"HH:MM"` (00:00 a 23:59) ou um minuto do dia (0 a 1439). Hora que não
  * existe é erro de quem chama, e erro alto: uma cor errada em silêncio pintaria
- * a refeição de outra hora sem ninguém notar.
+ * a refeição de outra hora sem ninguém notar. Tudo que não é hora — inclusive o
+ * que não é texto nem número — é `RangeError`.
  */
 function minutoDoDia(time: string | number): number {
   if (typeof time === "number") {
@@ -55,6 +56,10 @@ function minutoDoDia(time: string | number): number {
     }
     return time;
   }
+  // O tipo diz texto ou número, mas a hora vem de JSON e de JS sem tipo: um
+  // `null` ou um objeto chegaria ao `trim()` e sairia como `TypeError`, um
+  // erro que diz "bug de código" quando o que houve foi uma hora inválida.
+  if (typeof time !== "string") throw new RangeError(`hora fora do formato HH:MM: ${Object.prototype.toString.call(time)}`);
   const casado = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(time.trim());
   if (!casado) throw new RangeError(`hora fora do formato HH:MM: "${time}"`);
   return Number(casado[1]) * 60 + Number(casado[2]);
