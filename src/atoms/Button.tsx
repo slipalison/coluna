@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode, Ref } from "react";
 import { Icon, type IconName } from "./Icon";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
@@ -31,6 +31,12 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Ícone depois do rótulo. */
   iconEnd?: IconName;
   children?: ReactNode;
+  /**
+   * O `<button>` que o `Button` monta. No React 19 o `ref` chega a ele pela
+   * prop, sem `forwardRef`: é o que deixa a folha de confirmação pôr o foco no
+   * "Apagar de vez" ao abrir (`Sheet initialFocus`).
+   */
+  ref?: Ref<HTMLButtonElement> | undefined;
 }
 
 export function Button({
