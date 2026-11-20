@@ -105,9 +105,14 @@ export const SeisOpções: Story = {
 
 const NUMEROS = ["1", "2", "3", "4", "5", "6", "7", "8"].map((n) => ({ value: n, label: n }));
 
-/** A moldura de um telefone de 320px, com o respiro de 16px dos lados. */
+/**
+ * A moldura de um telefone de 320px, com o respiro de 16px dos lados. É teto, e
+ * não largura fixa: numa janela mais estreita que a moldura (o catálogo tem 24px
+ * de respiro em volta), ela encolhe junto, e quem rolaria de lado é a moldura,
+ * e não o segmentado.
+ */
 function A320({ children }: { children: ReactNode }) {
-  return <div style={{ width: "320px", padding: "0 16px", boxSizing: "border-box" }}>{children}</div>;
+  return <div style={{ width: "100%", maxWidth: "320px", padding: "0 16px", boxSizing: "border-box" }}>{children}</div>;
 }
 
 /**
