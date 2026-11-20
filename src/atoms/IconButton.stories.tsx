@@ -13,8 +13,9 @@ import { Stack } from "./Stack";
  * de tela. Aqui `label` é obrigatório no tipo, e vira o `aria-label` e a dica
  * do mouse ao mesmo tempo.
  *
- * Quadrado, e com o mesmo piso de 44px do `Button` (ADR-003). O `lg` tem os
- * 52px do `Button size="lg"`, para os dois ficarem da mesma altura lado a lado.
+ * Quadrado, e com a altura do `Button` (ADR-022): 44px no toque e 40px com
+ * ponteiro fino. O `lg` tem a do `Button size="lg"` (50 e 46px), para os dois
+ * ficarem da mesma altura lado a lado.
  */
 const meta = {
   title: "Átomos/IconButton",
@@ -42,7 +43,7 @@ export const Padrão: Story = {};
 
 /**
  * Ao lado da busca, na altura dela: a leitura do código de barras é a outra
- * porta para o mesmo registro, e por isso fica no acento — ela é uma oferta.
+ * porta para o mesmo registro, e por isso fica na tinta cheia — ela é uma oferta.
  *
  * A fileira se alinha pelo fim: a busca tem o nome escrito em cima da moldura,
  * e o botão fica na linha da moldura, e não na do nome.

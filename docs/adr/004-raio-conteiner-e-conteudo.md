@@ -1,7 +1,7 @@
 # ADR-004 — O contêiner arredonda, o conteúdo é reto
 
 Data: 2026-09-16
-Situação: aceita
+Situação: aceita; os valores (16, 12 e 9px) foram substituídos pelos da identidade "Relógio de Sol" no [ADR-022](022-a-identidade-relogio-de-sol.md) — o princípio do raio por papel continua.
 
 ## Contexto
 

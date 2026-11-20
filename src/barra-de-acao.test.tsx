@@ -102,7 +102,7 @@ const valor = (declaracoes: Declaracao[], propriedade: string) =>
   Object.fromEntries(declaracoes)[propriedade] ?? "";
 
 /** O termo do rodapé das barras de baixo (ADR-012), o mesmo texto em toda regra. */
-const RODAPE = "max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14)))";
+const RODAPE = "max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8)))";
 const RESERVA_DAS_ABAS = '.co-screen[data-tabbar="true"]';
 
 /** A barra de abas montada: respiro de cima, destino, fio e rodapé (ADR-012). */
@@ -217,7 +217,7 @@ it("tabBar true dá a árvore da 1.7.1: só a reserva, sem nó e sem barra de a�
 
 // ---------------------------------------------------------------- a folha --
 
-it("a barra de ação é fixa, na camada das abas e abaixo do painel, com o vidro delas e nada mais", () => {
+it("a barra de ação é fixa, na camada das abas e abaixo do painel, com o fundo delas e nada mais", () => {
   // As quinze, nesta ordem, num bloco só e no nível de cima da folha.
   expect(bloco(BARRA_DE_ACAO.barra)).toEqual([
     ["position", "fixed"],
@@ -234,10 +234,8 @@ it("a barra de ação é fixa, na camada das abas e abaixo do painel, com o vidr
       "padding",
       `var(--co-space-10) max(var(--co-space-16), var(--co-safe-right)) ${RODAPE} max(var(--co-space-16), var(--co-safe-left))`,
     ],
-    ["background", "var(--co-overlay)"],
-    ["backdrop-filter", "blur(22px)"],
-    ["-webkit-backdrop-filter", "blur(22px)"],
-    ["border-top", "var(--co-border-width) solid var(--co-overlay-line)"],
+    ["background", "var(--co-surface)"],
+    ["border-top", "var(--co-border-width) solid var(--co-line)"],
   ]);
   expect(bloco(BARRA_DE_ACAO.comAbas)).toEqual([
     ["bottom", `calc(73px - var(--co-space-10) + ${RODAPE})`],
@@ -245,12 +243,17 @@ it("a barra de ação é fixa, na camada das abas e abaixo do painel, com o vidr
     ["padding-bottom", "var(--co-space-10)"],
   ]);
 
-  // O vidro é o da barra de abas, propriedade por propriedade.
+  // O fundo é o da barra de abas, propriedade por propriedade, e nenhuma das
+  // duas tem o vidro, que é da F4 do Basalto (ADR-022).
   const abasDeclaradas = Object.fromEntries(bloco(".co-tabbar"));
-  for (const propriedade of ["background", "backdrop-filter", "-webkit-backdrop-filter", "border-top"]) {
+  for (const propriedade of ["background", "border-top"]) {
     expect(valor(bloco(BARRA_DE_ACAO.barra), propriedade), propriedade).toBe(
       abasDeclaradas[propriedade],
     );
+  }
+  for (const propriedade of ["backdrop-filter", "-webkit-backdrop-filter"]) {
+    expect(abasDeclaradas[propriedade], `a barra de abas sem ${propriedade}`).toBeUndefined();
+    expect(valor(bloco(BARRA_DE_ACAO.barra), propriedade), `a barra de ação sem ${propriedade}`).toBe("");
   }
   // A camada das abas, abaixo do véu do painel que sobe do rodapé.
   expect(abasDeclaradas["z-index"]).toBe("20");
@@ -385,9 +388,9 @@ it("com a barra de ação, a última linha fica 31px acima dela, com e sem área
   });
   const esperadas = [
     [0, 169, 96],
-    [21, 169, 96],
-    [34, 179, 106],
-    [48, 193, 120],
+    [21, 188, 115],
+    [34, 201, 128],
+    [48, 215, 142],
   ].map(([baixo, comAbas, semAbas]) => ({
     baixo,
     vao: 0,
@@ -403,9 +406,9 @@ it("com a barra de ação, a última linha fica 31px acima dela, com e sem área
   // aparelho) declara num ancestral chega à reserva, que chega ao rodapé.
   for (const [baixo, comAsAbas, esperada] of [
     [0, true, 169],
-    [34, true, 179],
+    [34, true, 201],
     [0, false, 96],
-    [34, false, 106],
+    [34, false, 128],
   ] as const) {
     const { container } = render(
       <Por area={{ "--co-safe-bottom": `${baixo}px` }}>
@@ -575,16 +578,16 @@ it("o recuo de baixo da rolagem é 0 sem barras e o mesmo termo da reserva com e
     expect(recuo, reserva).toBe(`:root:has(${naTela})`);
   }
 
-  // Os números: 104/114 com as abas, 96/106 só com a barra, 169/179 com as duas.
+  // Os números: 104/136 com as abas, 96/128 só com a barra, 169/201 com as duas.
   const recuos = pares.map(([recuo]) =>
     [0, 34].map((baixo) =>
       avaliar(valor(bloco(recuo), "scroll-padding-bottom"), aparelho(0, 0, baixo, 0)),
     ),
   );
   expect(recuos).toEqual([
-    [104, 114],
-    [96, 106],
-    [169, 179],
+    [104, 136],
+    [96, 128],
+    [169, 201],
   ]);
 });
 
@@ -1114,9 +1117,20 @@ it("o movimento reduzido não zera a trava da barra, das abas nem da folha", () 
       ],
     ],
     [TRAVA_DE_TOQUE.excecao, [["animation-duration", `${duracao} !important`]]],
+    // A folha por cima esmaece em vez de subir (lote 1, item 12): troca a
+    // animação do painel, e não toca na trava, que é da camada.
+    [
+      '.co-root .co-sheet:not([data-mode="inline"])',
+      [
+        ["animation-name", "co-esmaecer !important"],
+        ["animation-duration", "var(--co-duration-reduced) !important"],
+        ["animation-timing-function", "var(--co-ease-settle) !important"],
+      ],
+    ],
     // O card do carrossel que não anda com o dedo (slipalison/basalto#120):
     // não mexe em duração, e não toca na trava.
     ['.co-root .co-deck__card[data-dragging="true"]', [["transform", "none"]]],
+    [".co-root .co-button:active", [["transform", "none"]]],
   ]);
   // A exceção é a união das três regras, seletor por seletor.
   expect(TRAVA_DE_TOQUE.excecao.split(", ").sort()).toEqual(
@@ -1138,8 +1152,8 @@ it("o movimento reduzido não zera a trava da barra, das abas nem da folha", () 
   // Na cascata, com o aparelho pedindo menos movimento: o resto da página fica
   // sem duração (o zero vale, então o `@media` foi lido), e os controles da
   // barra, os destinos das abas e a camada da folha `overlay` ficam com a
-  // janela inteira. O painel, que sobe, o que está dentro dele (que não anima)
-  // e a folha `inline` ficam no zero.
+  // janela inteira. O painel, que subia, esmaece em 120ms; o que está dentro
+  // dele (que não anima) e a folha `inline` ficam no zero.
   const [barra, folha, inline] = comMenosMovimento(() => [
     cascataDosControles("animation-duration"),
     cascataDaFolha("overlay", "animation-duration"),
@@ -1154,7 +1168,9 @@ it("o movimento reduzido não zera a trava da barra, das abas nem da folha", () 
     ["Gasto", "400ms"],
     ["Fora da tela", "0.01ms"],
   ]);
-  expect(folha).toEqual(NA_FOLHA.map((nome) => [nome, nome === "camada" ? "400ms" : "0.01ms"]));
+  expect(folha).toEqual(
+    NA_FOLHA.map((nome) => [nome, nome === "camada" ? "400ms" : nome === "painel" ? "120ms" : "0.01ms"]),
+  );
   expect(inline).toEqual(
     NA_FOLHA.filter((nome) => !["camada", "véu"].includes(nome)).map((nome) => [nome, "0.01ms"]),
   );

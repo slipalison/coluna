@@ -203,7 +203,12 @@ describe("a geometria, pela folha", () => {
     expect(altura(852, SEM_AREA)).toBe(828);
     expect(altura(568, SEM_AREA)).toBe(544);
     // A área segura de baixo é o `padding-bottom` da folha de sempre, por dentro da altura.
-    expect(Object.fromEntries(bloco(".co-sheet"))["padding-bottom"]).toBe("env(safe-area-inset-bottom, 0px)");
+    // Pelo token público, e não pelo `env()` direto (ADR-011): no iPhone 16 são
+    // 34px, e o consumidor que zera `--co-safe-bottom` zera a folha junto.
+    const recuo = Object.fromEntries(bloco(".co-sheet"))["padding-bottom"] ?? "";
+    expect(recuo).toBe("var(--co-safe-bottom)");
+    expect(avaliar(recuo, aparelho(59, 0, 34, 0))).toBe(34);
+    expect(avaliar(recuo, { ...aparelho(59, 0, 34, 0), "--co-safe-bottom": "0px" })).toBe(0);
     // A folha `auto` continua com o teto dela, e sem altura própria.
     const auto = Object.fromEntries(bloco(".co-sheet"));
     expect(auto["max-height"]).toBe("88%");
@@ -293,7 +298,7 @@ describe("a geometria, pela folha", () => {
 
     // A entrada é a da folha de sempre, e a regra geral do movimento reduzido a zera.
     expect(Object.fromEntries(bloco(".co-sheet"))["animation"]).toBe(
-      "co-sheet-subir var(--co-duration-slow) var(--co-ease)",
+      "co-sheet-subir var(--co-duration-slow) var(--co-ease-settle)",
     );
     const reduzido = dentroDe("@media (prefers-reduced-motion: reduce)");
     const geral = reduzido.find((r) => r.seletores.includes(".co-root *"));

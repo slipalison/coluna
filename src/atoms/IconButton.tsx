@@ -14,7 +14,7 @@ export interface IconButtonProps
    * usa mouse no desktop vê o mesmo nome ao parar em cima.
    */
   label: string;
-  /** `md` tem 44px, o piso. `lg` tem 52px, a altura do `Button size="lg"` ao lado. */
+  /** `md` tem a altura do botão comum (44px no toque, 40px com ponteiro fino); `lg`, a do `Button size="lg"` ao lado (50 e 46px). */
   size?: "md" | "lg";
   /**
    * `surface` é o quadrado com fundo, que fica de pé sozinho ao lado de um

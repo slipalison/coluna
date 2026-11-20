@@ -1,0 +1,782 @@
+/// <reference types="vite/client" />
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import axe from "axe-core";
+import { useRef, useState, type ReactNode } from "react";
+import { describe, expect, it, vi } from "vitest";
+import { Button } from "./atoms/Button";
+import { Icon } from "./atoms/Icon";
+import { Input } from "./atoms/Input";
+import { Screen } from "./atoms/Screen";
+import { Disclosure } from "./molecules/Disclosure";
+import { EmptyState } from "./molecules/EmptyState";
+import { Field } from "./molecules/Field";
+import { Group } from "./molecules/Group";
+import { NavList } from "./molecules/NavList";
+import { Notice } from "./molecules/Notice";
+import { Rail } from "./molecules/Rail";
+import { SegmentedControl } from "./molecules/SegmentedControl";
+import { Sheet } from "./molecules/Sheet";
+import { TabBar } from "./molecules/TabBar";
+import { ThemeProvider } from "./theme/ThemeProvider";
+import "./styles.css";
+import { avaliar, bloco, dentroDe, REGRAS, type Valores } from "./test/folha";
+import tokensCss from "./tokens/tokens.css?raw";
+
+/**
+ * As peças que a F0 do Basalto usa, cada uma com a prova que o cartão C0
+ * (slipalison/basalto#164) pede, nos dois temas do "Relógio de Sol":
+ *
+ *   Screen e a casca      a barra de abas e o trilho, sem o vidro
+ *   Field e Input         o rótulo visível e associado; o erro em texto junto do campo
+ *   SegmentedControl      teclado e alvo (a escolha da data)
+ *   Notice e EmptyState   render e acessibilidade
+ *   Sheet                 o foco cai em Cancelar e volta ao fechar (apagar a conta)
+ *   NavList e Disclosure  teclado e acessibilidade (Você, Privacidade, "Por que perguntamos")
+ *
+ * O resto de cada peça já tem a sua prova no arquivo dela (`atoms.test.tsx`,
+ * `molecules.test.tsx`, `corpo-focavel.test.tsx`, `area-segura.test.tsx`,
+ * `barra-de-acao.test.tsx`); este arquivo junta o que o cartão nomeia.
+ */
+
+const TEMAS = ["light", "dark"] as const;
+
+async function semViolacao(conteudo: ReactNode, tema: (typeof TEMAS)[number]) {
+  const { container, unmount } = render(
+    <ThemeProvider theme={tema} attachTo="element" storageKey={null}>
+      {conteudo}
+    </ThemeProvider>,
+  );
+  const resultado = await axe.run(container, {
+    runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] },
+    // O happy-dom não pinta: o contraste é provado em `tokens/contraste.test.ts`
+    // e, no navegador de verdade, com o axe sobre o catálogo (ADR-022).
+    rules: { "color-contrast": { enabled: false } },
+  });
+  unmount();
+  return resultado.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`);
+}
+
+// ------------------------------------------------------------ a casca --
+
+function Casca({ forma }: { forma: "celular" | "desktop" }) {
+  const destinos = [
+    { value: "hoje", label: "Hoje", icon: "book" },
+    { value: "livro", label: "Livro", icon: "book" },
+    { value: "voce", label: "Você", icon: "user" },
+  ] as const;
+  if (forma === "desktop") {
+    return (
+      <div style={{ display: "flex" }}>
+        <Rail label="Principal" value="hoje" onChange={vi.fn()} items={[...destinos]} />
+        <Screen>Hoje</Screen>
+      </div>
+    );
+  }
+  return (
+    <Screen tabBar={<TabBar label="Principal" value="hoje" onChange={vi.fn()} items={[...destinos]} />}>Hoje</Screen>
+  );
+}
+
+describe("a casca: barra de abas no celular e trilho no desktop, sem o vidro", () => {
+  it("no celular, a barra de abas marca o destino atual com aria-current", () => {
+    render(<Casca forma="celular" />);
+    const barra = screen.getByRole("navigation", { name: "Principal" });
+    expect(within(barra).getByRole("button", { name: "Hoje" })).toHaveAttribute("aria-current", "page");
+    expect(within(barra).getByRole("button", { name: "Livro" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("o rótulo da aba inativa fica em peso médio (500), e o da atual em 600, como a identidade pede", () => {
+    render(<Casca forma="celular" />);
+    const barra = screen.getByRole("navigation", { name: "Principal" });
+    const peso = (nome: string) => getComputedStyle(within(barra).getByRole("button", { name: nome })).fontWeight;
+    expect(peso("Livro"), "a aba inativa").toBe("500");
+    expect(peso("Você"), "a aba inativa").toBe("500");
+    expect(peso("Hoje"), "a aba atual").toBe("600");
+  });
+
+  it("no desktop, o trilho marca o destino atual com aria-current", () => {
+    render(<Casca forma="desktop" />);
+    const trilho = screen.getByRole("navigation", { name: "Principal" });
+    expect(within(trilho).getByRole("button", { name: "Hoje" })).toHaveAttribute("aria-current", "page");
+  });
+
+  it("nem a barra de abas, nem a de ação, nem o trilho têm desfoque de fundo", () => {
+    const comVidro = REGRAS.filter((regra) =>
+      regra.seletores.some((s) => /co-(tabbar|rail|screen__actionbar)/.test(s)),
+    ).filter((regra) => regra.declaracoes.some(([p]) => /backdrop-filter$/.test(p)));
+    expect(comVidro).toEqual([]);
+  });
+
+  it.each(TEMAS)("no tema %s, as duas cascas passam no axe", async (tema) => {
+    expect(await semViolacao(<Casca forma="celular" />, tema)).toEqual([]);
+    expect(await semViolacao(<Casca forma="desktop" />, tema)).toEqual([]);
+  });
+});
+
+// ------------------------------------------------------- campo e input --
+
+describe("Field e Input: o rótulo visível e associado, e o erro em texto junto do campo", () => {
+  function Peso({ erro }: { erro?: string }) {
+    return (
+      <Field label="Peso" hint="Em quilos." error={erro}>
+        {(controle) => <Input {...controle} unit="kg" />}
+      </Field>
+    );
+  }
+
+  it("o rótulo é texto visível e é o nome do campo", () => {
+    render(<Peso />);
+    const campo = screen.getByRole("textbox", { name: "Peso" });
+    const rotulo = screen.getByText("Peso");
+    // Visível: não é o `VisuallyHidden`, nem `aria-label`, nem `placeholder`.
+    expect(rotulo.closest(".co-visually-hidden")).toBeNull();
+    expect(campo).not.toHaveAttribute("aria-label");
+    expect(campo).not.toHaveAttribute("placeholder");
+    // Associado: o `<label>` aponta para o campo.
+    expect(rotulo.closest("label")).toHaveAttribute("for", campo.id);
+  });
+
+  it("o erro aparece em texto, com ícone, junto do campo, e o campo o anuncia", () => {
+    render(<Peso erro="Escreva um número, como 72,5." />);
+    const campo = screen.getByRole("textbox", { name: "Peso" });
+    const erro = screen.getByText("Escreva um número, como 72,5.");
+    // Junto: no mesmo campo, depois do controle.
+    const field = campo.closest(".co-field");
+    expect(field).not.toBeNull();
+    expect(field?.contains(erro)).toBe(true);
+    expect(campo.compareDocumentPosition(erro) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // Texto e ícone, e não só a cor (ADR-005). O ícone é o de ALERTA (o "!"
+    // no círculo), e não o de informação: o erro não é uma nota.
+    const desenho = (nome: "alert" | "info") => {
+      const { container, unmount } = render(<Icon name={nome} />);
+      const d = container.querySelector("path")?.getAttribute("d");
+      unmount();
+      return d;
+    };
+    const doErro = erro.closest(".co-field__error")?.querySelector("svg path")?.getAttribute("d");
+    expect(doErro, "o ícone do erro do campo").toBe(desenho("alert"));
+    expect(desenho("alert")).not.toBe(desenho("info"));
+    // Anunciado: o campo se declara inválido e é descrito pelo erro.
+    expect(campo).toHaveAttribute("aria-invalid", "true");
+    expect(campo).toHaveAccessibleDescription(expect.stringContaining("Escreva um número, como 72,5."));
+  });
+
+  it("o erro do grupo também vem com o ícone de alerta", () => {
+    const { container } = render(
+      <Group label="Refeições" error="Escolha ao menos uma.">
+        <p>Almoço</p>
+      </Group>,
+    );
+    const doErro = container.querySelector(".co-group__error svg path")?.getAttribute("d");
+    const { container: alerta } = render(<Icon name="alert" />);
+    expect(doErro, "o ícone do erro do grupo").toBe(alerta.querySelector("path")?.getAttribute("d"));
+  });
+
+  it.each(TEMAS)("no tema %s, o campo com dica e erro passa no axe", async (tema) => {
+    expect(await semViolacao(<Peso erro="Escreva um número." />, tema)).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------- o segmentado --
+
+const DIAS = [
+  { value: "ontem", label: "Ontem" },
+  { value: "hoje", label: "Hoje" },
+  { value: "amanha", label: "Amanhã" },
+] as const;
+
+function EscolhaDoDia() {
+  const [dia, definir] = useState<(typeof DIAS)[number]["value"]>("hoje");
+  return <SegmentedControl label="Dia" options={DIAS} value={dia} onChange={definir} />;
+}
+
+const TOKENS: Valores = Object.fromEntries(
+  [...tokensCss.matchAll(/(--co-[\w-]+)\s*:\s*([^;]+);/g)].reverse().map((achado) => [achado[1] ?? "", (achado[2] ?? "").trim()]),
+);
+
+describe("SegmentedControl para a data: teclado e alvo", () => {
+  it("o Tab entra na escolha marcada, as setas trocam o dia e o Tab sai do grupo", async () => {
+    const usuario = userEvent.setup();
+    render(
+      <>
+        <EscolhaDoDia />
+        <button type="button">Depois</button>
+      </>,
+    );
+    await usuario.tab();
+    expect(screen.getByRole("radio", { name: "Hoje" })).toHaveFocus();
+    await usuario.keyboard("{ArrowRight}");
+    expect(screen.getByRole("radio", { name: "Amanhã" })).toHaveFocus();
+    expect(screen.getByRole("radio", { name: "Amanhã" })).toBeChecked();
+    await usuario.keyboard("{ArrowRight}");
+    expect(screen.getByRole("radio", { name: "Ontem" })).toBeChecked();
+    await usuario.tab();
+    expect(screen.getByRole("button", { name: "Depois" })).toHaveFocus();
+  });
+
+  it("cada opção tem o alvo de 44px no toque e com ponteiro fino", () => {
+    const opcao = REGRAS.filter((r) => r.profundidade === 0 && r.seletores.join() === ".co-segmented__option")
+      .flatMap((r) => r.declaracoes)
+      .find(([p]) => p === "min-height")?.[1];
+    expect(avaliar(opcao ?? "0px", TOKENS)).toBeGreaterThanOrEqual(44);
+    // O ponteiro fino não mexe no segmentado.
+    expect(dentroDe("@media (pointer: fine)").filter((r) => r.seletores.some((s) => s.includes("segmented")))).toEqual([]);
+  });
+
+  it.each(TEMAS)("no tema %s, passa no axe", async (tema) => {
+    expect(await semViolacao(<EscolhaDoDia />, tema)).toEqual([]);
+  });
+  /*
+   * A dimensão a 320px e a 390px. O happy-dom não faz layout, então a conta é a
+   * da folha: o mínimo de cada trilho da grade (`grid-template-columns`) é
+   * AVALIADO aqui, com os números que o componente escreve (`--co-seg-n`, o
+   * número de opções, e `--co-seg-chars`, o rótulo mais longo) e a largura de
+   * dentro do grupo no lugar do `100%`, e a grade enche os trilhos como o
+   * navegador faz: o maior número de trilhos de mínimo M que cabe na largura,
+   * sem passar do número de opções (o `auto-fit` recolhe os vazios), todos
+   * iguais. O pixel de verdade, no Chromium, está na entrega do lote.
+   *
+   * A mesma conta lê a regra ANTERIOR (`flex-wrap`, a opção `1 0 auto`), escrita
+   * abaixo como dado: ela é a isca, e tem de reprovar no mesmo critério.
+   */
+  const ultima = (declaracoes: readonly (readonly [string, string])[], propriedade: string) =>
+    declaracoes.filter(([p]) => p === propriedade).at(-1)?.[1];
+
+  const regraDe = (seletor: string) => {
+    const achadas = REGRAS.filter((r) => r.profundidade === 0 && r.seletores.includes(seletor));
+    return achadas.flatMap((r) => r.declaracoes);
+  };
+
+  /** O primeiro argumento de `minmax(`, até a vírgula de primeiro nível. */
+  function primeiroDoMinmax(valor: string) {
+    const inicio = valor.indexOf("minmax(") + "minmax(".length;
+    let nivel = 0;
+    for (let k = inicio; k < valor.length; k++) {
+      if (valor[k] === "(") nivel++;
+      else if (valor[k] === ")") nivel--;
+      else if (valor[k] === "," && nivel === 0) return valor.slice(inicio, k);
+    }
+    throw new Error(`minmax sem segundo argumento: ${valor}`);
+  }
+
+  interface Entrada {
+    /** A largura do contêiner (a janela menos o respiro da coluna). */
+    contêiner: number;
+    opcoes: number;
+    /** O rótulo mais longo, em letras. */
+    letras: number;
+    full: boolean;
+  }
+
+  /** As opções de cada fileira, com a largura de cada uma, e se o grupo cabe no contêiner. */
+  function fileirasDe(entrada: Entrada, grupo: readonly (readonly [string, string])[], opcao: readonly (readonly [string, string])[]) {
+    const { contêiner, opcoes, letras, full } = entrada;
+    const sheetVars: Record<string, string> = Object.fromEntries(
+      regraDe(".co-segmented").filter(([p]) => p.startsWith("--co-seg-")),
+    );
+    const base: Valores = { ...TOKENS, ...sheetVars, "--co-seg-n": String(opcoes), "--co-seg-chars": String(letras) };
+    const respiro = avaliar(ultima(grupo, "padding") ?? "0px", base);
+    const contorno = avaliar((ultima(grupo, "border") ?? "0px").split(" ")[0] ?? "0px", base);
+    const vao = avaliar(ultima(grupo, "gap") ?? "0px", base);
+    const minimo = avaliar(ultima(opcao, "min-width") ?? "0px", base);
+    const grade = ultima(grupo, "grid-template-columns");
+
+    if (grade) {
+      // Largura do grupo: a do contêiner, ou a que as opções pedem se for menor
+      // (`width: min(100%, var(--co-seg-outer))`).
+      const pedida = avaliar(sheetVars["--co-seg-outer"] ?? "0px", { ...base, "%": `${contêiner}px` });
+      const largura = full ? contêiner : Math.min(contêiner, pedida);
+      const dentro = largura - 2 * (respiro + contorno);
+      const trilho = avaliar(primeiroDoMinmax(grade), { ...base, "%": `${dentro}px` });
+      const colunas = Math.max(1, Math.min(opcoes, Math.floor((dentro + vao) / (trilho + vao))));
+      const cada = (dentro - (colunas - 1) * vao) / colunas;
+      const fileiras: number[][] = [];
+      for (let k = 0; k < opcoes; k += colunas) fileiras.push(Array.from({ length: Math.min(colunas, opcoes - k) }, () => cada));
+      return { fileiras, dentro, vao };
+    }
+
+    // A regra anterior: `flex-wrap`, a opção `flex: 1 0 auto` (o grupo
+    // `inline-flex` ocupa o contêiner quando as opções não cabem).
+    const dentro = contêiner - 2 * (respiro + contorno);
+    const fileiras: number[][] = [];
+    let atual: number[] = [];
+    let ocupado = 0;
+    for (let k = 0; k < opcoes; k++) {
+      const extra = (atual.length === 0 ? 0 : vao) + minimo;
+      if (atual.length > 0 && ocupado + extra > dentro) {
+        fileiras.push(atual);
+        atual = [];
+        ocupado = 0;
+      }
+      ocupado += (atual.length === 0 ? 0 : vao) + minimo;
+      atual.push(minimo);
+    }
+    fileiras.push(atual);
+    return {
+      fileiras: fileiras.map((fileira) => {
+        const soma = fileira.reduce((a, b) => a + b, 0) + vao * (fileira.length - 1);
+        return fileira.map((l) => l + (dentro - soma) / fileira.length);
+      }),
+      dentro,
+      vao,
+    };
+  }
+
+  const ANTERIOR = {
+    grupo: [
+      ["display", "inline-flex"],
+      ["flex-wrap", "wrap"],
+      ["max-width", "100%"],
+      ["gap", "var(--co-space-2)"],
+      ["padding", "var(--co-space-2)"],
+      ["border", "var(--co-control-width) solid var(--co-control)"],
+    ] as const,
+    opcao: [
+      ["flex", "1 0 auto"],
+      ["min-width", "var(--co-target-min)"],
+    ] as const,
+  };
+
+  const razaoDasOpcoes = (fileiras: number[][]) => {
+    const todas = fileiras.flat();
+    return Math.max(...todas) / Math.min(...todas);
+  };
+
+  const ATUAL = () => ({ grupo: regraDe(".co-segmented"), opcao: bloco(".co-segmented__option") });
+
+  // 320px e 390px de janela, com o respiro de 16px de cada lado da coluna.
+  const COLUNAS = [288, 358] as const;
+
+  it.each(COLUNAS)(
+    "a %ipx de coluna, o grupo quebrado tem fileiras de largura igual (a maior opção até 1,5 vezes a menor) e nenhuma opção abaixo de 44px",
+    (contêiner) => {
+      const { grupo, opcao } = ATUAL();
+      for (const [opcoes, letras] of [[6, 1], [8, 1], [12, 2], [6, 3], [8, 3], [4, 14], [5, 14]] as const) {
+        for (const full of [true, false]) {
+          const { fileiras, dentro } = fileirasDe({ contêiner, opcoes, letras, full }, grupo, opcao);
+          const nome = `${opcoes} opções de ${letras} letras (full: ${full}) a ${contêiner}px`;
+          expect(razaoDasOpcoes(fileiras), `a razão entre a maior e a menor opção: ${nome}`).toBeLessThanOrEqual(1.5);
+          for (const l of fileiras.flat()) expect(l, `opção de ${nome}`).toBeGreaterThanOrEqual(44);
+          // Nada passa da largura de dentro.
+          for (const fileira of fileiras) {
+            const soma = fileira.reduce((a, b) => a + b, 0) + 2 * (fileira.length - 1);
+            expect(soma, `fileira de ${nome}`).toBeLessThanOrEqual(dentro + 0.01);
+          }
+        }
+      }
+    },
+  );
+
+  it.each([
+    // [coluna, opções, letras do rótulo mais longo, fileiras]
+    [288, 6, 1, [6]],
+    [288, 8, 1, [4, 4]],
+    [288, 6, 3, [3, 3]],
+    [288, 4, 14, [2, 2]],
+    [358, 6, 1, [6]],
+    [358, 8, 1, [4, 4]],
+    [358, 6, 3, [6]],
+    [358, 4, 14, [2, 2]],
+    [600, 4, 14, [4]],
+    [600, 8, 1, [8]],
+  ] as const)("a %ipx de coluna, %i opções de %i letras ficam em %j: equilibradas, e uma pílula só quando cabem", (contêiner, opcoes, letras, esperado) => {
+    const { grupo, opcao } = ATUAL();
+    const { fileiras } = fileirasDe({ contêiner, opcoes, letras, full: true }, grupo, opcao);
+    expect(fileiras.map((f) => f.length)).toEqual(esperado);
+  });
+
+  it("a isca: a regra anterior (flex-wrap, opção 1 0 auto) deixa a última fileira esticada e reprova no mesmo critério", () => {
+    // Oito opções a 320px: 6 + 2, com as duas de baixo a 140px contra 44px.
+    const { fileiras } = fileirasDe({ contêiner: 288, opcoes: 8, letras: 1, full: true }, ANTERIOR.grupo, ANTERIOR.opcao);
+    expect(fileiras.map((f) => f.length)).toEqual([6, 2]);
+    expect(razaoDasOpcoes(fileiras)).toBeGreaterThan(1.5);
+    // E a regra de hoje, na mesma entrada, passa.
+    const { grupo, opcao } = ATUAL();
+    const agora = fileirasDe({ contêiner: 288, opcoes: 8, letras: 1, full: true }, grupo, opcao);
+    expect(razaoDasOpcoes(agora.fileiras)).toBeLessThanOrEqual(1.5);
+  });
+
+  it("o componente escreve as duas contas, pela prop style (CSSOM): o número de opções e o rótulo mais longo", () => {
+    const { container } = render(
+      <SegmentedControl
+        label="Estilo"
+        value="a"
+        onChange={vi.fn()}
+        options={[
+          { value: "a", label: "Padrão" },
+          { value: "b", label: "Baixa em carbo" },
+          { value: "c", label: "Cetogênica" },
+        ]}
+      />,
+    );
+    const grupo = container.querySelector<HTMLElement>(".co-segmented");
+    expect(grupo?.style.getPropertyValue("--co-seg-n")).toBe("3");
+    expect(grupo?.style.getPropertyValue("--co-seg-chars")).toBe("14");
+  });
+
+  it("os quatro rótulos longos ('Padrão / Baixa em carbo / Cetogênica / Alta em carbo') não transbordam: o grupo e a opção param em 100%", () => {
+    const grupo = bloco(".co-segmented");
+    const opcao = bloco(".co-segmented__option");
+    expect(ultima(grupo, "max-width"), "o grupo para na largura de quem o contém").toBe("100%");
+    expect(ultima(opcao, "max-width"), "uma opção sozinha para na largura do grupo").toBe("100%");
+    // Sem `nowrap`: a opção que passaria da célula quebra o próprio rótulo, em
+    // vez de empurrar a página para o lado.
+    expect(ultima(opcao, "white-space"), "o rótulo pode quebrar").not.toBe("nowrap");
+    render(
+      <SegmentedControl
+        label="Estilo"
+        value="padrao"
+        onChange={vi.fn()}
+        options={[
+          { value: "padrao", label: "Padrão" },
+          { value: "low", label: "Baixa em carbo" },
+          { value: "keto", label: "Cetogênica" },
+          { value: "high", label: "Alta em carbo" },
+        ]}
+      />,
+    );
+    // Quebrar em fileiras não tira o grupo do papel dele: continua um radiogroup
+    // de quatro, com uma parada do Tab.
+    const grupoNaTela = screen.getByRole("radiogroup", { name: "Estilo" });
+    expect(within(grupoNaTela).getAllByRole("radio")).toHaveLength(4);
+    expect(within(grupoNaTela).getAllByRole("radio").filter((r) => r.tabIndex === 0)).toHaveLength(1);
+  });
+
+  it("com legend, o rótulo aparece em cima, visível, no estilo do rótulo do Field, e é o nome do grupo", async () => {
+    const usuario = userEvent.setup();
+    function ComLegenda() {
+      const [dia, definir] = useState<(typeof DIAS)[number]["value"]>("hoje");
+      return <SegmentedControl legend label="Dia" options={DIAS} value={dia} onChange={definir} />;
+    }
+    render(
+      <>
+        <ComLegenda />
+        <Field label="Peso">{(controle) => <Input {...controle} />}</Field>
+      </>,
+    );
+    const grupo = screen.getByRole("radiogroup", { name: "Dia" });
+    const legenda = screen.getByText("Dia");
+    // Visível, e o nome do grupo vem dele, e não de um `aria-label` escondido.
+    expect(legenda.closest(".co-visually-hidden")).toBeNull();
+    expect(grupo).not.toHaveAttribute("aria-label");
+    expect(grupo).toHaveAttribute("aria-labelledby", legenda.id);
+    // Antes do grupo, na ordem do documento.
+    expect(legenda.compareDocumentPosition(grupo) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // O mesmo estilo do rótulo do Field: a mesma variante e o mesmo tom.
+    const doCampo = screen.getByText("Peso");
+    expect([legenda.dataset["variant"], legenda.dataset["tone"]]).toEqual([doCampo.dataset["variant"], doCampo.dataset["tone"]]);
+    // O teclado é o mesmo: uma parada do Tab, as setas.
+    await usuario.tab();
+    expect(screen.getByRole("radio", { name: "Hoje" })).toHaveFocus();
+    await usuario.keyboard("{End}");
+    expect(screen.getByRole("radio", { name: "Amanhã" })).toBeChecked();
+  });
+
+  it("o className vai para o elemento de fora: o grupo sem legend, o embrulho com legend", () => {
+    const { unmount } = render(
+      <SegmentedControl label="Dia" options={DIAS} value="hoje" onChange={vi.fn()} className="de-fora" />,
+    );
+    expect(screen.getByRole("radiogroup")).toHaveClass("co-segmented", "de-fora");
+    unmount();
+    const comLegenda = render(
+      <SegmentedControl legend label="Dia" options={DIAS} value="hoje" onChange={vi.fn()} className="de-fora" />,
+    );
+    const embrulho = comLegenda.container.firstElementChild;
+    expect(embrulho, "o elemento de fora").toHaveClass("co-segmented-field", "de-fora");
+    expect(screen.getByRole("radiogroup")).toHaveClass("co-segmented");
+    expect(screen.getByRole("radiogroup")).not.toHaveClass("de-fora");
+  });
+
+  it("sem legend (o padrão), o nome continua no aria-label e nada de rótulo aparece", () => {
+    render(<EscolhaDoDia />);
+    const grupo = screen.getByRole("radiogroup", { name: "Dia" });
+    expect(grupo).toHaveAttribute("aria-label", "Dia");
+    expect(grupo).not.toHaveAttribute("aria-labelledby");
+    expect(screen.queryByText("Dia")).toBeNull();
+  });
+
+  it.each(TEMAS)("no tema %s, com legend, passa no axe", async (tema) => {
+    expect(
+      await semViolacao(<SegmentedControl legend full label="Refeições por dia" options={DIAS} value="hoje" onChange={vi.fn()} />, tema),
+    ).toEqual([]);
+  });
+
+  it("quebrado em linhas, o grupo continua pílula na fileira e a opção do canto não sai da borda", () => {
+    // O raio do grupo é meia altura de UMA fileira (a opção de 44px, o respiro
+    // e o contorno), e não 999px: com duas fileiras, 999px viraria meia altura
+    // do grupo inteiro, e a pílula escolhida no canto sairia da curva.
+    const grupo = bloco(".co-segmented");
+    const raio = avaliar(ultima(grupo, "border-radius") ?? "0px", TOKENS);
+    const fileira =
+      avaliar("var(--co-target-min)", TOKENS) +
+      2 * avaliar(ultima(grupo, "padding") ?? "0px", TOKENS) +
+      2 * avaliar((ultima(grupo, "border") ?? "0px").split(" ")[0] ?? "0px", TOKENS);
+    expect(raio).toBeCloseTo(fileira / 2, 5);
+  });
+});
+
+// ------------------------------------------------- o aviso e o vazio --
+
+describe("Notice e EmptyState: render e acessibilidade", () => {
+  const Aviso = () => (
+    <Notice title="Ajustamos a meta" tone="status">
+      O peso parou por 3 semanas, e a meta desceu 100 kcal.
+    </Notice>
+  );
+  const Vazio = () => (
+    <EmptyState title="Nenhuma receita no livro" icon="book" action={<Button>Criar à mão</Button>}>
+      As receitas que você guardar aparecem aqui.
+    </EmptyState>
+  );
+
+  it("o aviso é um status com título e corpo; o vazio diz o que falta e oferece a saída", () => {
+    render(
+      <>
+        <Aviso />
+        <Vazio />
+      </>,
+    );
+    const aviso = screen.getByRole("status");
+    expect(aviso).toHaveTextContent("Ajustamos a meta");
+    expect(aviso).toHaveTextContent("O peso parou por 3 semanas");
+    expect(screen.getByText("Nenhuma receita no livro")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Criar à mão" })).toBeInTheDocument();
+  });
+
+  it.each(TEMAS)("no tema %s, os dois passam no axe", async (tema) => {
+    expect(
+      await semViolacao(
+        <>
+          <Aviso />
+          <Vazio />
+        </>,
+        tema,
+      ),
+    ).toEqual([]);
+  });
+});
+
+// ----------------------------------------- a confirmação de apagar a conta --
+
+/**
+ * A folha de confirmação como o app a monta: o foco inicial vai para
+ * "Cancelar", a ação MENOS destrutiva (o padrão de diálogo de alerta da
+ * WAI-ARIA). Abrir pelo teclado e teclar Enter de novo não pode apagar a conta:
+ * o segundo Enter de quem abriu sem olhar cai em "Cancelar", e apagar pede um
+ * Tab a mais, de propósito.
+ */
+function ApagarConta({ aoApagar }: { aoApagar: () => void }) {
+  const [aberta, abrir] = useState(false);
+  const cancelar = useRef<HTMLButtonElement>(null);
+  return (
+    <>
+      <Button variant="danger" onClick={() => abrir(true)}>
+        Apagar minha conta
+      </Button>
+      <Sheet
+        open={aberta}
+        onClose={() => abrir(false)}
+        title="Apagar a conta?"
+        role="alertdialog"
+        initialFocus={cancelar}
+        footer={
+          <>
+            <Button ref={cancelar} variant="secondary" onClick={() => abrir(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                aoApagar();
+                abrir(false);
+              }}
+            >
+              Apagar de vez
+            </Button>
+          </>
+        }
+      >
+        Isto apaga o seu livro, a sua meta e o seu histórico.
+      </Sheet>
+    </>
+  );
+}
+
+describe("Sheet de confirmação: o foco cai em Cancelar e volta ao fechar", () => {
+  it("abrir põe o foco em 'Cancelar'; Esc fecha e o foco volta a quem abriu", async () => {
+    const usuario = userEvent.setup();
+    render(<ApagarConta aoApagar={vi.fn()} />);
+    const abrir = screen.getByRole("button", { name: "Apagar minha conta" });
+    await usuario.click(abrir);
+    const dialogo = screen.getByRole("alertdialog", { name: "Apagar a conta?" });
+    expect(within(dialogo).getByRole("button", { name: "Cancelar" })).toHaveFocus();
+    await usuario.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(abrir).toHaveFocus();
+  });
+
+  it("aberta pelo teclado, o Enter logo ao abrir NÃO apaga: cancela, e o foco volta a quem abriu", async () => {
+    const usuario = userEvent.setup();
+    const aoApagar = vi.fn();
+    render(<ApagarConta aoApagar={aoApagar} />);
+    const abrir = screen.getByRole("button", { name: "Apagar minha conta" });
+    await usuario.tab();
+    expect(abrir).toHaveFocus();
+    await usuario.keyboard("{Enter}");
+    expect(screen.getByRole("alertdialog", { name: "Apagar a conta?" })).toBeInTheDocument();
+    await usuario.keyboard("{Enter}");
+    expect(aoApagar, "o Enter logo ao abrir chamou a ação destrutiva").not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(abrir).toHaveFocus();
+  });
+
+  it("apagar pede um Tab a mais: Tab + Enter chama a ação, e o foco volta a quem abriu", async () => {
+    const usuario = userEvent.setup();
+    const aoApagar = vi.fn();
+    render(<ApagarConta aoApagar={aoApagar} />);
+    const abrir = screen.getByRole("button", { name: "Apagar minha conta" });
+    await usuario.tab();
+    await usuario.keyboard("{Enter}");
+    await usuario.tab();
+    expect(screen.getByRole("button", { name: "Apagar de vez" })).toHaveFocus();
+    await usuario.keyboard("{Enter}");
+    expect(aoApagar).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(abrir).toHaveFocus();
+  });
+
+  it("cancelar com o ponteiro também devolve o foco, e só a confirmação apaga", async () => {
+    const usuario = userEvent.setup();
+    const aoApagar = vi.fn();
+    render(<ApagarConta aoApagar={aoApagar} />);
+    const abrir = screen.getByRole("button", { name: "Apagar minha conta" });
+    await usuario.click(abrir);
+    await usuario.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(abrir).toHaveFocus();
+    expect(aoApagar).not.toHaveBeenCalled();
+    await usuario.click(abrir);
+    await usuario.click(screen.getByRole("button", { name: "Apagar de vez" }));
+    expect(aoApagar).toHaveBeenCalledTimes(1);
+    expect(abrir).toHaveFocus();
+  });
+
+  it("a confirmação é um alertdialog, descrito pelo corpo; a folha comum continua dialog; inline ignora o papel", () => {
+    const { unmount } = render(<ApagarConta aoApagar={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Apagar minha conta" }));
+    const alerta = screen.getByRole("alertdialog", { name: "Apagar a conta?" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(alerta).toHaveAttribute("aria-modal", "true");
+    expect(alerta).toHaveAccessibleDescription("Isto apaga o seu livro, a sua meta e o seu histórico.");
+    unmount();
+
+    const comum = render(
+      <Sheet open onClose={vi.fn()} title="Escolha">
+        Corpo
+      </Sheet>,
+    );
+    expect(screen.getByRole("dialog", { name: "Escolha" })).not.toHaveAttribute("aria-describedby");
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    comum.unmount();
+
+    render(
+      <Sheet open onClose={vi.fn()} title="No cartão" mode="inline" role="alertdialog">
+        Corpo
+      </Sheet>,
+    );
+    expect(screen.getByRole("group", { name: "No cartão" })).not.toHaveAttribute("aria-describedby");
+  });
+
+  it.each(TEMAS)("no tema %s, a confirmação aberta passa no axe", async (tema) => {
+    function Aberta() {
+      const cancelar = useRef<HTMLButtonElement>(null);
+      return (
+        <Sheet
+          open
+          onClose={vi.fn()}
+          title="Apagar a conta?"
+          role="alertdialog"
+          initialFocus={cancelar}
+          footer={
+            <>
+              <Button ref={cancelar} variant="secondary">
+                Cancelar
+              </Button>
+              <Button variant="danger">Apagar de vez</Button>
+            </>
+          }
+        >
+          Isto apaga os seus dados.
+        </Sheet>
+      );
+    }
+    expect(await semViolacao(<Aberta />, tema)).toEqual([]);
+  });
+});
+
+// ------------------------------------------- os menus de Você e o porquê --
+
+function MenuVoce({ aoAbrir }: { aoAbrir: (valor: string) => void }) {
+  return (
+    <NavList
+      label="Você"
+      opens="page"
+      value="objetivo"
+      onChange={aoAbrir}
+      items={[
+        { value: "objetivo", label: "Objetivo e meta", description: "Perder · 1.950 kcal" },
+        { value: "corpo", label: "Corpo" },
+        { value: "privacidade", label: "Privacidade" },
+      ]}
+    />
+  );
+}
+
+describe("NavList e Disclosure: teclado e acessibilidade", () => {
+  it("o menu de Você se percorre pelo Tab e abre a seção pelo Enter e pelo Espaço", async () => {
+    const usuario = userEvent.setup();
+    const aoAbrir = vi.fn();
+    render(<MenuVoce aoAbrir={aoAbrir} />);
+    await usuario.tab();
+    expect(screen.getByRole("button", { name: /Objetivo e meta/ })).toHaveFocus();
+    await usuario.tab();
+    expect(screen.getByRole("button", { name: "Corpo" })).toHaveFocus();
+    await usuario.keyboard("{Enter}");
+    expect(aoAbrir).toHaveBeenLastCalledWith("corpo");
+    await usuario.tab();
+    await usuario.keyboard(" ");
+    expect(aoAbrir).toHaveBeenLastCalledWith("privacidade");
+  });
+
+  it("'Por que perguntamos' é um <details> do navegador: o resumo é uma parada do Tab e abre e fecha", async () => {
+    // O Enter e o Espaço no resumo são do navegador (o HTML os liga ao clique
+    // do `<summary>`); o happy-dom não os imita, e a prova de teclado de
+    // verdade é a do Chromium sobre o catálogo (ADR-022). Aqui: o resumo
+    // recebe o foco pelo Tab, e a ativação dele abre e fecha.
+    const usuario = userEvent.setup();
+    render(<Disclosure summary="Por que perguntamos">Para calcular a meta do dia.</Disclosure>);
+    const resumo = screen.getByText("Por que perguntamos").closest("summary") as HTMLElement;
+    const detalhes = resumo.closest("details") as HTMLDetailsElement;
+    await usuario.tab();
+    expect(resumo).toHaveFocus();
+    expect(detalhes.open).toBe(false);
+    await usuario.click(resumo);
+    expect(detalhes.open).toBe(true);
+    await usuario.click(resumo);
+    expect(detalhes.open).toBe(false);
+  });
+
+  it.each(TEMAS)("no tema %s, o menu e o porquê passam no axe", async (tema) => {
+    expect(
+      await semViolacao(
+        <>
+          <MenuVoce aoAbrir={vi.fn()} />
+          <Disclosure summary="Por que perguntamos" defaultOpen>
+            Para calcular a meta do dia.
+          </Disclosure>
+        </>,
+        tema,
+      ),
+    ).toEqual([]);
+  });
+});

@@ -19,6 +19,8 @@ export type {
   ThemePreference,
   ThemeProviderProps,
 } from "./theme/ThemeProvider";
+export { applyHour, hourStops, hourStyle, hourVars } from "./theme/hour";
+export type { HourStyle, HourVars } from "./theme/hour";
 
 export { Badge } from "./atoms/Badge";
 export type { BadgeProps } from "./atoms/Badge";

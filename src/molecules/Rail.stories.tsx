@@ -58,7 +58,7 @@ function Marca({ collapsed }: Readonly<{ collapsed: boolean }>) {
           height: "26px",
           flexShrink: 0,
           borderRadius: "var(--co-radius-inset)",
-          background: "var(--co-accent)",
+          background: "var(--co-hora)",
         }}
       />
       {collapsed ? (
@@ -100,7 +100,7 @@ function Moldura({
         height: "420px",
         overflow: "hidden",
         borderRadius: "var(--co-radius-container)",
-        background: "var(--co-canvas)",
+        background: "var(--co-bg)",
         ...(areaSegura ? IPAD : {}),
       }}
     >
@@ -113,8 +113,8 @@ function Moldura({
             top: 0,
             insetInline: 0,
             height: "var(--co-safe-top)",
-            background: "var(--co-overlay)",
-            borderBottom: "var(--co-border-width) solid var(--co-overlay-line)",
+            background: "var(--co-surface)",
+            borderBottom: "var(--co-border-width) solid var(--co-line)",
           }}
         />
       ) : null}

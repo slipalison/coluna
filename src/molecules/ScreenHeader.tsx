@@ -14,11 +14,11 @@ export interface ScreenHeaderProps {
 }
 
 /**
- * O título grande de uma tela: serifa de 36px, data embaixo, uma ação à direita.
+ * O título grande de uma tela, na Bricolage Grotesque: data embaixo, uma ação à direita.
  *
  * O título é grande porque ele diz ONDE a pessoa está, e num aplicativo que
  * abre sempre na mesma tela isso some rápido se o nome do lugar tiver o mesmo
- * tamanho do resto. Ele não é `position: sticky`: encolher um título de 36 para
+ * tamanho do resto. Ele não é `position: sticky`: encolher um título de 26 para
  * 17 durante a rolagem é bonito na demonstração e custa um reflow por quadro
  * num aparelho lento.
  *

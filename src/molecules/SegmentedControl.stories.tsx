@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Stack } from "../atoms/Stack";
 import { Text } from "../atoms/Text";
 import { SegmentedControl } from "./SegmentedControl";
@@ -99,6 +99,73 @@ export const SeisOpções: Story = {
           {valor} refeições por dia
         </Text>
       </Stack>
+    );
+  },
+};
+
+const NUMEROS = ["1", "2", "3", "4", "5", "6", "7", "8"].map((n) => ({ value: n, label: n }));
+
+/**
+ * A moldura de um telefone de 320px, com o respiro de 16px dos lados. É teto, e
+ * não largura fixa: numa janela mais estreita que a moldura (o catálogo tem 24px
+ * de respiro em volta), ela encolhe junto, e quem rolaria de lado é a moldura,
+ * e não o segmentado.
+ */
+function A320({ children }: { children: ReactNode }) {
+  return <div style={{ width: "100%", maxWidth: "320px", padding: "0 16px", boxSizing: "border-box" }}>{children}</div>;
+}
+
+/**
+ * A 320px, o mínimo da tela (WCAG 1.4.10). Toda opção continua com 44px de
+ * largura e de altura, e o grupo nunca passa da largura: quando as opções não
+ * cabem numa fileira, ele quebra em fileiras EQUILIBRADAS e de largura igual
+ * (oito viram 4 + 4, os quatro estilos 2 + 2), e quando cabem continua uma
+ * pílula só. Continua um `radiogroup`, com uma parada do Tab, as setas e
+ * Home/End.
+ *
+ * **O que conferir.** Nenhuma das três rola a página de lado; nenhuma opção
+ * fica mais estreita que 44px; nenhuma fica esticada: todas as opções do grupo
+ * têm a mesma largura; os quatro rótulos longos ficam inteiros, em duas
+ * fileiras.
+ */
+export const A320px: Story = {
+  name: "A 320px — 6 e 8 opções, rótulos longos",
+  render: () => {
+    const [seis, definirSeis] = useState("4");
+    const [oito, definirOito] = useState("4");
+    const [estrategia, definirEstrategia] = useState<Estrategia>("padrao");
+    return (
+      <A320>
+        <Stack gap={20}>
+          <SegmentedControl full label="Refeições por dia (até 6)" options={NUMEROS.slice(0, 6)} value={seis} onChange={definirSeis} />
+          <SegmentedControl full label="Refeições por dia (até 8)" options={NUMEROS} value={oito} onChange={definirOito} />
+          <SegmentedControl label="Estratégia de macros" options={ESTRATEGIAS} value={estrategia} onChange={definirEstrategia} />
+        </Stack>
+      </A320>
+    );
+  },
+};
+
+/**
+ * Com `legend`: o `label` aparece em cima do grupo, visível, com o estilo do
+ * rótulo do `Field`, e é ele o nome do grupo (`aria-labelledby`). É o que se usa
+ * quando o segmentado mora num formulário, ao lado de campos com rótulo; sem
+ * `legend`, o nome continua no `aria-label`, para quando o título da seção já
+ * diz o que se escolhe.
+ */
+export const ComLegenda: Story = {
+  name: "Com legenda",
+  render: () => {
+    const [valor, definir] = useState("4");
+    return (
+      <SegmentedControl
+        legend
+        full
+        label="Refeições por dia"
+        options={NUMEROS.slice(0, 6)}
+        value={valor}
+        onChange={definir}
+      />
     );
   },
 };

@@ -149,7 +149,7 @@ export function Group({
         // `polite`, como no `Field`: o erro que chega enquanto a pessoa ainda
         // escolhe não corta o que o leitor de tela está dizendo.
         <p className="co-group__error" id={idErro} aria-live="polite">
-          <Icon className="co-group__error-icon" name="info" size={15} />
+          <Icon className="co-group__error-icon" name="alert" size={15} />
           <span>{error}</span>
         </p>
       )}

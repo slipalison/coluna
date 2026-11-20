@@ -1,209 +1,158 @@
 {
-  "white": {
+  "pomes-025": {
     "$type": "color",
-    "$value": "#ffffff"
+    "$value": "#F3F6F3",
+    "$description": "O texto sobre a tinta solida no claro."
   },
-
-  "stone-050": {
+  "pomes-050": {
     "$type": "color",
-    "$value": "#faf8fc"
+    "$value": "#F6F8F6"
   },
-  "stone-075": {
+  "pomes-100": {
     "$type": "color",
-    "$value": "#f2eef8"
+    "$value": "#E9EDEA",
+    "$description": "Pedra-pomes: o fundo do claro."
   },
-  "stone-100": {
+  "pomes-200": {
     "$type": "color",
-    "$value": "#ece7f3"
+    "$value": "#DDE3DF"
   },
-  "stone-200": {
+  "pomes-300": {
     "$type": "color",
-    "$value": "#e2dced"
+    "$value": "#CFD7D2"
   },
-  "stone-300": {
+  "pomes-400": {
     "$type": "color",
-    "$value": "#d3cbe1"
+    "$value": "#C3CCC7"
   },
-  "stone-400": {
+  "pomes-600": {
     "$type": "color",
-    "$value": "#b9afc9"
+    "$value": "#6E7B77"
   },
-  "stone-500": {
+  "pomes-700": {
     "$type": "color",
-    "$value": "#9289a3"
+    "$value": "#56635F"
   },
-  "stone-600": {
+  "pomes-800": {
     "$type": "color",
-    "$value": "#756c85"
+    "$value": "#3F4D4A"
   },
-  "stone-650": {
+  "pomes-950": {
     "$type": "color",
-    "$value": "#655c75"
+    "$value": "#142024",
+    "$description": "A tinta do claro, e o texto fixo sobre a cor da hora nos dois temas."
   },
-  "stone-700": {
+  "basalto-950": {
     "$type": "color",
-    "$value": "#574e67"
+    "$value": "#0B0F10"
   },
-  "stone-800": {
+  "basalto-900": {
     "$type": "color",
-    "$value": "#453c54"
+    "$value": "#101517",
+    "$description": "Basalto: o fundo do escuro."
   },
-  "stone-850": {
+  "basalto-850": {
     "$type": "color",
-    "$value": "#2e2739"
+    "$value": "#182023"
   },
-  "stone-900": {
+  "basalto-800": {
     "$type": "color",
-    "$value": "#1a1520"
+    "$value": "#222C2D"
   },
-
-  "basalt-975": {
+  "basalto-750": {
     "$type": "color",
-    "$value": "#0d0b11"
+    "$value": "#2C3735"
   },
-  "basalt-950": {
+  "basalto-500": {
     "$type": "color",
-    "$value": "#14111c"
+    "$value": "#7D8A86"
   },
-  "basalt-900": {
+  "basalto-400": {
     "$type": "color",
-    "$value": "#1a1622"
+    "$value": "#8E9A96"
   },
-  "basalt-850": {
+  "basalto-200": {
     "$type": "color",
-    "$value": "#221d2d"
+    "$value": "#B4C0BC"
   },
-  "basalt-800": {
+  "basalto-050": {
     "$type": "color",
-    "$value": "#2b2537"
+    "$value": "#E8EEEB"
   },
-  "basalt-700": {
+  "anil-700": {
     "$type": "color",
-    "$value": "#332c42"
+    "$value": "#1957C9",
+    "$description": "O anel de foco do claro."
   },
-  "basalt-600": {
+  "anil-200": {
     "$type": "color",
-    "$value": "#3a3346"
+    "$value": "#8DB4FF",
+    "$description": "O anel de foco do escuro."
   },
-  "basalt-500": {
+  "musgo-700": {
     "$type": "color",
-    "$value": "#4b4360"
+    "$value": "#1D6E44"
   },
-  "basalt-400": {
+  "musgo-300": {
     "$type": "color",
-    "$value": "#6f6780"
+    "$value": "#6FD49B"
   },
-  "basalt-300": {
+  "musgo-050": {
     "$type": "color",
-    "$value": "#8d849c"
+    "$value": "#D5EBDD"
   },
-  "basalt-250": {
+  "musgo-950": {
     "$type": "color",
-    "$value": "#9a91ab"
+    "$value": "#173327"
   },
-  "basalt-200": {
+  "ocre-700": {
     "$type": "color",
-    "$value": "#b5adc6"
+    "$value": "#8A5A00"
   },
-  "basalt-100": {
+  "ocre-300": {
     "$type": "color",
-    "$value": "#ddd7e8"
+    "$value": "#F2C14E"
   },
-  "basalt-050": {
+  "ocre-050": {
     "$type": "color",
-    "$value": "#f4f1f8"
+    "$value": "#F5E6C4"
   },
-
-  "amethyst-700": {
+  "ocre-950": {
     "$type": "color",
-    "$value": "#5a30bb"
+    "$value": "#3A2E12"
   },
-  "amethyst-600": {
+  "brasa-700": {
     "$type": "color",
-    "$value": "#6d3fd4"
+    "$value": "#B3261E"
   },
-  "amethyst-500": {
+  "brasa-300": {
     "$type": "color",
-    "$value": "#a882f5"
+    "$value": "#FF8A80"
   },
-  "amethyst-400": {
+  "brasa-050": {
     "$type": "color",
-    "$value": "#c3a6f8"
+    "$value": "#F6DAD6"
   },
-  "amethyst-050": {
+  "brasa-950": {
     "$type": "color",
-    "$value": "#efe8fd"
+    "$value": "#3D1D1B"
   },
-  "amethyst-950": {
+  "veu-claro": {
     "$type": "color",
-    "$value": "#241b33"
+    "$value": "rgba(10, 16, 18, 0.42)"
   },
-
-  "jade-700": {
+  "veu-escuro": {
     "$type": "color",
-    "$value": "#0e6b64"
+    "$value": "rgba(0, 0, 0, 0.6)"
   },
-  "jade-500": {
-    "$type": "color",
-    "$value": "#63b8ac"
+  "hora-h": {
+    "$type": "number",
+    "$value": 215,
+    "$description": "O matiz da hora, em graus. O padrao e o meio-dia; quem aplica a hora (hourStyle, applyHour) o troca no elemento."
   },
-  "jade-200": {
-    "$type": "color",
-    "$value": "#99e0d8"
-  },
-  "jade-900": {
-    "$type": "color",
-    "$value": "#2e5a58"
-  },
-
-  "orchid-600": {
-    "$type": "color",
-    "$value": "#8f3bad"
-  },
-  "orchid-500": {
-    "$type": "color",
-    "$value": "#c47ae0"
-  },
-  "orchid-200": {
-    "$type": "color",
-    "$value": "#e7c2f2"
-  },
-  "orchid-950": {
-    "$type": "color",
-    "$value": "#33203c"
-  },
-
-  "rust-600": {
-    "$type": "color",
-    "$value": "#b4332e"
-  },
-  "rust-500": {
-    "$type": "color",
-    "$value": "#d7655e"
-  },
-  "rust-050": {
-    "$type": "color",
-    "$value": "#fdeceb"
-  },
-  "rust-950": {
-    "$type": "color",
-    "$value": "#33161a"
-  },
-
-  "overlay-escuro": {
-    "$type": "color",
-    "$value": "rgba(13, 11, 17, 0.74)"
-  },
-  "overlay-claro": {
-    "$type": "color",
-    "$value": "rgba(242, 238, 248, 0.80)"
-  },
-  "fio-escuro": {
-    "$type": "color",
-    "$value": "rgba(244, 241, 248, 0.07)"
-  },
-  "fio-claro": {
-    "$type": "color",
-    "$value": "rgba(26, 21, 32, 0.09)"
+  "hora-c": {
+    "$type": "number",
+    "$value": 0.12,
+    "$description": "O croma da hora. O padrao e o do meio-dia."
   }
 }

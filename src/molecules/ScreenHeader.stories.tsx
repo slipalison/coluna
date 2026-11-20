@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ScreenHeader } from "./ScreenHeader";
 
 /**
- * O título grande de uma tela: serifa de 36px, data embaixo, uma ação à direita.
+ * O título grande de uma tela, na Bricolage Grotesque: data embaixo, uma ação à direita.
  *
  * O título é grande porque ele diz **onde** a pessoa está, e num aplicativo que
  * abre sempre na mesma tela isso some rápido se o nome do lugar tiver o mesmo
@@ -42,7 +42,7 @@ export const SóOTítulo: Story = {
 };
 
 /**
- * Título de duas linhas. `line-height` de 1,05 na serifa mantém as linhas
+ * Título de duas linhas. `line-height` de 1,05 no título mantém as linhas
  * juntas o bastante para lerem como um bloco.
  */
 export const DuasLinhas: Story = {

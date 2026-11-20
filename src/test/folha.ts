@@ -218,7 +218,7 @@ export function aparelho(topo: number, direita: number, baixo: number, esquerda:
 export const SEM_AREA: Valores = {};
 
 /**
- * `calc`, `max`, `min`, `var` e `env`, em px, com as quatro operações — o que a
+ * `calc`, `max`, `min`, `round`, `var` e `env`, em px (e `%`, com a base na chave `%`), com as quatro operações — o que a
  * folha usa nessas regras.
  * Sem fallback e sem valor, `env()` e `var()` FALHAM em vez de valer zero: uma
  * declaração que não chega até a regra é o defeito que este teste procura.
@@ -260,10 +260,16 @@ export function avaliar(texto: string, valores: Valores): number {
     }
     // O sinal colado ao número é dele (`calc(-1 * var(--co-space-4))`); o
     // menos da subtração vem sempre entre espaços, e a `soma()` o consome antes.
-    const numero = /^-?\d+(\.\d+)?(px)?/.exec(texto.slice(i));
+    const numero = /^-?\d+(\.\d+)?(px|%)?/.exec(texto.slice(i));
     if (numero) {
       i += numero[0].length;
-      return Number.parseFloat(numero[0]);
+      const valor = Number.parseFloat(numero[0]);
+      if (!numero[0].endsWith("%")) return valor;
+      // A porcentagem é de algo que a conta não sabe sozinha (a largura de
+      // dentro do grupo): quem a usa diz quanto vale 100% na chave `%`.
+      const cem = valores["%"];
+      if (cem === undefined) throw new Error(`${numero[0]} sem a base da porcentagem (a chave "%"): ${texto}`);
+      return (valor / 100) * avaliar(cem, valores);
     }
     const funcao = nome();
     esperar("(");
@@ -282,6 +288,19 @@ export function avaliar(texto: string, valores: Valores): number {
       }
       esperar(")");
       return funcao === "max" ? Math.max(...argumentos) : Math.min(...argumentos);
+    }
+    if (funcao === "round") {
+      // `round(up | down | nearest, valor, passo)`: o múltiplo do passo.
+      pular();
+      const modo = nome();
+      esperar(",");
+      const valor = soma();
+      esperar(",");
+      const passo = soma();
+      esperar(")");
+      const arredonda = { up: Math.ceil, down: Math.floor, nearest: Math.round }[modo];
+      if (!arredonda) throw new Error(`round() com modo que esta conta não conhece: ${modo}`);
+      return arredonda(valor / passo) * passo;
     }
     if (funcao === "var" || funcao === "env") {
       pular();

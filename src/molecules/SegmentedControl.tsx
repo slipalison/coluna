@@ -1,4 +1,5 @@
-import { useRef, type KeyboardEvent } from "react";
+import { useId, useRef, type CSSProperties, type KeyboardEvent } from "react";
+import { Text } from "../atoms/Text";
 
 export interface SegmentedOption<T extends string> {
   value: T;
@@ -8,10 +9,22 @@ export interface SegmentedOption<T extends string> {
 export interface SegmentedControlProps<T extends string> {
   /** Obrigatório: um grupo de escolha sem nome é mudo no leitor de tela. */
   label: string;
+  /**
+   * Mostra o `label` em cima do grupo, visível, com o estilo do rótulo do
+   * `Field` (o versalete). O nome do grupo passa a ser esse texto, por
+   * `aria-labelledby`, e não um `aria-label` invisível: o que se vê é o que o
+   * leitor de tela lê (WCAG 2.5.3). Sem ele (o padrão), o nome é o `label`
+   * invisível, para quando o título da seção já diz o que se escolhe.
+   */
+  legend?: boolean;
   options: readonly SegmentedOption<T>[];
   value: T;
   onChange: (value: T) => void;
   full?: boolean;
+  /**
+   * Vai para o elemento de fora: o grupo, ou o embrulho (`.co-segmented-field`)
+   * quando há `legend`, que é o que ocupa o lugar do controle na tela.
+   */
   className?: string | undefined;
 }
 
@@ -29,6 +42,7 @@ export interface SegmentedControlProps<T extends string> {
  */
 export function SegmentedControl<T extends string>({
   label,
+  legend = false,
   options,
   value,
   onChange,
@@ -36,7 +50,8 @@ export function SegmentedControl<T extends string>({
   className,
 }: SegmentedControlProps<T>) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
-  const classe = className ? `co-segmented ${className}` : "co-segmented";
+  const idLegenda = useId();
+  const classeDeFora = (base: string) => (className ? `${base} ${className}` : base);
 
   // Onde o tabindex itinerante pousa quando NENHUMA opção casa o `value`.
   //
@@ -86,8 +101,25 @@ export function SegmentedControl<T extends string>({
     }
   }
 
-  return (
-    <div className={classe} role="radiogroup" aria-label={label} data-full={full ? "true" : undefined}>
+  // Duas contas sobre os DADOS, e não medidas do DOM: quantas opções e o rótulo
+  // mais longo. É com elas que o CSS decide quantas fileiras e de que largura
+  // (`styles.css`, "controle segmentado"). Vão pela prop `style`, que o React
+  // escreve pelo CSSOM, e não pelo atributo (ADR-024). Com `legend` vão no
+  // embrulho, que também lê a largura, e o grupo as herda.
+  const contas = {
+    "--co-seg-n": options.length,
+    "--co-seg-chars": Math.max(0, ...options.map((opcao) => [...opcao.label].length)),
+  } as CSSProperties;
+
+  const grupo = (
+    <div
+      className={legend ? "co-segmented" : classeDeFora("co-segmented")}
+      role="radiogroup"
+      aria-label={legend ? undefined : label}
+      aria-labelledby={legend ? idLegenda : undefined}
+      data-full={full ? "true" : undefined}
+      style={legend ? undefined : contas}
+    >
       {options.map((opcao, indice) => {
         const marcado = opcao.value === value;
         return (
@@ -111,6 +143,18 @@ export function SegmentedControl<T extends string>({
           </button>
         );
       })}
+    </div>
+  );
+
+  if (!legend) return grupo;
+  // A legenda e o grupo juntos, com o respiro do rótulo do `Field` até o
+  // controle: os dois se leem como uma peça só.
+  return (
+    <div className={classeDeFora("co-segmented-field")} data-full={full ? "true" : undefined} style={contas}>
+      <Text as="span" id={idLegenda} variant="label" tone="subtle" className="co-segmented__legend">
+        {label}
+      </Text>
+      {grupo}
     </div>
   );
 }

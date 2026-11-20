@@ -1,0 +1,19 @@
+{
+  "composto": {
+    "hora": {
+      "$type": "other",
+      "$value": "oklch(var(--co-hora-l) var(--co-hora-c) var(--co-hora-h))",
+      "$description": "A cor da hora como preenchimento. Texto sobre ela e --co-on-hora."
+    },
+    "hora-ink": {
+      "$type": "other",
+      "$value": "oklch(var(--co-hora-ink-l) var(--co-hora-c) var(--co-hora-h))",
+      "$description": "A cor da hora como texto."
+    },
+    "hora-soft": {
+      "$type": "other",
+      "$value": "oklch(var(--co-hora-soft-l) var(--co-hora-soft-c) var(--co-hora-h))",
+      "$description": "O lavado de fundo da hora."
+    }
+  }
+}

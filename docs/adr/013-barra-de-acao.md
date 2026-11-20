@@ -146,7 +146,8 @@ barra de ação, as abas (WCAG 2.4.3, ordem do foco).
 - **Sem abas, ela é quem encosta na borda.** O rodapé é o termo `max(...)` da
   barra de abas: o botão entra 14px na área do indicador de início, como os
   destinos (ADR-012), e a barra cresce o que esse termo crescer — 75px com o
-  indicador de 34px.
+  indicador de 34px. Desde a 2.0 o termo deixa o botão 8px acima da área, e
+  não dentro dela (ADR-012, adendo 2.0).
 - **O vidro é o das abas**: o mesmo fundo com alfa, o mesmo desfoque, o mesmo
   fio em cima. Onde o filtro não existe, fica opaca, nunca ilegível.
 - **A calha é a da tela**, com o entalhe em paisagem: os botões começam e

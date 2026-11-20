@@ -15,22 +15,22 @@ import "./styles.css";
 import { lugar, REGRAS } from "./test/folha";
 
 /**
- * As fontes moram no pacote (ADR-014).
+ * As fontes moram no pacote (ADR-014), e desde a 2.0 são as três do "Relógio
+ * de Sol" (ADR-023): Bricolage Grotesque, Figtree e Sofia Sans Extra Condensed.
  *
- * Os tokens nomeiam a Instrument Serif e a Archivo desde a 1.0, e o pacote não
- * trazia nenhuma das duas: quem consome via a Georgia e a Helvetica, e nenhum
- * teste reclamava, porque um nome de família que não existe é CSS válido. Este
- * arquivo prova duas coisas, cada uma com a isca que mostra que ele morde:
+ * Um nome de família que não existe é CSS válido, e nada reclama quando a
+ * fonte não chega: quem consome vê a fonte do sistema. Este arquivo prova duas
+ * coisas, cada uma com a isca que mostra que ele morde:
  *
- * - A FOLHA PUBLICADA traz o `@font-face` das duas famílias, e toda `url()`
+ * - A FOLHA PUBLICADA traz o `@font-face` das três famílias, e toda `url()`
  *   dela vale no aplicativo de quem consome: relativa, apontando para arquivo
  *   que o build pôs ao lado, e nenhuma para fora — a CSP do Basalto é
  *   `font-src 'self'`. A folha é a que `scripts/construir-css.mjs` monta, num
  *   diretório temporário: o mesmo script do `npm run build`, sem depender de
  *   um `dist/` de antes.
- * - A SERIFA FICA NO 400. A Instrument Serif só tem esse peso; o título sai
- *   num `<h1>`, que o navegador pinta em negrito, e sem o 400 escrito o
- *   navegador inventa o negrito engrossando o traço.
+ * - O TÍTULO E O NÚMERO TÊM O PESO ESCRITO. O título sai num `<h1>` de quem
+ *   consome, ou dentro de um ancestral com outro peso; sem o 700 (e o 900 do
+ *   número) escrito, a cara da identidade dependeria do que está em volta.
  */
 
 const raizDoRepositorio = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -67,6 +67,7 @@ interface Face {
   family: string;
   style: string;
   weight: string;
+  stretch: string;
   display: string;
   src: string[];
   unicodeRange: string;
@@ -109,6 +110,7 @@ function faces(css: string): Face[] {
       family: descritor("font-family").replace(/^["']|["']$/g, ""),
       style: descritor("font-style"),
       weight: descritor("font-weight"),
+      stretch: descritor("font-stretch"),
       display: descritor("font-display"),
       src: alvos(descritor("src")),
       unicodeRange: descritor("unicode-range"),
@@ -154,24 +156,34 @@ function problemas(css: string, existe: (caminho: string) => boolean): string[] 
 const existeNaSaida = (caminho: string) => alcancado(caminho) !== undefined;
 
 describe("a folha publicada", () => {
-  it("traz o @font-face da Instrument Serif e da Archivo, normal, em latin e latin-ext", () => {
+  it("traz o @font-face da Bricolage, da Figtree e da Sofia, normal, em latin e latin-ext", () => {
     const porFamilia = (familia: string) =>
       faces(publicada)
         .filter((face) => face.family === familia)
-        .map((face) => ({ ...face, src: face.src.map((alvo) => alvo.replace(/^\.\/fonts\//, "")) }));
+        .map((face) => [
+          face.style,
+          face.weight,
+          face.stretch,
+          face.display,
+          face.src.map((alvo) => alvo.replace(/^\.\/fonts\//, "")),
+        ]);
 
-    // O 400 é o único peso da serifa; a Archivo é variável no `wght`, e um
-    // arquivo por subconjunto cobre o 400, o 500 e o 600 dos tokens e o 700
-    // que o navegador põe no `<strong>`.
-    expect(porFamilia("Instrument Serif").map((f) => [f.style, f.weight, f.display, f.src])).toEqual([
-      ["normal", "400", "swap", ["instrument-serif-latin-ext-400-normal.woff2"]],
-      ["normal", "400", "swap", ["instrument-serif-latin-400-normal.woff2"]],
+    // As três são variáveis, e cada bloco declara o intervalo do arquivo: o 700
+    // do título, os pesos do texto e o 900 do número saem desenhados. Só a
+    // Bricolage traz a largura (o título é 88%).
+    expect(porFamilia("Bricolage Grotesque")).toEqual([
+      ["normal", "200 800", "75% 100%", "swap", ["bricolage-grotesque-latin-ext-wdth-normal.woff2"]],
+      ["normal", "200 800", "75% 100%", "swap", ["bricolage-grotesque-latin-wdth-normal.woff2"]],
     ]);
-    expect(porFamilia("Archivo").map((f) => [f.style, f.weight, f.display, f.src])).toEqual([
-      ["normal", "100 900", "swap", ["archivo-latin-ext-wght-normal.woff2"]],
-      ["normal", "100 900", "swap", ["archivo-latin-wght-normal.woff2"]],
+    expect(porFamilia("Figtree")).toEqual([
+      ["normal", "300 900", "", "swap", ["figtree-latin-ext-wght-normal.woff2"]],
+      ["normal", "300 900", "", "swap", ["figtree-latin-wght-normal.woff2"]],
     ]);
-    expect(faces(publicada)).toHaveLength(4);
+    expect(porFamilia("Sofia Sans Extra Condensed")).toEqual([
+      ["normal", "1 1000", "", "swap", ["sofia-sans-extra-condensed-latin-ext-wght-normal.woff2"]],
+      ["normal", "1 1000", "", "swap", ["sofia-sans-extra-condensed-latin-wght-normal.woff2"]],
+    ]);
+    expect(faces(publicada)).toHaveLength(6);
 
     // Cada subconjunto com a faixa dele: sem o `unicode-range`, o navegador
     // baixaria o `latin-ext` em toda página, e o `latin` deixaria de ser
@@ -193,16 +205,19 @@ describe("a folha publicada", () => {
         .split(",")
         .map((nome) => nome.trim().replace(/^"|"$/g, ""));
     };
-    expect(pedidas("--co-font-display")[0]).toBe("Instrument Serif");
-    expect(pedidas("--co-font-body")[0]).toBe("Archivo");
-    expect([...familias].sort()).toEqual(["Archivo", "Instrument Serif"]);
+    expect(pedidas("--co-font-display")[0]).toBe("Bricolage Grotesque");
+    expect(pedidas("--co-font-body")[0]).toBe("Figtree");
+    expect(pedidas("--co-font-num")[0]).toBe("Sofia Sans Extra Condensed");
+    expect([...familias].sort()).toEqual(["Bricolage Grotesque", "Figtree", "Sofia Sans Extra Condensed"]);
+    // As de antes saíram inteiras: nenhum nome, nenhum arquivo.
+    expect(publicada).not.toMatch(/Instrument Serif|Archivo/);
   });
 
   it("toda url() é relativa e chega a um arquivo da saída; nenhuma vai para fora", () => {
     expect(problemas(publicada, existeNaSaida)).toEqual([]);
     expect(problemas(soTokens, existeNaSaida)).toEqual([]);
-    // Não é uma folha sem url(): são as quatro fontes e o grão.
-    expect(alvos(publicada).filter((alvo) => alvo.startsWith("./fonts/"))).toHaveLength(4);
+    // Não é uma folha sem url(): são as seis fontes e o grão.
+    expect(alvos(publicada).filter((alvo) => alvo.startsWith("./fonts/"))).toHaveLength(6);
   });
 
   it("a isca: o verificador reprova URL de fora, caminho absoluto, arquivo que falta e fonte em data:", () => {
@@ -242,13 +257,14 @@ describe("a folha publicada", () => {
       .filter((alvo) => alvo.startsWith("./fonts/"))
       .map((alvo) => [alvo, statSync(alcancado(alvo) ?? "").size] as const);
     expect(tamanhos.filter(([, bytes]) => bytes < 4096)).toEqual([]);
-    expect(tamanhos).toHaveLength(4);
+    expect(tamanhos).toHaveLength(6);
   });
 
   it("a licença OFL de cada família vai ao lado das fontes", () => {
     for (const [arquivo, autoria] of [
-      ["OFL-instrument-serif.txt", "Copyright 2022 The Instrument Serif Project Authors"],
-      ["OFL-archivo.txt", "Copyright 2020 The Archivo Project Authors"],
+      ["OFL-bricolage-grotesque.txt", "Copyright 2022 The Bricolage Grotesque Project Authors"],
+      ["OFL-figtree.txt", "Copyright 2022 The Figtree Project Authors"],
+      ["OFL-sofia-sans-extra-condensed.txt", "Copyright 2019 The Sofia Sans Project Authors"],
     ] as const) {
       const licenca = readFileSync(join(saida, "fonts", arquivo), "utf8");
       expect(licenca, arquivo).toContain(autoria);
@@ -257,35 +273,51 @@ describe("a folha publicada", () => {
   });
 });
 
-// ------------------------------------------------------ a serifa no 400 --
+// ---------------------------------------- o título e o número com o peso --
 
-describe("a serifa fica no 400", () => {
-  it("toda regra que lê --co-font-display escreve o peso 400", () => {
-    const serifadas = REGRAS.filter((regra) =>
-      regra.declaracoes.some(([propriedade, valor]) => propriedade === "font-family" && valor.includes("--co-font-display")),
-    );
-    expect(serifadas.map(lugar)).toEqual(['.co-text[data-variant="title-lg"]', '.co-text[data-variant="numeral"]']);
-    for (const regra of serifadas) {
-      expect(regra.declaracoes.filter(([propriedade]) => propriedade === "font-weight"), lugar(regra)).toEqual([
-        ["font-weight", "400"],
+describe("o título e o número têm o peso escrito", () => {
+  it("toda regra que lê a fonte de título escreve 700 e 88%; a de número, um peso do arquivo e tabular-nums", () => {
+    const comFonte = (token: string) =>
+      REGRAS.filter((regra) =>
+        regra.declaracoes.some(([propriedade, valor]) => propriedade === "font-family" && valor.includes(token)),
+      );
+    const leitura = (regra: (typeof REGRAS)[number], nomes: string[]) =>
+      regra.declaracoes.filter(([propriedade]) => nomes.includes(propriedade));
+
+    const titulos = comFonte("--co-font-display");
+    expect(titulos.map(lugar)).toEqual(['.co-text[data-variant="title-lg"]']);
+    for (const regra of titulos) {
+      expect(leitura(regra, ["font-weight", "font-stretch"]), lugar(regra)).toEqual([
+        ["font-weight", "700"],
+        ["font-stretch", "88%"],
       ]);
+    }
+
+    const numeros = comFonte("--co-font-num");
+    expect(numeros.map(lugar)).toContain('.co-text[data-variant="numeral"]');
+    for (const regra of numeros) {
+      expect(leitura(regra, ["font-variant-numeric"]), lugar(regra)).toEqual([["font-variant-numeric", "tabular-nums"]]);
+      const peso = leitura(regra, ["font-weight"]);
+      expect(peso, lugar(regra)).toHaveLength(1);
+      expect(Number(peso[0]?.[1]), lugar(regra)).toBeGreaterThanOrEqual(1);
+      expect(Number(peso[0]?.[1]), lugar(regra)).toBeLessThanOrEqual(1000);
     }
   });
 
   /**
    * O happy-dom não tem a folha do navegador: lá o `<h1>` nasce no peso
-   * normal, e um teste de peso passaria sem o conserto. Esta é a regra que o
-   * Chrome, o Safari e o Firefox escrevem — `h1 { font-weight: bold }` —, e o
-   * contêiner em 700 é o ancestral em negrito (um `<th>`, um `<strong>`) de
-   * quem herda o peso.
+   * normal. Esta é a regra que o Chrome, o Safari e o Firefox escrevem —
+   * `h1 { font-weight: bold }` —, e o contêiner em 300 ou em 700 é o ancestral
+   * leve ou pesado de quem herda o peso.
    */
-  function noNavegador(conteudo: ReactNode) {
+  function noNavegador(conteudo: ReactNode, peso: 300 | 700) {
     const folhaDoNavegador = document.createElement("style");
-    folhaDoNavegador.textContent = "h1, h2, strong, b, th { font-weight: bold; } .negrito { font-weight: 700; }";
+    folhaDoNavegador.textContent = `h1, h2, strong, b, th { font-weight: bold; } .ancestral-${peso} { font-weight: ${peso}; }`;
     document.head.append(folhaDoNavegador);
-    const montado = render(<div className="negrito">{conteudo}</div>);
+    const montado = render(<div className={`ancestral-${peso}`}>{conteudo}</div>);
     return {
       peso: (texto: string) => getComputedStyle(montado.getByText(texto)).fontWeight,
+      largura: (texto: string) => getComputedStyle(montado.getByText(texto)).fontStretch,
       desmontar: () => {
         montado.unmount();
         folhaDoNavegador.remove();
@@ -293,44 +325,54 @@ describe("a serifa fica no 400", () => {
     };
   }
 
-  it("o título do ScreenHeader, do PageHeader e o title-lg num h1, e o numeral, computam 400", () => {
-    const tela = noNavegador(
+  it("o título do ScreenHeader, do PageHeader e o title-lg computam 700 num ancestral leve; o numeral, 900 num pesado", () => {
+    const leve = noNavegador(
       <>
         <ScreenHeader title="Hoje" />
         <PageHeader title="Receitas" as="h2" />
-        <Text as="h1" variant="title-lg">
+        <Text as="span" variant="title-lg">
           Calculadora
         </Text>
+      </>,
+      300,
+    );
+    try {
+      for (const texto of ["Hoje", "Receitas", "Calculadora"]) {
+        expect(leve.peso(texto), texto).toBe("700");
+        expect(leve.largura(texto), texto).toBe("88%");
+      }
+    } finally {
+      leve.desmontar();
+    }
+
+    const pesado = noNavegador(
+      <>
         <Text as="strong" variant="numeral">
           995
         </Text>
         <Stat label="Restante" value="1.917" size="hero" />
       </>,
+      700,
     );
     try {
-      for (const texto of ["Hoje", "Receitas", "Calculadora", "995", "1.917"]) {
-        expect(tela.peso(texto), texto).toBe("400");
-      }
+      for (const texto of ["995", "1.917"]) expect(pesado.peso(texto), texto).toBe("900");
     } finally {
-      tela.desmontar();
+      pesado.desmontar();
     }
   });
 
-  it("a isca: a serifa sem o 400 sai em negrito no mesmo h1", () => {
+  it("a isca: a fonte de título sem o peso herda o ancestral leve, e a de número, o pesado", () => {
     const isca = document.createElement("style");
-    isca.textContent = ".isca-serifa { font-family: var(--co-font-display); }";
+    isca.textContent = ".isca-titulo { font-family: var(--co-font-display); } .isca-numero { font-family: var(--co-font-num); }";
     document.head.append(isca);
-    const tela = noNavegador(
-      <>
-        <h1 className="isca-serifa">Ajustes</h1>
-        <span className="isca-serifa">2.371</span>
-      </>,
-    );
+    const leve = noNavegador(<span className="isca-titulo">Ajustes</span>, 300);
+    const pesado = noNavegador(<strong className="isca-numero">2.371</strong>, 700);
     try {
-      expect(tela.peso("Ajustes")).not.toBe("400");
-      expect(tela.peso("2.371")).not.toBe("400");
+      expect(leve.peso("Ajustes")).not.toBe("700");
+      expect(pesado.peso("2.371")).not.toBe("900");
     } finally {
-      tela.desmontar();
+      leve.desmontar();
+      pesado.desmontar();
       isca.remove();
     }
   });

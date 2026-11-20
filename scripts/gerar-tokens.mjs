@@ -15,8 +15,8 @@
  *
  * REFERENCIA CONTINUA SENDO REFERENCIA
  * ------------------------------------
- * `outputReferences: true` faz `--co-accent` sair como
- * `var(--co-amethyst-500)`, e nao como `#a882f5` resolvido. Se resolvesse, a
+ * `outputReferences: true` faz `--co-bg` sair como
+ * `var(--co-pomes-100)`, e nao como `#e9edea` resolvido. Se resolvesse, a
  * separacao entre primitiva e semantica sumiria do arquivo publicado — e com
  * ela a unica coisa que faz o tema funcionar.
  */
@@ -42,12 +42,12 @@ const CABECALHO = `/*
  *
  * Duas camadas, e a separacao entre elas e o que faz o tema funcionar:
  *
- *   PRIMITIVA  o valor cru (\`--co-amethyst-500: #a882f5\`). Nao muda com o tema.
- *   SEMANTICA  o papel (\`--co-accent\`). Aponta para uma primitiva, e e
+ *   PRIMITIVA  o valor cru (\`--co-pomes-100: #e9edea\`). Nao muda com o tema.
+ *   SEMANTICA  o papel (\`--co-bg\`). Aponta para uma primitiva, e e
  *              APENAS a semantica que o tema troca.
  *
- * Componente nenhum le primitiva. Se um componente escreve \`#a882f5\`, ou le
- * \`--co-amethyst-500\`, ele deixa de responder ao tema e o defeito so aparece
+ * Componente nenhum le primitiva. Se um componente escreve \`#e9edea\`, ou le
+ * \`--co-pomes-100\`, ele deixa de responder ao tema e o defeito so aparece
  * quando alguem liga o claro.
  *
  * O bloco do tema escuro aparece duas vezes — na media query e no seletor de
@@ -89,12 +89,21 @@ StyleDictionary.registerFormat({
 
     // O nome sai com o grupo do tema junto (`co-claro-canvas`). O grupo existe
     // so para separar os dois conjuntos na fonte; no CSS publicado ele nao
-    // pode aparecer, senao `--co-accent` viraria dois tokens diferentes.
+    // pode aparecer, senao `--co-bg` viraria dois tokens diferentes.
     const semTema = (token) => escrever({ ...token, name: token.name.replace(/^co-(claro|escuro)-/, "co-") });
 
-    const primitivas = dictionary.allTokens.filter((t) => t.path[0] !== "claro" && t.path[0] !== "escuro");
+    const primitivas = dictionary.allTokens.filter((t) => !["claro", "escuro", "composto"].includes(t.path[0]));
     const claro = dictionary.allTokens.filter((t) => t.path[0] === "claro");
     const escuro = dictionary.allTokens.filter((t) => t.path[0] === "escuro");
+    // As composições da hora (ADR-022): o valor LÊ outras propriedades
+    // (`oklch(var(--co-hora-l) var(--co-hora-c) var(--co-hora-h))`), e uma
+    // propriedade personalizada herdada chega RESOLVIDA de onde foi declarada.
+    // Declarada só no `:root`, ela viria com o matiz do `:root`, e a hora que
+    // um elemento escreve em si (`hourStyle`) não tingiria nada. Por isso a
+    // composição é declarada de novo em CADA elemento: ela é resolvida ali,
+    // com o matiz e o croma do elemento e a luminosidade do tema dele.
+    const compostos = dictionary.allTokens.filter((t) => t.path[0] === "composto");
+    const semGrupo = (token) => escrever({ ...token, name: token.name.replace(/^co-composto-/, "co-") });
 
     const corpoPrimitivas = FAIXAS.flatMap(([arquivo, titulo]) => {
       const desta = primitivas.filter((t) => t.filePath.endsWith(arquivo));
@@ -134,6 +143,14 @@ StyleDictionary.registerFormat({
       linhasEscuro.join("\n"),
       "}",
       "",
+      "/* A cor da hora, recomposta em cada elemento (ADR-022). */",
+      ":root,",
+      ":root *,",
+      ":root *::before,",
+      ":root *::after {",
+      compostos.map((t) => semGrupo(t)).join("\n"),
+      "}",
+      "",
     ].join("\n");
   },
 });
@@ -142,7 +159,7 @@ StyleDictionary.registerFormat({
   name: "coluna/ts",
   format({ dictionary }) {
     const nomes = dictionary.allTokens
-      .filter((t) => t.path[0] === "claro")
+      .filter((t) => t.path[0] === "claro" || t.path[0] === "composto")
       .map((t) => t.path.slice(1).join("-"));
 
     return `/**
@@ -191,11 +208,14 @@ const { readFile } = await import("node:fs/promises");
 const css = await readFile(resolve(raiz, "src/tokens/tokens.css"), "utf8");
 const ocorrencias = (agulha) => css.split(agulha).length - 1;
 
-if (ocorrencias("--co-canvas:") !== 3) {
-  throw new Error(`--co-canvas deveria aparecer 3 vezes (claro + 2x escuro), apareceu ${ocorrencias("--co-canvas:")}`);
+if (ocorrencias("--co-bg:") !== 3) {
+  throw new Error(`--co-bg deveria aparecer 3 vezes (claro + 2x escuro), apareceu ${ocorrencias("--co-bg:")}`);
 }
-if (!css.includes("var(--co-amethyst-500)")) {
+if (!css.includes("var(--co-pomes-100)")) {
   throw new Error("as referencias foram resolvidas para o valor — outputReferences nao pegou");
+}
+if (ocorrencias("--co-hora:") !== 1 || !css.includes("--co-hora: oklch(var(--co-hora-l) var(--co-hora-c) var(--co-hora-h));")) {
+  throw new Error("a composicao da hora (--co-hora) sumiu ou saiu com o valor mexido");
 }
 
 console.log(`tokens: src/tokens/tokens.css (${Math.round(css.length / 1024)} KB) e src/tokens/gerado.ts`);

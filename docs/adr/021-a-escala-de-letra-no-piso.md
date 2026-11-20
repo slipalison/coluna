@@ -1,7 +1,7 @@
 # ADR-021 — A escala de letra cumpre o piso
 
 **Data:** 2026-11-18
-**Status:** aceito
+**Status:** aceito; os pisos continuam, e a escala acima deles é a do [ADR-022](022-a-identidade-relogio-de-sol.md) (corpo 17, legenda 14, caixa alta 13, título 26/30).
 
 ## Contexto
 

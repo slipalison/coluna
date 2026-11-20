@@ -183,7 +183,7 @@ describe("o corpo da folha que rola se rola pelo teclado", () => {
     // com o afastamento de fora, o anel sairia da tela dos lados. Para dentro,
     // largura (2px) + afastamento (-2px) = 0: ele cabe na caixa.
     expect(bloco(".co-root :focus-visible")).toEqual([
-      ["outline", "2px solid var(--co-accent)"],
+      ["outline", "2px solid var(--co-focus)"],
       ["outline-offset", "2px"],
     ]);
     // Só o afastamento muda: a cor e a largura continuam as do anel provado

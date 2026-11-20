@@ -19,6 +19,7 @@ export type IconName =
   | "search"
   | "refresh"
   | "info"
+  | "alert"
   | "bell"
   | "gear"
   | "user"
@@ -47,7 +48,13 @@ const CAMINHOS: Record<IconName, string> = {
   close: "M6 6l12 12M18 6L6 18",
   search: "M17.5 11a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0M16 16l4 4",
   refresh: "M4 11a7 7 0 0 1 12-4.5L19 9M19 4v5h-5M20 13a7 7 0 0 1-12 4.5L5 15M5 20v-5h5",
-  info: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M12 8v5M12 16h.01",
+  // A informação é o "i" (o ponto em cima, a haste embaixo), e o alerta é o
+  // "!" (a haste em cima, o ponto embaixo), como o `info` e o `circle-alert` do
+  // Lucide, desenhados aqui na grade e no círculo deste conjunto. Até o lote 1
+  // da 2.0 o `info` desenhava o "!", e o erro do campo usava o `info`: o erro
+  // tem o alerta, e a nota tem a informação.
+  info: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M12 16v-4.5M12 8h.01",
+  alert: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M12 8v4.5M12 16h.01",
   bell: "M6 10a6 6 0 0 1 12 0c0 4 1.5 5 1.5 5h-15S6 14 6 10M10.5 19a1.8 1.8 0 0 0 3 0",
   gear:
     "M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1",

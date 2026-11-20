@@ -35,7 +35,7 @@ export interface PageHeaderProps {
  * "duas ações já são uma barra de ferramentas, e isso é outro componente": é
  * este.
  *
- * O título é a mesma serifa de 36px do telefone. O desenho pedia 38; dois
+ * O título é o mesmo `title-lg` do telefone. O desenho pedia 38; dois
  * degraus quase iguais na rampa são dois degraus que ninguém sabe qual usar.
  *
  * Tudo se alinha pela BASE: o título, o paginador e os botões assentam na

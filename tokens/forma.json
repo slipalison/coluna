@@ -5,24 +5,41 @@
   },
   "radius-inset": {
     "$type": "dimension",
-    "$value": "9px"
+    "$value": "10.5px",
+    "$description": "O que mora dentro de um trilho de controle: raio interno = raio externo - folga (14 - 1,5 de limite - 2 de respiro). ADR-004, ADR-022."
   },
   "radius-control": {
     "$type": "dimension",
-    "$value": "12px"
+    "$value": "14px",
+    "$description": "O que se toca: botao, campo (ADR-022)."
   },
   "radius-container": {
     "$type": "dimension",
-    "$value": "16px"
+    "$value": "22px",
+    "$description": "A vitrine que segura conteudo: cartao, grupo, aviso (ADR-022)."
+  },
+  "radius-sheet": {
+    "$type": "dimension",
+    "$value": "28px",
+    "$description": "A folha que sobe do rodape, nos dois cantos de cima (ADR-022)."
+  },
+  "radius-dialog": {
+    "$type": "dimension",
+    "$value": "24px",
+    "$description": "O dialogo (ADR-022)."
   },
   "radius-pill": {
     "$type": "dimension",
     "$value": "999px"
   },
-
   "border-width": {
     "$type": "dimension",
     "$value": "1px"
+  },
+  "control-width": {
+    "$type": "dimension",
+    "$value": "1.5px",
+    "$description": "O limite de controle (campo, busca, chip, segmentado, botao comum): 1,5px em --co-control. A fissura (--co-border-width) continua com 1px."
   },
   "marker-width": {
     "$type": "dimension",
@@ -32,7 +49,26 @@
     "$type": "dimension",
     "$value": "44px"
   },
-
+  "button-height": {
+    "$type": "dimension",
+    "$value": "44px",
+    "$description": "O botao comum no aparelho de toque (plano s7): o alvo minimo."
+  },
+  "button-height-lg": {
+    "$type": "dimension",
+    "$value": "50px",
+    "$description": "O botao principal no aparelho de toque (plano s7): o grande do iOS."
+  },
+  "button-height-fine": {
+    "$type": "dimension",
+    "$value": "40px",
+    "$description": "O botao comum com ponteiro fino, o desktop (plano s7). Acima dos 24px do WCAG 2.5.8."
+  },
+  "button-height-lg-fine": {
+    "$type": "dimension",
+    "$value": "46px",
+    "$description": "O botao principal com ponteiro fino, o desktop (plano s7)."
+  },
   "inset-none": {
     "$type": "other",
     "$value": "0"
@@ -49,7 +85,6 @@
     "$type": "dimension",
     "$value": "52px"
   },
-
   "dot-size": {
     "$type": "dimension",
     "$value": "10px"

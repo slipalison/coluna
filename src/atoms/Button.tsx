@@ -1,10 +1,11 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode, Ref } from "react";
 import { Icon, type IconName } from "./Icon";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 /**
- * Só dois tamanhos, e o menor tem 44px.
+ * Só dois tamanhos (plano s7, ADR-022): no aparelho de toque, o comum (`md`)
+ * tem 44px e o principal (`lg`) 50px; com ponteiro fino, o desktop, 40 e 46px.
  *
  * Não existe `sm` nesta API, e a ausência é a decisão: 44px é o alvo mínimo
  * que um polegar acerta. Um botão de 32px passa no desenho, some no uso, e
@@ -30,6 +31,15 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Ícone depois do rótulo. */
   iconEnd?: IconName;
   children?: ReactNode;
+  /**
+   * O `<button>` que o `Button` monta. No React 19 o `ref` chega a ele pela
+   * prop, sem `forwardRef`: é o que deixa uma folha pôr o foco num botão dela
+   * ao abrir (`Sheet initialFocus`). Numa confirmação destrutiva o foco vai
+   * para "Cancelar", a ação menos destrutiva (o padrão de diálogo de alerta da
+   * WAI-ARIA), e nunca para "Apagar de vez": quem abre pelo teclado e tecla
+   * Enter de novo sem ler cancela, e apagar pede um Tab a mais.
+   */
+  ref?: Ref<HTMLButtonElement> | undefined;
 }
 
 export function Button({

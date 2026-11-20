@@ -76,7 +76,7 @@ export const ComTeclado: Story = {
           full
           onChange={(evento) => definir(evento.target.value)}
         />
-        <span style={{ color: "var(--co-text-muted)", fontSize: "var(--co-text-12)" }}>
+        <span style={{ color: "var(--co-ink-2)", fontSize: "var(--co-text-12)" }}>
           valor: {valor === "" ? "(vazio)" : valor}
         </span>
       </div>

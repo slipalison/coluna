@@ -26,11 +26,11 @@
 /* ---------------------------------------------------------------- fontes -- */
 
 /*
- * As duas famílias que os tokens nomeiam moram no pacote (ADR-014): a
- * Instrument Serif dos títulos e dos numerais, e a Archivo de todo o resto.
- * Sem estes blocos, `--co-font-display` e `--co-font-body` nomeiam fontes que
- * a página não tem, e quem consome vê a Georgia e a Helvetica no lugar da cara
- * das pranchas.
+ * As três famílias do "Relógio de Sol" moram no pacote (ADR-014, ADR-023): a
+ * Bricolage Grotesque dos títulos, a Figtree do texto e a Sofia Sans Extra
+ * Condensed dos números. Sem estes blocos, `--co-font-display`,
+ * `--co-font-body` e `--co-font-num` nomeiam fontes que a página não tem, e
+ * quem consome vê a fonte do sistema no lugar da cara da identidade.
  *
  * A `url()` é RELATIVA à folha: o build copia `src/fonts/` para `dist/fonts/`,
  * e o bundler de quem consome resolve o caminho a partir de `dist/styles.css` e
@@ -44,46 +44,70 @@
  *
  * Dois subconjuntos por família, cada um com o seu `unicode-range`: o
  * navegador só baixa o `latin-ext` quando a página tem um caractere dele.
+ *
+ * As três são variáveis, e cada bloco declara o intervalo do ARQUIVO: todo
+ * peso pedido dentro dele sai desenhado, nenhum sintético. A Bricolage traz
+ * também o eixo da largura (`font-stretch` 75% a 100%), que o título usa em
+ * 88%; o eixo do tamanho óptico ficou de fora (ADR-023).
  */
 @font-face {
-  font-family: "Instrument Serif";
+  font-family: "Bricolage Grotesque";
   font-style: normal;
-  font-weight: 400;
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
   font-display: swap;
-  src: url("./fonts/instrument-serif-latin-ext-400-normal.woff2") format("woff2");
+  src: url("./fonts/bricolage-grotesque-latin-ext-wdth-normal.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
     U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
 @font-face {
-  font-family: "Instrument Serif";
+  font-family: "Bricolage Grotesque";
   font-style: normal;
-  font-weight: 400;
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
   font-display: swap;
-  src: url("./fonts/instrument-serif-latin-400-normal.woff2") format("woff2");
+  src: url("./fonts/bricolage-grotesque-latin-wdth-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* Variável no eixo `wght`: UM arquivo por subconjunto serve o 400, o 500 e o
- * 600 dos tokens, e o 700 que o navegador põe no `<strong>` — todos
- * desenhados, nenhum sintético. */
 @font-face {
-  font-family: "Archivo";
+  font-family: "Figtree";
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 300 900;
   font-display: swap;
-  src: url("./fonts/archivo-latin-ext-wght-normal.woff2") format("woff2");
+  src: url("./fonts/figtree-latin-ext-wght-normal.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
     U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
 @font-face {
-  font-family: "Archivo";
+  font-family: "Figtree";
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 300 900;
   font-display: swap;
-  src: url("./fonts/archivo-latin-wght-normal.woff2") format("woff2");
+  src: url("./fonts/figtree-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Sofia Sans Extra Condensed";
+  font-style: normal;
+  font-weight: 1 1000;
+  font-display: swap;
+  src: url("./fonts/sofia-sans-extra-condensed-latin-ext-wght-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Sofia Sans Extra Condensed";
+  font-style: normal;
+  font-weight: 1 1000;
+  font-display: swap;
+  src: url("./fonts/sofia-sans-extra-condensed-latin-wght-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -91,8 +115,8 @@
 /* ------------------------------------------------------------------ base -- */
 
 .co-root {
-  background: var(--co-canvas);
-  color: var(--co-text);
+  background: var(--co-bg);
+  color: var(--co-ink);
   font-family: var(--co-font-body);
   -webkit-font-smoothing: antialiased;
 }
@@ -107,7 +131,7 @@
  * `box-shadow`: outline não entra no cálculo de layout, então o anel não
  * empurra o vizinho meio pixel quando aparece. */
 .co-root :focus-visible {
-  outline: 2px solid var(--co-accent);
+  outline: 2px solid var(--co-focus);
   outline-offset: 2px;
 }
 
@@ -189,7 +213,7 @@
  * A moldura de uma tela inteira: fundo, grão e a calha lateral de 16px.
  *
  * `--co-screen-bottom` reserva o espaço da barra de abas flutuante. Sem ela a
- * última linha da lista fica embaixo do vidro e ninguém alcança — o defeito
+ * última linha da lista fica embaixo da barra e ninguém alcança — o defeito
  * clássico de barra translúcida, e ele não aparece no desenho, só no polegar.
  *
  * A área segura entra de dois jeitos, e a diferença é de propósito. Em cima e
@@ -203,8 +227,8 @@
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  background: var(--co-canvas);
-  color: var(--co-text);
+  background: var(--co-bg);
+  color: var(--co-ink);
   font-family: var(--co-font-body);
   padding-inline: max(var(--co-space-16), var(--co-safe-left)) max(var(--co-space-16), var(--co-safe-right));
   padding-block: calc(var(--co-space-28) + var(--co-safe-top))
@@ -215,15 +239,15 @@
  * A reserva da tela com barra é a da 1.5.0, 104px, mais o que a barra cresce
  * embaixo. A barra mede 73px sem área segura e cresce o que o `max` do rodapé
  * dela crescer; a reserva cresce o mesmo, e a última linha continua 31px acima
- * do vidro com qualquer aparelho: 104px sem área segura (barra de 73px), 114px
- * com o indicador de 34px (rodapé de 20px, barra de 83px). O termo `max(...)`
- * é o mesmo texto do `padding-bottom` da `.co-tabbar` — os destinos entram
- * `--co-space-14` na área de baixo — e, se um mudar sem o outro, a folga muda
- * junto (ADR-011, ADR-012).
+ * da barra com qualquer aparelho: 104px sem área segura (barra de 73px), 136px
+ * com o indicador de 34px (rodapé de 42px, barra de 105px). O termo `max(...)`
+ * é o mesmo texto do `padding-bottom` da `.co-tabbar` — os destinos terminam
+ * `--co-space-8` acima da área de baixo — e, se um mudar sem o outro, a folga
+ * muda junto (ADR-011, ADR-012 e o adendo 2.0 dela).
  */
 .co-screen[data-tabbar="true"] {
   --co-screen-bottom: calc(104px - var(--co-space-10)
-    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14))));
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8))));
 }
 
 /*
@@ -244,12 +268,12 @@
  */
 .co-screen[data-actionbar="true"]:has(> .co-screen__actionbar :not(:empty)) {
   --co-screen-bottom: calc(31px + var(--co-actionbar-height) - var(--co-space-10)
-    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14))));
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8))));
 }
 
 .co-screen[data-tabbar="true"][data-actionbar="true"]:has(> .co-screen__actionbar :not(:empty)) {
   --co-screen-bottom: calc(104px - var(--co-space-10)
-    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14)))
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8)))
     + var(--co-actionbar-height));
 }
 
@@ -257,24 +281,24 @@
  * O recuo de baixo da rolagem da janela (ADR-013): com barra embaixo, o foco do
  * teclado para acima dela, e não atrás (WCAG 2.2, 2.4.11). É o MESMO texto da
  * reserva de cada caso — o Tab leva o controle até onde a última linha fica em
- * repouso, 31px acima do vidro — e a mesma condição: só a barra de ação com
+ * repouso, 31px acima da barra — e a mesma condição: só a barra de ação com
  * conteúdo conta. No `:root`, porque o recuo da janela é dele; a tela não tem
  * como subir uma custom property até ali, então o `:root` pergunta à tela.
  * Sem barra nenhuma, fica o 0 do `:root`.
  */
 :root:has(.co-screen[data-tabbar="true"]) {
   scroll-padding-bottom: calc(104px - var(--co-space-10)
-    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14))));
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8))));
 }
 
 :root:has(.co-screen[data-actionbar="true"] > .co-screen__actionbar :not(:empty)) {
   scroll-padding-bottom: calc(31px + var(--co-actionbar-height) - var(--co-space-10)
-    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14))));
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8))));
 }
 
 :root:has(.co-screen[data-tabbar="true"][data-actionbar="true"] > .co-screen__actionbar :not(:empty)) {
   scroll-padding-bottom: calc(104px - var(--co-space-10)
-    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14)))
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8)))
     + var(--co-actionbar-height));
 }
 
@@ -289,7 +313,7 @@
  *   debaixo de um aviso. Proporção, e não trecho fixo somado: sem área segura
  *   a faixa tem 0px e nada aparece.
  * - O fundo é OPACO até 75% (= 3/4, o fim da área de cima) e só esmaece no
- *   terço extra: o relógio fica todo sobre `--co-canvas`. Com o gradiente indo
+ *   terço extra: o relógio fica todo sobre `--co-bg`. Com o gradiente indo
  *   ao transparente dentro da área, o relógio ficaria sobre metade de
  *   opacidade, com o texto rolado aparecendo atrás dele.
  * - A máscara esmaece o DESFOQUE junto, com o mesmo gradiente: sem ela, o
@@ -302,7 +326,7 @@
  *   `isolation` do grão faz da tela uma pilha própria, então a faixa cobre o
  *   conteúdo da tela e nada de fora dela.
  * - Nada inline (a CSP com `style-src 'self'` continua de pé), e os dois temas
- *   saem do `--co-canvas`, o fundo da própria tela.
+ *   saem do `--co-bg`, o fundo da própria tela.
  *
  * Em repouso nada fica embaixo dela: o título (28px + área) fica fora enquanto
  * a área de cima for de até 84px, e a marca do trilho (20px + área) enquanto
@@ -317,7 +341,7 @@
   z-index: 20;
   height: calc(var(--co-statusbar-height) * 4 / 3);
   pointer-events: none;
-  background: linear-gradient(to bottom, var(--co-canvas) 0%, var(--co-canvas) 75%, transparent 100%);
+  background: linear-gradient(to bottom, var(--co-bg) 0%, var(--co-bg) 75%, transparent 100%);
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 75%, transparent 100%);
@@ -329,15 +353,17 @@
  * em qualquer rolagem — "Calcular" enquanto se preenche, "Nova refeição" com o
  * dia rolado até o fim.
  *
- * - O vidro é o da barra de abas: o mesmo fundo com alfa, o mesmo desfoque e o
- *   mesmo fio em cima. Onde o filtro não existe, ela fica opaca, nunca ilegível.
+ * - O fundo é o da barra de abas: a superfície opaca e o mesmo fio em cima. O
+ *   vidro do "Relógio de Sol" é da F4 do Basalto (plano s9), e não entra na
+ *   2.0 (ADR-022).
  * - A altura é de UMA fileira, e é token (`--co-actionbar-height`, no `:root`):
  *   65px com as abas embaixo, de caixa a caixa, com o botão de 44px no meio.
  *   Não é a medida do conteúdo — um botão ou dois lado a lado dão a mesma
  *   barra, e a reserva da tela, que lê o mesmo token, nunca fica atrás dela.
  * - Sem abas, ela é quem encosta na borda de baixo: o rodapé é o termo
- *   `max(...)` da barra de abas, e ela cresce o que ele crescer (o botão entra
- *   14px na área do indicador de início, como os destinos — ADR-012).
+ *   `max(...)` da barra de abas, e ela cresce o que ele crescer (o botão termina
+ *   8px acima da área do indicador de início, como os destinos — ADR-012,
+ *   adendo 2.0).
  * - A calha lateral é a da tela, com o entalhe em paisagem: os botões começam e
  *   terminam onde o conteúdo começa e termina.
  * - Camada 20, a da barra de abas, dentro da pilha da tela: abaixo do véu do
@@ -356,14 +382,12 @@
   gap: var(--co-space-8);
   box-sizing: border-box;
   height: calc(var(--co-actionbar-height) - var(--co-space-10)
-    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14))));
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8))));
   padding: var(--co-space-10) max(var(--co-space-16), var(--co-safe-right))
-    max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14)))
+    max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8)))
     max(var(--co-space-16), var(--co-safe-left));
-  background: var(--co-overlay);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  border-top: var(--co-border-width) solid var(--co-overlay-line);
+  background: var(--co-surface);
+  border-top: var(--co-border-width) solid var(--co-line);
 }
 
 /*
@@ -375,7 +399,7 @@
  */
 .co-screen[data-tabbar="true"] > .co-screen__actionbar {
   bottom: calc(73px - var(--co-space-10)
-    + max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14))));
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8))));
   height: var(--co-actionbar-height);
   padding-bottom: var(--co-space-10);
 }
@@ -413,7 +437,7 @@
  * pôs no mesmo lugar, e guardava uma meta que a pessoa não pediu.
  *
  * - Por 400ms desde que o controle entra no documento (ou desde que a barra
- *   vazia volta a pintar), ele não recebe PONTEIRO: o toque cai no vidro da
+ *   vazia volta a pintar), ele não recebe PONTEIRO: o toque cai no fundo da
  *   barra, que não faz nada, e não atravessa para o conteúdo atrás dela.
  * - Só ponteiro. O teclado (Enter, Espaço) e o leitor de tela acionam na hora:
  *   o toque duplo é coisa de dedo, e quem chegou pelo Tab escolheu o botão.
@@ -520,45 +544,48 @@ div.co-sheet-overlay {
 .co-text {
   margin: 0;
   font-family: var(--co-font-body);
-  color: var(--co-text);
+  color: var(--co-ink);
   line-height: var(--co-leading-normal);
 }
 
-/* A serifa dos títulos de tela. Um por tela, e ele é o nome do lugar.
+/* O título de tela, na Bricolage Grotesque. Um por tela, e ele é o nome do
+ * lugar (ADR-023).
  *
- * O peso é 400 ESCRITO, e não herdado, em toda regra que lê
- * `--co-font-display`: a Instrument Serif só tem o 400 (ADR-014). O título
- * sai num `<h1>`, que o navegador pinta em negrito, e sem esta linha ele pede
- * um 700 que o arquivo não tem — e o navegador o inventa, engrossando o traço
- * à mão. É o "negrito sintético" que as pranchas não desenham. */
+ * O peso 700 e a largura de 88% são ESCRITOS, e não herdados, em toda regra
+ * que lê `--co-font-display`: o título sai num `<h1>` de quem consome, ou
+ * dentro de um ancestral com outro peso, e a cara da identidade não pode
+ * depender do que está em volta. Os dois estão dentro do intervalo do arquivo
+ * (peso 200 a 800, largura 75% a 100%), então saem desenhados. */
 .co-text[data-variant="title-lg"] {
   font-family: var(--co-font-display);
-  font-weight: 400;
-  font-size: var(--co-text-36);
+  font-weight: 700;
+  font-stretch: 88%;
+  font-size: var(--co-text-26);
   line-height: var(--co-leading-title);
-  letter-spacing: var(--co-tracking-title);
+  letter-spacing: var(--co-tracking-tight);
+  text-wrap: balance;
 }
 
-/* A serifa dos números que carregam a mensagem: restante da meta, gasto do
- * dia. `tabular-nums` não é preciosismo — sem ele o algarismo dança a cada
- * dígito que muda. */
+/* O número que carrega a mensagem, na Sofia Sans Extra Condensed: alto e
+ * estreito como uma coluna de basalto, no 900 da identidade. `tabular-nums`
+ * não é preciosismo — sem ele o algarismo dança a cada dígito que muda. */
 .co-text[data-variant="numeral"] {
-  font-family: var(--co-font-display);
-  font-weight: 400;
-  font-size: var(--co-text-68);
+  font-family: var(--co-font-num);
+  font-weight: 900;
+  font-size: var(--co-text-56);
   line-height: var(--co-leading-numeral);
   letter-spacing: var(--co-tracking-tight);
   font-variant-numeric: tabular-nums;
 }
 
 .co-text[data-variant="headline"] {
-  font-size: var(--co-text-16);
-  font-weight: var(--co-weight-medium);
+  font-size: var(--co-text-17);
+  font-weight: var(--co-weight-semibold);
   line-height: var(--co-leading-snug);
 }
 
 .co-text[data-variant="body"] {
-  font-size: var(--co-text-16);
+  font-size: var(--co-text-17);
 }
 
 .co-text[data-variant="callout"] {
@@ -574,7 +601,7 @@ div.co-sheet-overlay {
 }
 
 .co-text[data-variant="caption"] {
-  font-size: var(--co-text-12);
+  font-size: var(--co-text-14);
   line-height: var(--co-leading-note);
 }
 
@@ -582,22 +609,22 @@ div.co-sheet-overlay {
  * bloco do outro sem precisar de linha nem de caixa — e é por isso que este
  * sistema tem tão pouca borda. */
 .co-text[data-variant="label"] {
-  font-size: var(--co-text-12);
+  font-size: var(--co-text-13);
   font-weight: var(--co-weight-semibold);
   letter-spacing: var(--co-tracking-label);
   text-transform: uppercase;
-  color: var(--co-text-subtle);
+  color: var(--co-ink-3);
 }
 
-/* O mesmo papel, dentro da linha: nomeia o grupo, não a seção da tela. Já foi
- * um degrau abaixo (10px); o piso do versalete é 12px, e o que o separa do
- * rótulo de seção agora é o espaçamento menor e o lugar, não a letra (ADR-021). */
+/* O mesmo papel, dentro da linha: nomeia o grupo, não a seção da tela. A caixa
+ * alta do "Relógio de Sol" tem 13px (ADR-022), e o que o separa do rótulo de
+ * seção é o espaçamento menor e o lugar, não a letra (ADR-021). */
 .co-text[data-variant="micro"] {
-  font-size: var(--co-text-12);
+  font-size: var(--co-text-13);
   font-weight: var(--co-weight-semibold);
   letter-spacing: var(--co-tracking-micro);
   text-transform: uppercase;
-  color: var(--co-text-subtle);
+  color: var(--co-ink-3);
 }
 
 .co-text[data-numeric="true"] {
@@ -607,12 +634,12 @@ div.co-sheet-overlay {
 .co-text[data-weight="medium"] { font-weight: var(--co-weight-medium); }
 .co-text[data-weight="semibold"] { font-weight: var(--co-weight-semibold); }
 
-.co-text[data-tone="body"] { color: var(--co-text-body); }
-.co-text[data-tone="secondary"] { color: var(--co-text-secondary); }
-.co-text[data-tone="muted"] { color: var(--co-text-muted); }
-.co-text[data-tone="subtle"] { color: var(--co-text-subtle); }
-.co-text[data-tone="accent"] { color: var(--co-accent); }
-.co-text[data-tone="status"] { color: var(--co-status); }
+.co-text[data-tone="body"] { color: var(--co-ink); }
+.co-text[data-tone="secondary"] { color: var(--co-ink-2); }
+.co-text[data-tone="muted"] { color: var(--co-ink-2); }
+.co-text[data-tone="subtle"] { color: var(--co-ink-3); }
+.co-text[data-tone="accent"] { color: var(--co-hora-ink); }
+.co-text[data-tone="status"] { color: var(--co-ok); }
 
 /* ------------------------------------------------------------------ pilha -- */
 
@@ -645,10 +672,10 @@ div.co-sheet-overlay {
   border-radius: var(--co-radius-container);
 }
 
-.co-surface[data-elevation="raised"] { background: var(--co-surface-raised); }
-.co-surface[data-elevation="sunken"] { background: var(--co-surface-sunken); }
+.co-surface[data-elevation="raised"] { background: var(--co-surface-2); }
+.co-surface[data-elevation="sunken"] { background: var(--co-surface-2); }
 .co-surface[data-elevation="none"] { background: transparent; }
-.co-surface[data-bordered="true"] { border: var(--co-border-width) solid var(--co-border); }
+.co-surface[data-bordered="true"] { border: var(--co-border-width) solid var(--co-line); }
 
 .co-surface[data-radius="content"] { border-radius: var(--co-radius-content); }
 .co-surface[data-radius="inset"] { border-radius: var(--co-radius-inset); }
@@ -690,7 +717,7 @@ div.co-sheet-overlay {
   overflow: hidden;
 }
 
-.co-group[data-elevation="sunken"] { background: var(--co-surface-sunken); }
+.co-group[data-elevation="sunken"] { background: var(--co-surface-2); }
 .co-group[data-elevation="none"] { background: transparent; }
 
 /* Onde o fio começa. O valor acompanha o que existe à esquerda dentro da
@@ -785,7 +812,7 @@ div.co-sheet-overlay {
 .co-list-row[data-align="start"] { align-items: flex-start; }
 
 .co-list-row[data-interactive="true"] { cursor: pointer; }
-.co-list-row[data-selected="true"] { background: var(--co-surface-raised); }
+.co-list-row[data-selected="true"] { background: var(--co-surface-2); }
 
 .co-list-row__leading {
   display: flex;
@@ -820,8 +847,8 @@ div.co-sheet-overlay {
 .co-list-row__chevron {
   display: flex;
   flex-shrink: 0;
-  color: var(--co-icon-muted);
-  transition: transform var(--co-duration-fast) var(--co-ease);
+  color: var(--co-control);
+  transition: transform var(--co-duration-quick) var(--co-ease-settle);
 }
 
 .co-list-row[data-expanded="true"] .co-list-row__chevron { transform: rotate(180deg); }
@@ -846,9 +873,9 @@ div.co-sheet-overlay {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: var(--co-border-width) solid var(--co-control-border);
+  border: var(--co-control-width) solid var(--co-control);
   border-radius: var(--co-radius-content);
-  color: var(--co-accent-contrast);
+  color: var(--co-on-ink);
 }
 
 .co-list-row__mark[data-mark="single"] {
@@ -856,8 +883,8 @@ div.co-sheet-overlay {
 }
 
 .co-list-row[data-selected="true"] .co-list-row__mark {
-  background: var(--co-accent);
-  border-color: var(--co-accent);
+  background: var(--co-ink);
+  border-color: var(--co-ink);
 }
 
 /* ------------------------------------------------------------------ ponto -- */
@@ -866,7 +893,7 @@ div.co-sheet-overlay {
  * O ponto colorido do macro. Quadrado: é conteúdo dentro da vitrine.
  *
  * Ele nunca aparece sozinho — o componente que o usa é obrigado a mostrar nome
- * E número ao lado (ADR-005). Quem não distingue ametista de jade lê a mesma
+ * E número ao lado (ADR-005). Quem não distingue um papel do outro lê a mesma
  * informação pelo texto, e a cor vira o atalho que ela deve ser.
  */
 .co-dot {
@@ -874,14 +901,16 @@ div.co-sheet-overlay {
   height: var(--co-dot-size);
   flex-shrink: 0;
   border-radius: var(--co-radius-content);
-  background: var(--co-track);
+  background: var(--co-surface-3);
 }
 
-.co-dot[data-tone="protein"] { background: var(--co-macro-protein); }
-.co-dot[data-tone="carb"] { background: var(--co-macro-carb); }
-.co-dot[data-tone="fat"] { background: var(--co-macro-fat); }
-.co-dot[data-tone="accent"] { background: var(--co-accent); }
-.co-dot[data-tone="status"] { background: var(--co-status); }
+.co-dot[data-tone="protein"] { background: var(--co-role-protein); }
+.co-dot[data-tone="carb"] { background: var(--co-role-carb); }
+.co-dot[data-tone="fat"] { background: var(--co-role-fat); }
+/* O ponto da hora é marca de estado: a tinta, 3:1 sobre os fundos de texto o
+ * dia inteiro, e não o preenchimento, que no claro some na pedra. */
+.co-dot[data-tone="accent"] { background: var(--co-hora-ink); }
+.co-dot[data-tone="status"] { background: var(--co-ok); }
 
 /* ------------------------------------------------------------------ botão -- */
 
@@ -890,27 +919,37 @@ div.co-sheet-overlay {
   align-items: center;
   justify-content: center;
   gap: var(--co-space-8);
-  /* O piso de 44px é do sistema, não do componente: não existe tamanho menor
-   * na API. Um alvo de 32px passa no desenho e falha no polegar. */
-  min-height: var(--co-target-min);
+  /* A altura é do sistema, não do componente: não existe tamanho menor na
+   * API. No toque, o comum tem os 44px do alvo e o principal 50px; com
+   * ponteiro fino (o desktop), 40 e 46px (plano s7, ADR-022), no `@media` de
+   * toque e ponteiro, mais abaixo. Um alvo de 32px passa no desenho e falha no
+   * polegar. */
+  min-height: var(--co-button-height);
   padding: 0 var(--co-space-14);
   border: var(--co-border-width) solid transparent;
   border-radius: var(--co-radius-control);
   font-family: inherit;
-  font-size: var(--co-text-14);
+  font-size: var(--co-text-17);
   font-weight: var(--co-weight-semibold);
   line-height: 1;
   text-align: center;
   cursor: pointer;
-  transition: background var(--co-duration-fast) var(--co-ease),
-    color var(--co-duration-fast) var(--co-ease),
-    border-color var(--co-duration-fast) var(--co-ease);
+  transition: background var(--co-duration-quick) var(--co-ease-settle),
+    color var(--co-duration-quick) var(--co-ease-settle),
+    border-color var(--co-duration-quick) var(--co-ease-settle),
+    transform var(--co-duration-press) var(--co-ease-settle);
+}
+
+/* A resposta ao toque: o botão assenta (escala 0,97) em 90ms, abaixo dos 100ms
+ * do piso de resposta (ADR-022). Só o que está ligado responde. */
+.co-button:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: scale(0.97);
 }
 
 .co-button[data-size="lg"] {
-  min-height: 52px;
+  min-height: var(--co-button-height-lg);
   padding: 0 var(--co-space-20);
-  font-size: var(--co-text-15);
+  font-size: var(--co-text-17);
 }
 
 .co-button[data-full="true"] {
@@ -918,44 +957,48 @@ div.co-sheet-overlay {
   width: 100%;
 }
 
+/* O primário é a própria pedra: a tinta sólida (ADR-022). A cor da hora é cor
+ * de lugar, e nunca de ação. */
 .co-button[data-variant="primary"] {
-  background: var(--co-accent);
-  color: var(--co-accent-contrast);
+  border-color: var(--co-ink);
+  background: var(--co-ink);
+  color: var(--co-on-ink);
 }
-.co-button[data-variant="primary"]:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--co-accent-hover); }
+.co-button[data-variant="primary"]:hover:not(:disabled):not([aria-disabled="true"]) {
+  border-color: var(--co-ink-2);
+  background: var(--co-ink-2);
+}
 
-/* Sem borda: a separação vem do fundo, que é o degrau que este sistema usa em
- * todo lugar. Contorno num botão dentro de um cartão desenha duas caixas onde
- * há um objeto só. */
+/* O comum: a superfície com o limite de controle, como o campo. Sem o limite,
+ * o botão sobre um cartão da mesma superfície vira texto solto (WCAG 1.4.11). */
 .co-button[data-variant="secondary"] {
+  border: var(--co-control-width) solid var(--co-control);
   background: var(--co-surface);
-  color: var(--co-text-body);
-  font-weight: var(--co-weight-medium);
+  color: var(--co-ink);
 }
-.co-button[data-variant="secondary"]:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--co-surface-raised); }
+.co-button[data-variant="secondary"]:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--co-surface-2); }
 
 /* A ação inline de uma lista: "Adicionar a esta refeição", "Nova refeição".
  * Sem caixa nenhuma, porque ela pertence ao grupo e não flutua sobre ele. */
 .co-button[data-variant="ghost"] {
   background: transparent;
-  color: var(--co-accent);
-  font-weight: var(--co-weight-regular);
+  color: var(--co-ink);
   padding: 0;
 }
-.co-button[data-variant="ghost"]:hover:not(:disabled):not([aria-disabled="true"]) { color: var(--co-accent-hover); }
+.co-button[data-variant="ghost"]:hover:not(:disabled):not([aria-disabled="true"]) { color: var(--co-ink-2); }
 
-.co-button[data-variant="ghost"][data-tone="neutral"] { color: var(--co-text-secondary); }
-.co-button[data-variant="ghost"][data-tone="neutral"]:hover:not(:disabled):not([aria-disabled="true"]) { color: var(--co-text); }
+.co-button[data-variant="ghost"][data-tone="neutral"] { color: var(--co-ink-2); }
+.co-button[data-variant="ghost"][data-tone="neutral"]:hover:not(:disabled):not([aria-disabled="true"]) { color: var(--co-ink); }
 
 /* `danger` existe por uma razão concreta: apagar a conta apaga os dados de
  * verdade. A cor sobe o custo de errar o alvo; ela não substitui a confirmação. */
 .co-button[data-variant="danger"] {
   background: transparent;
-  border-color: var(--co-danger);
-  color: var(--co-danger);
+  border: var(--co-control-width) solid var(--co-bad);
+  color: var(--co-bad);
 }
 .co-button[data-variant="danger"]:hover:not(:disabled):not([aria-disabled="true"]) {
-  background: var(--co-danger-soft);
+  background: var(--co-bad-soft);
 }
 
 /* `aria-disabled` é o desligado que guarda o foco (o motivo fica ao lado e o
@@ -976,40 +1019,40 @@ div.co-sheet-overlay {
 /* ----------------------------------------------------------- botão-ícone --- */
 
 /*
- * Quadrado, com o mesmo piso de 44px do botão. O `lg` tem os 52px do
- * `Button size="lg"`, para os dois ficarem da mesma altura lado a lado —
- * "Registrar" e o marcador de favorito.
+ * Quadrado, com a altura do botão: 44px no toque e 40px com ponteiro fino, e
+ * o `lg` com a do `Button size="lg"` (50 e 46px), para os dois ficarem da
+ * mesma altura lado a lado — "Registrar" e o marcador de favorito.
  */
 .co-icon-button {
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: var(--co-target-min);
-  height: var(--co-target-min);
+  width: var(--co-button-height);
+  height: var(--co-button-height);
   padding: 0;
   border: 0;
   border-radius: var(--co-radius-control);
   background: var(--co-surface);
-  color: var(--co-text-secondary);
+  color: var(--co-ink-2);
   cursor: pointer;
-  transition: background var(--co-duration-fast) var(--co-ease),
-    color var(--co-duration-fast) var(--co-ease);
+  transition: background var(--co-duration-quick) var(--co-ease-settle),
+    color var(--co-duration-quick) var(--co-ease-settle);
 }
 
 .co-icon-button[data-size="lg"] {
-  width: 52px;
-  height: 52px;
+  width: var(--co-button-height-lg);
+  height: var(--co-button-height-lg);
 }
 
 .co-icon-button:hover:not(:disabled):not([aria-disabled="true"]) {
-  background: var(--co-surface-raised);
-  color: var(--co-text-body);
+  background: var(--co-surface-2);
+  color: var(--co-ink);
 }
 
 .co-icon-button[data-variant="ghost"] {
   background: transparent;
-  color: var(--co-text-muted);
+  color: var(--co-ink-2);
 }
 
 .co-icon-button[data-variant="ghost"]:hover:not(:disabled):not([aria-disabled="true"]) {
@@ -1018,15 +1061,15 @@ div.co-sheet-overlay {
 
 .co-icon-button[data-tone="accent"],
 .co-icon-button[data-tone="accent"]:hover:not(:disabled):not([aria-disabled="true"]) {
-  color: var(--co-accent);
+  color: var(--co-ink);
 }
 
 /* Ligado muda de cor E de fundo: o ícone é traço, não tem como encher, e a
  * cor sozinha não é sinal (ADR-005). */
 .co-icon-button[aria-pressed="true"],
 .co-icon-button[aria-pressed="true"]:hover:not(:disabled):not([aria-disabled="true"]) {
-  background: var(--co-accent-soft);
-  color: var(--co-accent);
+  background: var(--co-surface-3);
+  color: var(--co-ink);
 }
 
 .co-icon-button:disabled,
@@ -1043,27 +1086,28 @@ div.co-sheet-overlay {
   padding: var(--co-space-4) var(--co-space-10);
   border: var(--co-border-width) solid transparent;
   border-radius: var(--co-radius-pill);
-  background: var(--co-surface-raised);
+  background: var(--co-surface-2);
   font-size: var(--co-text-12);
   font-weight: var(--co-weight-semibold);
-  color: var(--co-text-secondary);
+  color: var(--co-ink-2);
   white-space: nowrap;
 }
 
+/* O selo de lugar leva a cor da hora: o lavado de fundo e a tinta da hora. */
 .co-badge[data-tone="accent"] {
-  background: var(--co-accent-soft);
-  color: var(--co-accent);
+  background: var(--co-hora-soft);
+  color: var(--co-hora-ink);
 }
 
 .co-badge[data-tone="status"] {
-  background: var(--co-status-border);
-  color: var(--co-status);
+  background: var(--co-ok-soft);
+  color: var(--co-ok);
 }
 
 .co-badge[data-solid="true"] {
-  background: var(--co-accent);
-  border-color: var(--co-accent);
-  color: var(--co-accent-contrast);
+  background: var(--co-ink);
+  border-color: var(--co-ink);
+  color: var(--co-on-ink);
 }
 
 /* O selo também sabe ficar reto, para quando ele for conteúdo de uma linha em
@@ -1071,9 +1115,9 @@ div.co-sheet-overlay {
 .co-badge[data-shape="square"] {
   border-radius: var(--co-radius-content);
   background: transparent;
-  border-color: var(--co-border-strong);
+  border-color: var(--co-line);
   font-weight: var(--co-weight-regular);
-  color: var(--co-text-muted);
+  color: var(--co-ink-2);
 }
 
 /* ------------------------------------------------------------------ ripa ---- */
@@ -1092,7 +1136,7 @@ div.co-sheet-overlay {
   border-radius: var(--co-radius-content);
   background-image: repeating-linear-gradient(
     90deg,
-    var(--co-track) 0 var(--co-slat-width),
+    var(--co-surface-3) 0 var(--co-slat-width),
     transparent var(--co-slat-width) var(--co-slat-gap)
   );
 }
@@ -1109,10 +1153,10 @@ div.co-sheet-overlay {
 /* O tom acompanha o macro que a barra ilustra, e sai do MESMO token do ponto
  * colorido ao lado — duas cores diferentes para a mesma proteína seria o tipo
  * de divergência que só aparece quando alguém troca o tema. */
-.co-slat[data-tone="protein"] { --co-slat-color: var(--co-macro-protein); }
-.co-slat[data-tone="carb"] { --co-slat-color: var(--co-macro-carb); }
-.co-slat[data-tone="fat"] { --co-slat-color: var(--co-macro-fat); }
-.co-slat[data-tone="status"] { --co-slat-color: var(--co-status); }
+.co-slat[data-tone="protein"] { --co-slat-color: var(--co-role-protein); }
+.co-slat[data-tone="carb"] { --co-slat-color: var(--co-role-carb); }
+.co-slat[data-tone="fat"] { --co-slat-color: var(--co-role-fat); }
+.co-slat[data-tone="status"] { --co-slat-color: var(--co-ok); }
 
 .co-slat__fill {
   position: absolute;
@@ -1122,15 +1166,15 @@ div.co-sheet-overlay {
   width: var(--co-slat-value, 0%);
   background-image: repeating-linear-gradient(
     90deg,
-    var(--co-slat-color, var(--co-accent)) 0 var(--co-slat-width),
+    var(--co-slat-color, var(--co-ink)) 0 var(--co-slat-width),
     transparent var(--co-slat-width) var(--co-slat-gap)
   );
-  transition: width var(--co-duration-normal) var(--co-ease);
+  transition: width var(--co-duration-base) var(--co-ease-settle);
 }
 
 .co-slat[data-pattern="solid"] .co-slat__fill {
   background-image: none;
-  background-color: var(--co-slat-color, var(--co-accent));
+  background-color: var(--co-slat-color, var(--co-ink));
 }
 
 .co-slat__marker {
@@ -1139,14 +1183,14 @@ div.co-sheet-overlay {
   bottom: -4px;
   left: var(--co-slat-value, 0%);
   width: var(--co-marker-width);
-  background: var(--co-slat-color, var(--co-accent));
+  background: var(--co-slat-color, var(--co-ink));
 }
 
 /* ----------------------------------------------------------------- régua ---- */
 
 /*
  * Várias estimativas numa escala só. O eixo é o fio de 1px do sistema, a
- * faixa é o acento suave e as marcas são traços retos (ADR-004): a usada tem a
+ * faixa é o trilho (`surface-3`) e as marcas são traços retos (ADR-004): a usada tem a
  * altura inteira e o dobro da espessura, as outras metade da altura em cinza
  * de desenho — a diferença é de forma antes de ser de cor (ADR-005).
  */
@@ -1178,7 +1222,7 @@ div.co-sheet-overlay {
   width: calc(var(--co-ruler-to, 0%) - var(--co-ruler-from, 0%));
   min-width: var(--co-border-width);
   height: 6px;
-  background: var(--co-accent-soft);
+  background: var(--co-surface-3);
 }
 
 .co-ruler__mark {
@@ -1187,7 +1231,7 @@ div.co-sheet-overlay {
   bottom: 25%;
   left: var(--co-ruler-at, 0%);
   width: 2px;
-  background: var(--co-icon-muted);
+  background: var(--co-control);
   transform: translateX(-50%);
 }
 
@@ -1195,7 +1239,7 @@ div.co-sheet-overlay {
   top: 0;
   bottom: 0;
   width: var(--co-marker-width);
-  background: var(--co-accent);
+  background: var(--co-ink);
 }
 
 /* Todos os rótulos na MESMA célula da grade: a linha ganha a altura de um
@@ -1217,46 +1261,123 @@ div.co-sheet-overlay {
 /* ------------------------------------------------------- controle segmentado -- */
 
 /*
- * Trilho de 12px com 3px de folga, opção de 9px dentro. O 9 não é escolha
- * solta: raio interno = raio externo − folga, senão o canto da opção corre
- * paralelo ao canto do trilho com espessura variável e o olho vê a diferença
- * sem saber nomear.
+ * Pílula por fora e pílula por dentro (ADR-022): o chip e o segmentado são as
+ * duas peças em pílula do "Relógio de Sol". Pílula dentro de pílula fecha a
+ * conta do raio interno sozinha — os dois cantos são meia altura.
  *
- * O trilho tem contorno de controle: o fundo `surface` sobre `canvas` mede
- * 1,14:1 no claro e 1,10:1 no escuro, e sem o contorno as opções não
+ * O trilho tem contorno de controle: o fundo `surface` sobre `bg` mede
+ * cerca de 1,1:1 nos dois temas, e sem o contorno as opções não
  * escolhidas viram texto solto, sem cara de opção (WCAG 1.4.11).
  */
-.co-segmented {
-  display: inline-flex;
-  gap: var(--co-space-2);
-  padding: var(--co-space-2);
-  border: var(--co-border-width) solid var(--co-control-border);
-  background: var(--co-surface);
-  border-radius: var(--co-radius-control);
+/*
+ * Toda opção tem o alvo de 44px nos DOIS eixos, o grupo nunca passa da largura
+ * de quem o contém, e quando as opções não cabem numa fileira o grupo quebra em
+ * fileiras EQUILIBRADAS e de largura igual: seis opções viram 3 + 3, oito viram
+ * 4 + 4, os quatro estilos ("Padrão / Baixa em carbo / Cetogênica / Alta em
+ * carbo") viram 2 + 2. Quando cabem, continua uma pílula só.
+ *
+ * A quebra do `flex-wrap` não serve: ele enche a primeira fileira até onde
+ * cabe e deixa o resto na última (a 320px, seis opções viravam 5 + 1, com o
+ * "6" esticado a 234-266px; oito, 7 + 1, com a de baixo a 76px contra 44px).
+ * Aqui é uma grade de trilhos iguais (`repeat(auto-fit, minmax(M, 1fr))`), e o
+ * que o CSS escolhe é o M, o mínimo de cada trilho, pela largura de dentro:
+ *
+ *   cabe numa fileira (`--co-seg-fit1`)   M = a célula: n trilhos, uma fileira
+ *   senão, cabe em duas (`--co-seg-fit2`) M = a largura de k2 trilhos que
+ *                                         enchem a fileira, e só k2 cabem
+ *   senão, em três                        o mesmo, com k3
+ *   senão                                 M = a célula, e a grade enche como der
+ *
+ * O "senão" é um degrau, e o CSS não tem `if`: `min(M2, 10000 * (fit1 - 100%))`
+ * vale M2 enquanto o grupo é mais estreito que `fit1` por mais de 3 centésimos
+ * de pixel, e zero ou negativo (e some no `max()`) quando cabe. A célula é a
+ * maior entre os 44px do alvo e o rótulo mais longo, estimado em 0,6 do corpo
+ * por caractere (`--co-seg-chars`, o número de letras, que o componente
+ * escreve): é conta sobre o texto, e não medida do DOM. O `-0,5px` do M2 e do
+ * M3 dá folga ao arredondamento: sem ele a conta que dá exatamente k trilhos
+ * às vezes dá k - 1.
+ *
+ * `--co-seg-n` e `--co-seg-chars` são escritos pelo componente na prop `style`
+ * (o CSSOM, e não o atributo: ADR-024). O resto são contas daqui.
+ *
+ * O raio é meia altura de UMA fileira (a opção, o respiro e o contorno), e não
+ * 999px: numa fileira só é a mesma pílula; com duas, 999px viraria meia altura
+ * do grupo inteiro, e a opção escolhida no canto sairia da curva da borda.
+ */
+.co-segmented,
+.co-segmented-field {
+  --co-seg-gap: var(--co-space-2);
+  --co-seg-cell: max(var(--co-target-min), calc(var(--co-seg-chars, 0) * 0.6 * var(--co-text-13) + 2 * var(--co-space-12)));
+  --co-seg-k2: round(up, calc(var(--co-seg-n, 1) / 2), 1);
+  --co-seg-k3: round(up, calc(var(--co-seg-n, 1) / 3), 1);
+  --co-seg-fit1: calc(var(--co-seg-n, 1) * var(--co-seg-cell) + (var(--co-seg-n, 1) - 1) * var(--co-seg-gap));
+  --co-seg-fit2: calc(var(--co-seg-k2) * var(--co-seg-cell) + (var(--co-seg-k2) - 1) * var(--co-seg-gap));
+  --co-seg-m2: calc((100% - (var(--co-seg-k2) - 1) * var(--co-seg-gap)) / var(--co-seg-k2) - 0.5px);
+  --co-seg-m3: calc((100% - (var(--co-seg-k3) - 1) * var(--co-seg-gap)) / var(--co-seg-k3) - 0.5px);
+  --co-seg-outer: calc(var(--co-seg-fit1) + 2 * (var(--co-space-2) + var(--co-control-width)));
 }
 
-.co-segmented[data-full="true"] { display: flex; width: 100%; }
+.co-segmented {
+  display: inline-grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(
+      max(
+        var(--co-seg-cell),
+        min(var(--co-seg-m2), calc(10000 * (var(--co-seg-fit1) - 100%))),
+        min(var(--co-seg-m3), calc(10000 * (var(--co-seg-fit2) - 100%)))
+      ),
+      1fr
+    )
+  );
+  width: min(100%, var(--co-seg-outer));
+  max-width: 100%;
+  gap: var(--co-seg-gap);
+  padding: var(--co-space-2);
+  border: var(--co-control-width) solid var(--co-control);
+  background: var(--co-surface);
+  border-radius: calc(var(--co-target-min) / 2 + var(--co-space-2) + var(--co-control-width));
+}
+
+.co-segmented[data-full="true"] { display: grid; width: 100%; }
+
+/* Com a legenda visível (`legend`): o rótulo em cima, com o mesmo respiro do
+ * rótulo do `Field` até o controle. O embrulho tem a largura do grupo, que lê
+ * as mesmas contas (o componente escreve `--co-seg-*` nele, e o grupo as herda). */
+.co-segmented-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-6);
+  width: min(100%, var(--co-seg-outer));
+  max-width: 100%;
+}
+
+.co-segmented-field[data-full="true"] { width: 100%; }
+
+.co-segmented-field > .co-segmented { width: 100%; }
 
 .co-segmented__option {
-  flex-grow: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: var(--co-target-min);
+  max-width: 100%;
   min-height: var(--co-target-min);
   padding: 0 var(--co-space-12);
   border: 0;
-  border-radius: var(--co-radius-inset);
+  border-radius: var(--co-radius-pill);
   background: transparent;
-  color: var(--co-text-muted);
+  color: var(--co-ink-2);
   font-family: inherit;
   font-size: var(--co-text-13);
   cursor: pointer;
-  white-space: nowrap;
+  /* Só quebra o rótulo que passa da célula; o resto fica numa linha. */
+  text-align: center;
 }
 
 .co-segmented__option[aria-checked="true"] {
-  background: var(--co-accent);
-  color: var(--co-accent-contrast);
+  background: var(--co-ink);
+  color: var(--co-on-ink);
   font-weight: var(--co-weight-semibold);
 }
 
@@ -1402,31 +1523,28 @@ div.co-sheet-overlay {
 /*
  * Aviso INFORMA, nunca bloqueia (ADR-006 do Basalto). Por isso ele não tem
  * variante "erro" com fundo vermelho e não tem botão de fechar obrigatório:
- * é um bloco de texto com a conta aberta, marcado por um fio na lateral.
- *
- * A marca é `border-left`, e não um pseudo-elemento: assim ela acompanha a
- * curva do cartão nas duas pontas em vez de cortar o canto arredondado com um
- * retângulo.
+ * é um bloco de texto com a conta aberta, sobre um fundo rebaixado, com o
+ * ícone e o título. Sem barra colorida na lateral: a identidade a recusa
+ * (ADR-022); o sinal é o ícone, o título e o fundo, e não só a cor.
  */
 .co-notice {
   display: flex;
   gap: var(--co-space-12);
-  padding: var(--co-space-16) var(--co-space-16) var(--co-space-16) var(--co-space-14);
-  background: var(--co-surface);
+  padding: var(--co-space-16);
+  background: var(--co-surface-2);
   border-radius: var(--co-radius-container);
-  border-left: var(--co-marker-width) solid var(--co-accent);
 }
 
-.co-notice[data-tone="status"] { border-left-color: var(--co-status); }
+.co-notice[data-tone="status"] { background: var(--co-ok-soft); }
 
 .co-notice__icon {
   flex-shrink: 0;
   padding-top: 1px;
-  color: var(--co-accent);
+  color: var(--co-ink-2);
   display: flex;
 }
 
-.co-notice[data-tone="status"] .co-notice__icon { color: var(--co-status); }
+.co-notice[data-tone="status"] .co-notice__icon { color: var(--co-ok); }
 
 .co-notice__body {
   display: flex;
@@ -1443,7 +1561,7 @@ div.co-sheet-overlay {
   align-items: center;
   gap: var(--co-space-2);
   padding: var(--co-space-2);
-  border: var(--co-border-width) solid var(--co-control-border);
+  border: var(--co-control-width) solid var(--co-control);
   background: var(--co-surface);
   border-radius: var(--co-radius-control);
 }
@@ -1457,11 +1575,11 @@ div.co-sheet-overlay {
   border: 0;
   border-radius: var(--co-radius-inset);
   background: transparent;
-  color: var(--co-text-secondary);
+  color: var(--co-ink-2);
   cursor: pointer;
 }
 
-.co-stepper__button:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--co-surface-raised); }
+.co-stepper__button:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--co-surface-2); }
 
 .co-stepper__button:disabled,
 .co-stepper__button[aria-disabled="true"] {
@@ -1472,7 +1590,7 @@ div.co-sheet-overlay {
 .co-stepper__value {
   min-width: 52px;
   text-align: center;
-  font-size: var(--co-text-16);
+  font-size: var(--co-text-17);
   font-weight: var(--co-weight-medium);
   font-variant-numeric: tabular-nums;
 }
@@ -1508,16 +1626,16 @@ div.co-sheet-overlay {
   border: 0;
   border-radius: var(--co-radius-inset);
   background: transparent;
-  color: var(--co-text-secondary);
+  color: var(--co-ink-2);
   cursor: pointer;
 }
 
-.co-pager__button:hover:not([aria-disabled="true"]) { background: var(--co-surface-raised); }
+.co-pager__button:hover:not([aria-disabled="true"]) { background: var(--co-surface-2); }
 
 /* Na ponta o botão apaga, mas continua focável: `aria-disabled`, e não
  * `disabled`, para o foco não cair fora da página no último toque. */
 .co-pager__button[aria-disabled="true"] {
-  color: var(--co-icon-muted);
+  color: var(--co-control);
   cursor: not-allowed;
 }
 
@@ -1552,7 +1670,7 @@ div.co-sheet-overlay {
 .co-deck__card {
   border-radius: var(--co-radius-container);
   touch-action: pan-y;
-  transition: transform var(--co-duration-normal) var(--co-ease);
+  transition: transform var(--co-duration-base) var(--co-ease-move);
 }
 
 .co-deck__card[hidden] { display: none; }
@@ -1596,17 +1714,17 @@ div.co-sheet-overlay {
   width: var(--co-target-min);
   height: var(--co-target-min);
   padding: 0;
-  border: var(--co-border-width) solid var(--co-control-border);
+  border: var(--co-control-width) solid var(--co-control);
   border-radius: var(--co-radius-control);
   background: var(--co-surface);
-  color: var(--co-text-secondary);
+  color: var(--co-ink-2);
   font: inherit;
   cursor: pointer;
 }
 
 .co-deck__arrow:hover:not(:disabled):not([aria-disabled="true"]) {
-  background: var(--co-surface-raised);
-  color: var(--co-text-body);
+  background: var(--co-surface-2);
+  color: var(--co-ink);
 }
 
 /* Na ponta a seta apaga e continua focável, como a do `Pager`. */
@@ -1618,7 +1736,7 @@ div.co-sheet-overlay {
 
 /* O indicador de posição. A vaga vazia é um anel; a cheia é um traço largo e
  * cheio: forma diferente, e não só cor (ADR-005). As duas no piso de desenho,
- * 3:1 (o anel no limite de controle, a cheia no acento). */
+ * 3:1 (o anel no limite de controle, a cheia na tinta). */
 .co-deck__dots {
   display: flex;
   flex-wrap: wrap;
@@ -1634,15 +1752,15 @@ div.co-sheet-overlay {
 .co-deck__dot {
   width: var(--co-space-8);
   height: var(--co-space-8);
-  border: var(--co-border-width) solid var(--co-control-border);
+  border: var(--co-border-width) solid var(--co-control);
   border-radius: var(--co-radius-pill);
   background: transparent;
 }
 
 .co-deck__dot[data-current="true"] {
   width: var(--co-space-24);
-  border-color: var(--co-accent);
-  background: var(--co-accent);
+  border-color: var(--co-ink);
+  background: var(--co-ink);
 }
 
 /* ------------------------------------------------------------------ abas ---- */
@@ -1669,7 +1787,7 @@ div.co-sheet-overlay {
   min-width: 0;
   padding: var(--co-space-2);
   overflow-x: auto;
-  border: var(--co-border-width) solid var(--co-control-border);
+  border: var(--co-control-width) solid var(--co-control);
   border-radius: var(--co-radius-control);
   background: var(--co-surface);
 }
@@ -1685,26 +1803,26 @@ div.co-sheet-overlay {
   border: 0;
   border-radius: var(--co-radius-inset);
   background: transparent;
-  color: var(--co-text-muted);
+  color: var(--co-ink-2);
   font: inherit;
   font-size: var(--co-text-14);
   white-space: nowrap;
   cursor: pointer;
 }
 
-.co-tabs__tab:hover:not([aria-selected="true"]) { color: var(--co-text-body); }
+.co-tabs__tab:hover:not([aria-selected="true"]) { color: var(--co-ink); }
 
 /* A aberta muda de fundo e de peso, e não só de cor (ADR-005). */
 .co-tabs__tab[aria-selected="true"] {
-  background: var(--co-accent);
-  color: var(--co-accent-contrast);
+  background: var(--co-ink);
+  color: var(--co-on-ink);
   font-weight: var(--co-weight-semibold);
 }
 
 /* O anel por dentro: a fileira rola, e cortaria o de fora. Na aba aberta, o
- * anel de acento sumiria no fundo de acento; ali ele é o contraste do acento. */
+ * anel de foco sumiria na tinta sólida; ali ele é a cor do texto sobre ela. */
 .co-tabs__tab:focus-visible { outline-offset: -2px; }
-.co-tabs__tab[aria-selected="true"]:focus-visible { outline-color: var(--co-accent-contrast); }
+.co-tabs__tab[aria-selected="true"]:focus-visible { outline-color: var(--co-on-ink); }
 
 /* O painel rola por dentro, para os dois lados, e é parada do Tab para rolar
  * pelo teclado (como o corpo da folha, ADR-018), com o anel por dentro.
@@ -1754,7 +1872,7 @@ div.co-sheet-overlay {
   margin-right: -10px;
   border: 0;
   background: transparent;
-  color: var(--co-text-muted);
+  color: var(--co-ink-2);
   cursor: pointer;
 }
 
@@ -1805,12 +1923,11 @@ div.co-sheet-overlay {
 /* ------------------------------------------------------------- barra de abas -- */
 
 /*
- * A barra flutua sobre o conteúdo, e o conteúdo rola por baixo dela.
+ * A barra fica sobre o conteúdo, e o conteúdo rola por baixo dela.
  *
- * `backdrop-filter` é o efeito, mas o token `--co-overlay` já é uma cor COM
- * alfa que sozinha dá contraste suficiente: onde o filtro não existe — Firefox
- * com a flag desligada, WebView antiga — a barra continua legível, só deixa de
- * ser translúcida. Efeito que degrada para "opaco", nunca para "ilegível".
+ * Opaca, na superfície, com a fissura em cima. O vidro do "Relógio de Sol" (a
+ * cápsula flutuante, o desfoque, o rótulo que se adapta ao que passa por
+ * baixo) é da F4 do Basalto (plano s9), e não entra na 2.0 (ADR-022).
  */
 .co-tabbar {
   position: fixed;
@@ -1823,20 +1940,19 @@ div.co-sheet-overlay {
   grid-auto-columns: minmax(0, 1fr);
   gap: var(--co-space-4);
   padding: var(--co-space-10) var(--co-space-10);
-  /* Os destinos entram 14px na área de baixo (ADR-012): o gesto do indicador
-   * de início dispara nos últimos milímetros da borda, e não nos 34px inteiros
-   * que o iPhone reserva. 14 é `--co-space-14`, o respiro horizontal do botão e
-   * do campo, e não um número solto. Rodapé de 20px com o indicador de 34px
-   * (barra de 83px); sem área segura, o `max` fica nos 10px de sempre (barra
-   * de 73px). O termo `max(...)` é o mesmo texto da reserva da
+  /* Os destinos terminam 8px ACIMA da área de baixo (ADR-012, adendo 2.0): a
+   * camada de baixo fica no recuo mais 8px — 42px no iPhone com a ilha, 32px
+   * no Android com furo —, fora da faixa onde o gesto do indicador de início
+   * disputa o toque. Até a 1.x eles entravam 14px na área; a 2.0 tira o alvo
+   * de lá. 8 é `--co-space-8`, e não um número solto. Rodapé de 42px com o
+   * indicador de 34px (barra de 105px); sem área segura, o `max` fica nos
+   * 10px de sempre (barra de 73px). O termo `max(...)` é o mesmo texto da reserva da
    * `.co-screen[data-tabbar="true"]` — se um mudar sem o outro, a folga de 31px
    * até a última linha muda junto. Vem DEPOIS do `padding`, que senão o
    * zeraria. */
-  padding-bottom: max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14)));
-  background: var(--co-overlay);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  border-top: var(--co-border-width) solid var(--co-overlay-line);
+  padding-bottom: max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8)));
+  background: var(--co-surface);
+  border-top: var(--co-border-width) solid var(--co-line);
 }
 
 .co-tabbar[data-position="absolute"] {
@@ -1848,6 +1964,7 @@ div.co-sheet-overlay {
 }
 
 .co-tabbar__item {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1857,31 +1974,58 @@ div.co-sheet-overlay {
   border: 0;
   border-radius: var(--co-radius-control);
   background: transparent;
-  color: var(--co-text-muted);
+  color: var(--co-ink-2);
   font-family: inherit;
   /* 11px é o piso do rótulo da barra de abas, a convenção do iOS, e só ele
    * fica abaixo dos 12px do resto do sistema (ADR-021). */
   font-size: var(--co-text-11);
+  /* "Rótulo de aba 11 px em peso médio" (identidade, Tipografia): 500 na aba
+   * inativa, e o 600 da atual continua um passo acima. */
+  font-weight: var(--co-weight-medium);
   cursor: pointer;
 }
 
 /*
- * A aba atual muda de COR, de PESO e ganha `aria-current`. Três sinais, e não
- * um: quem não separa ametista de cinza ainda vê o rótulo mais pesado, e quem
- * usa leitor de tela ouve "página atual" (ADR-005).
+ * A aba atual ganha uma ÁREA, uma MARCA, muda de COR, de PESO e ganha
+ * `aria-current`. A cor e a área sozinhas não bastavam: no escuro, a tinta da
+ * hora contra o cinza das outras abas mede 1,00 a 1,37:1, e a área
+ * (`--co-surface-2`) contra a barra mede só 1,16 a 1,22:1. O sinal que passa de
+ * 3:1 (WCAG 1.4.11) é a MARCA, o traço de 3px no alto da área, na tinta da hora
+ * (`--co-hora-ink`), como a do trilho e a da lista de destinos: contra a barra
+ * e contra a área, a todo minuto do dia, nos dois temas (`tokens/contraste.test.ts`).
+ * A área é sólida e mais escura que a barra (a "área mais escura" da s7), com o
+ * raio de controle, atrás do ícone e do rótulo; na F4, com o vidro, ela vira
+ * translúcida, e a marca continua inteira. O rótulo e o ícone sobre ela
+ * continuam a 4,5:1 e a 3:1. Quem usa leitor de tela ouve "página atual"
+ * (ADR-005). A cor é a da hora: a aba diz ONDE se está, e a hora é cor de
+ * lugar (ADR-022). A marca é reta, porque é conteúdo (ADR-004).
  */
 .co-tabbar__item[aria-current="page"] {
-  color: var(--co-text);
+  background: var(--co-surface-2);
+  color: var(--co-hora-ink);
   font-weight: var(--co-weight-semibold);
+}
+
+.co-tabbar__item[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--co-mark-size);
+  height: var(--co-marker-width);
+  transform: translateX(-50%);
+  /* A tinta da hora, e não o preenchimento (`--co-hora`, 1,56 a 2,15:1 no
+   * claro): a marca é o desenho que diz "é aqui", 3:1 a todo minuto. */
+  background: var(--co-hora-ink);
 }
 
 .co-tabbar__icon {
   display: flex;
-  color: var(--co-text-muted);
+  color: var(--co-ink-2);
 }
 
 .co-tabbar__item[aria-current="page"] .co-tabbar__icon {
-  color: var(--co-accent);
+  color: var(--co-hora-ink);
 }
 
 /* ------------------------------------------------------------------ campo --- */
@@ -1917,11 +2061,11 @@ div.co-sheet-overlay {
   min-width: var(--co-target-min);
   min-height: var(--co-target-min);
   padding: 0;
-  border: var(--co-border-width) solid var(--co-control-border);
+  border: var(--co-control-width) solid var(--co-control);
   border-radius: var(--co-radius-control);
   background: var(--co-surface);
-  color: var(--co-text);
-  transition: border-color var(--co-duration-fast) var(--co-ease);
+  color: var(--co-ink);
+  transition: border-color var(--co-duration-quick) var(--co-ease-settle);
 }
 
 .co-input[data-full="true"] {
@@ -1930,13 +2074,13 @@ div.co-sheet-overlay {
 }
 
 .co-input:focus-within {
-  border-color: var(--co-accent);
-  outline: 2px solid var(--co-accent);
+  border-color: var(--co-focus);
+  outline: 2px solid var(--co-focus);
   outline-offset: 2px;
 }
 
 .co-input[data-invalid="true"] {
-  border-color: var(--co-danger);
+  border-color: var(--co-bad);
 }
 
 /*
@@ -1949,9 +2093,9 @@ div.co-sheet-overlay {
   place-self: stretch;
   min-width: 0;
   width: auto;
-  margin: calc(-1 * var(--co-border-width));
-  padding: var(--co-space-10) calc(var(--co-field-end, var(--co-space-14)) + var(--co-border-width))
-    var(--co-space-10) calc(var(--co-space-14) + var(--co-border-width));
+  margin: calc(-1 * var(--co-control-width));
+  padding: var(--co-space-10) calc(var(--co-field-end, var(--co-space-14)) + var(--co-control-width))
+    var(--co-space-10) calc(var(--co-space-14) + var(--co-control-width));
   border: 0;
   background: transparent;
   color: inherit;
@@ -1959,10 +2103,9 @@ div.co-sheet-overlay {
   /*
    * 16px, e é regra de plataforma: abaixo disso o Safari do iPhone DÁ ZOOM ao
    * focar o campo, a tela salta, e a pessoa termina o cadastro com a página
-   * torta. Custa um degrau da rampa e evita um defeito que ninguém reproduz no
-   * computador.
+   * torta. O "Relógio de Sol" escreve o campo em 17px (ADR-022), acima disso.
    */
-  font-size: var(--co-text-16);
+  font-size: var(--co-text-17);
   line-height: var(--co-leading-snug);
 }
 
@@ -1982,7 +2125,7 @@ div.co-sheet-overlay {
   grid-area: 1 / 1;
   justify-self: end;
   padding: 0 var(--co-space-14) 0 var(--co-space-8);
-  color: var(--co-text-muted);
+  color: var(--co-ink-2);
   font-size: var(--co-text-13);
   white-space: nowrap;
   pointer-events: none;
@@ -2039,7 +2182,7 @@ div.co-sheet-overlay {
   align-items: flex-start;
   gap: var(--co-space-6);
   margin: 0;
-  color: var(--co-danger);
+  color: var(--co-bad);
   font-family: var(--co-font-body);
   font-size: var(--co-text-14);
   line-height: var(--co-leading-note);
@@ -2070,7 +2213,7 @@ div.co-sheet-overlay {
  * A moldura da busca é a do campo — fundo de superfície, raio de controle, o
  * contorno de controle e o anel de foco em volta de TUDO. Ela já foi sem
  * contorno, confiando no degrau de fundo, e o degrau não separa: `surface`
- * sobre `canvas` mede 1,14:1 no claro e 1,10:1 no escuro, e dentro de uma
+ * sobre `bg` mede pouco mais de 1:1 nos dois temas, e dentro de uma
  * folha de mesma superfície a busca some inteira (WCAG 1.4.11).
  *
  * E o toque é o do campo: o controle ocupa a moldura inteira, as duas
@@ -2086,11 +2229,11 @@ div.co-sheet-overlay {
   min-width: var(--co-target-min);
   min-height: var(--co-target-min);
   padding: 0;
-  border: var(--co-border-width) solid var(--co-control-border);
+  border: var(--co-control-width) solid var(--co-control);
   border-radius: var(--co-radius-control);
   background: var(--co-surface);
-  color: var(--co-text);
-  transition: border-color var(--co-duration-fast) var(--co-ease);
+  color: var(--co-ink);
+  transition: border-color var(--co-duration-quick) var(--co-ease-settle);
 }
 
 .co-search[data-size="lg"] {
@@ -2103,8 +2246,8 @@ div.co-sheet-overlay {
 }
 
 .co-search:focus-within {
-  border-color: var(--co-accent);
-  outline: 2px solid var(--co-accent);
+  border-color: var(--co-focus);
+  outline: 2px solid var(--co-focus);
   outline-offset: 2px;
 }
 
@@ -2114,7 +2257,7 @@ div.co-sheet-overlay {
   grid-area: 1 / 1;
   justify-self: start;
   margin-left: var(--co-space-14);
-  color: var(--co-icon-muted);
+  color: var(--co-control);
   pointer-events: none;
 }
 
@@ -2125,7 +2268,7 @@ div.co-sheet-overlay {
 /* Com o foco dentro, a lupa acende: é o sinal de que o que se digita agora vai
  * para a busca, e não para o atalho de alguma outra coisa. */
 .co-search:focus-within .co-search__icon {
-  color: var(--co-accent);
+  color: var(--co-ink);
 }
 
 /*
@@ -2139,30 +2282,30 @@ div.co-sheet-overlay {
   place-self: stretch;
   min-width: 0;
   width: auto;
-  margin: calc(-1 * var(--co-border-width));
-  padding: var(--co-space-10) calc(var(--co-field-end, var(--co-space-14)) + var(--co-border-width))
-    var(--co-space-10) calc(var(--co-space-14) + 17px + var(--co-space-10) + var(--co-border-width));
+  margin: calc(-1 * var(--co-control-width));
+  padding: var(--co-space-10) calc(var(--co-field-end, var(--co-space-14)) + var(--co-control-width))
+    var(--co-space-10) calc(var(--co-space-14) + 17px + var(--co-space-10) + var(--co-control-width));
   border: 0;
   background: transparent;
   color: inherit;
   font-family: var(--co-font-body);
-  font-size: var(--co-text-16);
+  font-size: var(--co-text-17);
   line-height: var(--co-leading-snug);
   -webkit-appearance: none;
   appearance: none;
 }
 
 .co-search[data-size="lg"] .co-search__control {
-  padding-right: calc(var(--co-field-end, var(--co-space-16)) + var(--co-border-width));
-  padding-left: calc(var(--co-space-16) + 20px + var(--co-space-12) + var(--co-border-width));
+  padding-right: calc(var(--co-field-end, var(--co-space-16)) + var(--co-control-width));
+  padding-left: calc(var(--co-space-16) + 20px + var(--co-space-12) + var(--co-control-width));
 }
 
 .co-search[data-clearable="true"] .co-search__control {
-  padding-right: calc(var(--co-field-end, var(--co-space-10)) + var(--co-target-min) + var(--co-border-width));
+  padding-right: calc(var(--co-field-end, var(--co-space-10)) + var(--co-target-min) + var(--co-control-width));
 }
 
 .co-search[data-size="lg"][data-clearable="true"] .co-search__control {
-  padding-right: calc(var(--co-field-end, var(--co-space-12)) + var(--co-target-min) + var(--co-border-width));
+  padding-right: calc(var(--co-field-end, var(--co-space-12)) + var(--co-target-min) + var(--co-control-width));
 }
 
 .co-search__control:focus-visible {
@@ -2170,7 +2313,7 @@ div.co-sheet-overlay {
 }
 
 .co-search__control::placeholder {
-  color: var(--co-text-subtle);
+  color: var(--co-ink-3);
   opacity: 1;
 }
 
@@ -2221,7 +2364,7 @@ div.co-sheet-overlay {
 }
 
 .co-search__count {
-  color: var(--co-text-subtle);
+  color: var(--co-ink-3);
   font-size: var(--co-text-12);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -2233,8 +2376,8 @@ div.co-sheet-overlay {
   min-width: 20px;
   padding: var(--co-space-2) var(--co-space-6);
   border-radius: var(--co-radius-content);
-  background: var(--co-surface-sunken);
-  color: var(--co-text-subtle);
+  background: var(--co-surface-2);
+  color: var(--co-ink-3);
   font-family: var(--co-font-body);
   font-size: var(--co-text-12);
   line-height: var(--co-leading-normal);
@@ -2258,18 +2401,18 @@ div.co-sheet-overlay {
   justify-content: center;
   width: var(--co-target-min);
   height: var(--co-target-min);
-  margin: calc(-1 * var(--co-border-width)) 0;
+  margin: calc(-1 * var(--co-control-width)) 0;
   padding: 0;
   border: 0;
   border-radius: var(--co-radius-control);
   background: transparent;
-  color: var(--co-icon-muted);
+  color: var(--co-control);
   font: inherit;
   cursor: pointer;
 }
 
 .co-search__clear:hover {
-  color: var(--co-text-body);
+  color: var(--co-ink);
 }
 
 .co-search__clear:focus-visible {
@@ -2284,10 +2427,10 @@ div.co-sheet-overlay {
   gap: var(--co-space-6);
   min-height: var(--co-target-min);
   padding: 0 var(--co-space-14);
-  border: var(--co-border-width) solid var(--co-control-border);
+  border: var(--co-control-width) solid var(--co-control);
   border-radius: var(--co-radius-pill);
   background: transparent;
-  color: var(--co-text-body);
+  color: var(--co-ink);
   font-family: var(--co-font-body);
   font-size: var(--co-text-13);
   cursor: default;
@@ -2298,22 +2441,20 @@ button.co-chip {
 }
 
 /*
- * O escolhido troca o contorno de controle pelo acento, sobre o acento suave.
- * A borda é o limite dele: o acento suave sozinho mede 1,19:1 no claro e 1,08:1
- * no escuro contra o que está atrás, e com a borda transparente o chip
- * escolhido virava uma mancha sem contorno — o controle e o estado sumiam
- * juntos (WCAG 1.4.11).
+ * O escolhido é a tinta sólida, como o segmentado escolhido (ADR-022): muda o
+ * fundo, a cor do texto e o peso, e o limite passa a ser a própria tinta, que
+ * mede bem mais de 3:1 contra o que está atrás (WCAG 1.4.11).
  */
 .co-chip[data-selected="true"] {
-  border-color: var(--co-accent);
-  background: var(--co-accent-soft);
-  color: var(--co-text);
+  border-color: var(--co-ink);
+  background: var(--co-ink);
+  color: var(--co-on-ink);
   font-weight: var(--co-weight-semibold);
 }
 
 .co-chip__icon {
   flex-shrink: 0;
-  color: var(--co-icon-muted);
+  color: var(--co-control);
 }
 
 .co-chip[data-removable="true"] {
@@ -2334,12 +2475,12 @@ button.co-chip {
   border: 0;
   border-radius: var(--co-radius-pill);
   background: transparent;
-  color: var(--co-icon-muted);
+  color: var(--co-control);
   cursor: pointer;
 }
 
 .co-chip__remove:hover {
-  color: var(--co-text-body);
+  color: var(--co-ink);
 }
 
 /* ------------------------------------------------------------------ série --- */
@@ -2352,12 +2493,12 @@ button.co-chip {
 }
 
 .co-series__band {
-  fill: var(--co-accent-soft);
+  fill: var(--co-surface-3);
 }
 
 .co-series__line {
   fill: none;
-  stroke: var(--co-accent);
+  stroke: var(--co-ink);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -2367,14 +2508,14 @@ button.co-chip {
    daltonismo, a impressão e o tema claro (ADR-005). */
 .co-series__trend {
   fill: none;
-  stroke: var(--co-text-subtle);
+  stroke: var(--co-ink-3);
   stroke-width: 1.5;
   stroke-dasharray: 4 5;
   stroke-linecap: round;
 }
 
 .co-series__mark {
-  fill: var(--co-accent);
+  fill: var(--co-ink);
   stroke: var(--co-surface);
   stroke-width: 2;
 }
@@ -2404,7 +2545,7 @@ button.co-chip {
  * amostra ser a mesma cor da marca que ela nomeia.
  */
 .co-legend__swatch {
-  --co-legend-color: var(--co-accent);
+  --co-legend-color: var(--co-ink);
   flex-shrink: 0;
   width: 8px;
   height: 8px;
@@ -2412,11 +2553,11 @@ button.co-chip {
   background: var(--co-legend-color);
 }
 
-.co-legend__swatch[data-tone="protein"] { --co-legend-color: var(--co-macro-protein); }
-.co-legend__swatch[data-tone="carb"] { --co-legend-color: var(--co-macro-carb); }
-.co-legend__swatch[data-tone="fat"] { --co-legend-color: var(--co-macro-fat); }
-.co-legend__swatch[data-tone="status"] { --co-legend-color: var(--co-status); }
-.co-legend__swatch[data-tone="neutral"] { --co-legend-color: var(--co-text-subtle); }
+.co-legend__swatch[data-tone="protein"] { --co-legend-color: var(--co-role-protein); }
+.co-legend__swatch[data-tone="carb"] { --co-legend-color: var(--co-role-carb); }
+.co-legend__swatch[data-tone="fat"] { --co-legend-color: var(--co-role-fat); }
+.co-legend__swatch[data-tone="status"] { --co-legend-color: var(--co-ok); }
+.co-legend__swatch[data-tone="neutral"] { --co-legend-color: var(--co-ink-3); }
 
 .co-legend__swatch[data-swatch="point"] {
   border-radius: var(--co-radius-pill);
@@ -2459,8 +2600,8 @@ button.co-chip {
 
 .co-disclosure__chevron {
   flex-shrink: 0;
-  color: var(--co-icon-muted);
-  transition: transform var(--co-duration-fast) var(--co-ease);
+  color: var(--co-control);
+  transition: transform var(--co-duration-quick) var(--co-ease-settle);
 }
 
 .co-disclosure[open] .co-disclosure__chevron {
@@ -2493,9 +2634,10 @@ button.co-chip {
   width: var(--co-target-min);
   height: var(--co-target-min);
   margin-bottom: var(--co-space-4);
-  border-radius: var(--co-radius-container);
-  background: var(--co-surface-raised);
-  color: var(--co-icon-muted);
+  /* O hexágono é o sinal da marca (ADR-022): o selo do vazio, e não uma moldura. */
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  background: var(--co-surface-2);
+  color: var(--co-ink-2);
 }
 
 .co-empty__action {
@@ -2522,24 +2664,24 @@ button.co-chip {
 }
 
 .co-diff__before {
-  color: var(--co-text-subtle);
+  color: var(--co-ink-3);
   text-decoration-line: line-through;
   text-decoration-thickness: 1px;
 }
 
 .co-diff__arrow {
-  color: var(--co-icon-muted);
+  color: var(--co-control);
 }
 
 /* O valor novo muda de COR e de PESO, e vem depois de um risco e de uma seta.
    Quatro sinais para "isto é o que vai valer" (ADR-005). */
 .co-diff__after {
-  color: var(--co-accent);
+  color: var(--co-ink);
   font-weight: var(--co-weight-semibold);
 }
 
 .co-diff__same {
-  color: var(--co-text-secondary);
+  color: var(--co-ink-2);
 }
 
 /* ----------------------------------------------------------------- painel --- */
@@ -2562,7 +2704,7 @@ button.co-chip {
   inset: 0;
   padding: 0;
   border: 0;
-  background: var(--co-overlay);
+  background: var(--co-scrim);
   cursor: pointer;
 }
 
@@ -2573,12 +2715,14 @@ button.co-chip {
   width: 100%;
   max-width: 520px;
   max-height: 88%;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  border-radius: var(--co-radius-container) var(--co-radius-container) var(--co-radius-content)
+  /* A área segura de baixo pelo token público, e não pelo `env()` direto
+   * (ADR-011): o consumidor que zera `--co-safe-bottom` zera a folha junto. */
+  padding-bottom: var(--co-safe-bottom);
+  border-radius: var(--co-radius-sheet) var(--co-radius-sheet) var(--co-radius-content)
     var(--co-radius-content);
   background: var(--co-surface);
-  box-shadow: var(--co-shadow-overlay);
-  animation: co-sheet-subir var(--co-duration-slow) var(--co-ease);
+  box-shadow: var(--co-shadow-float);
+  animation: co-sheet-subir var(--co-duration-slow) var(--co-ease-settle);
 }
 
 /*
@@ -2591,7 +2735,7 @@ button.co-chip {
   max-height: none;
   padding-bottom: 0;
   border-radius: var(--co-radius-container);
-  background: var(--co-surface-sunken);
+  background: var(--co-surface-2);
   box-shadow: none;
   animation: none;
 }
@@ -2645,6 +2789,14 @@ button.co-chip {
   }
 }
 
+/* A entrada de quem pede menos movimento (`prefers-reduced-motion`): sem
+ * deslocamento nem escala, só a opacidade, em `--co-duration-reduced`. */
+@keyframes co-esmaecer {
+  from {
+    opacity: 0;
+  }
+}
+
 .co-sheet__header {
   display: flex;
   align-items: center;
@@ -2663,12 +2815,12 @@ button.co-chip {
   border: 0;
   border-radius: var(--co-radius-control);
   background: transparent;
-  color: var(--co-icon-muted);
+  color: var(--co-control);
   cursor: pointer;
 }
 
 .co-sheet__close:hover {
-  color: var(--co-text-body);
+  color: var(--co-ink);
 }
 
 /*
@@ -2688,7 +2840,7 @@ button.co-chip {
  * no telefone — com o afastamento de fora, o anel sairia da tela dos lados e
  * cobriria o cabeçalho e o rodapé. Encostado na borda de dentro, ele fica no
  * respiro do corpo (4px em cima, a calha dos lados, 16px embaixo), sobre a
- * superfície da folha: o mesmo `--co-accent` de 3:1 do anel de sempre.
+ * superfície da folha: o mesmo `--co-focus` de 3:1 do anel de sempre.
  */
 .co-sheet__body:focus-visible {
   outline-offset: -2px;
@@ -2726,7 +2878,7 @@ button.co-chip {
 }
 
 .co-sheet[data-mode="inline"] .co-sheet__body .co-search-field {
-  background: var(--co-surface-sunken);
+  background: var(--co-surface-2);
 }
 
 /*
@@ -2736,12 +2888,12 @@ button.co-chip {
  * (WCAG 2.2, 2.4.11). O Tab, a âncora e o `scrollIntoView` param abaixo dela.
  */
 .co-sheet__body:has(.co-search-field) {
-  scroll-padding-top: calc(var(--co-space-4) + var(--co-text-16) * var(--co-leading-normal) + var(--co-space-6)
+  scroll-padding-top: calc(var(--co-space-4) + var(--co-text-17) * var(--co-leading-normal) + var(--co-space-6)
     + var(--co-target-min) + var(--co-space-8) + var(--co-space-4));
 }
 
 .co-sheet__body:has(.co-search[data-size="lg"]) {
-  scroll-padding-top: calc(var(--co-space-4) + var(--co-text-16) * var(--co-leading-normal) + var(--co-space-6)
+  scroll-padding-top: calc(var(--co-space-4) + var(--co-text-17) * var(--co-leading-normal) + var(--co-space-6)
     + 52px + var(--co-space-8) + var(--co-space-4));
 }
 
@@ -2763,7 +2915,7 @@ button.co-chip {
   width: 252px;
   padding: var(--co-space-20) var(--co-space-12);
   border-right: var(--co-border-width) solid var(--co-line);
-  background: var(--co-surface-sunken);
+  background: var(--co-surface-2);
 }
 
 .co-rail[data-collapsed="true"] {
@@ -2819,7 +2971,7 @@ button.co-chip {
   border: 0;
   border-radius: var(--co-radius-control);
   background: transparent;
-  color: var(--co-text-muted);
+  color: var(--co-ink-2);
   font-family: var(--co-font-body);
   font-size: var(--co-text-14);
   text-align: left;
@@ -2832,7 +2984,7 @@ button.co-chip {
 }
 
 .co-rail__item:hover {
-  color: var(--co-text-body);
+  color: var(--co-ink);
 }
 
 /*
@@ -2842,7 +2994,8 @@ button.co-chip {
  */
 .co-rail__item[aria-current="page"] {
   background: var(--co-surface);
-  color: var(--co-text);
+  box-shadow: var(--co-shadow-lift);
+  color: var(--co-ink);
   font-weight: var(--co-weight-semibold);
 }
 
@@ -2854,17 +3007,20 @@ button.co-chip {
   width: var(--co-marker-width);
   height: var(--co-mark-size);
   transform: translateY(-50%);
-  background: var(--co-accent);
+  /* A tinta da hora, e não o preenchimento: a marca é o desenho que diz "é
+   * aqui", 3:1 contra o fundo do item a todo minuto (WCAG 1.4.11). O
+   * preenchimento (`--co-hora`) media 1,56 a 2,15:1 no claro. */
+  background: var(--co-hora-ink);
 }
 
 .co-rail__icon {
   display: flex;
   flex-shrink: 0;
-  color: var(--co-icon-muted);
+  color: var(--co-control);
 }
 
 .co-rail__item[aria-current="page"] .co-rail__icon {
-  color: var(--co-accent);
+  color: var(--co-hora-ink);
 }
 
 .co-rail__footer {
@@ -2925,15 +3081,15 @@ fieldset.co-nav-list {
   border: 0;
   border-radius: var(--co-radius-control);
   background: transparent;
-  color: var(--co-text-muted);
+  color: var(--co-ink-2);
   font-family: var(--co-font-body);
-  font-size: var(--co-text-16);
+  font-size: var(--co-text-17);
   text-align: left;
   cursor: pointer;
 }
 
 .co-nav-list__item:hover {
-  color: var(--co-text-body);
+  color: var(--co-ink);
 }
 
 .co-nav-list__leading {
@@ -2971,7 +3127,7 @@ fieldset.co-nav-list {
  */
 .co-nav-list__item[aria-current] {
   background: var(--co-surface);
-  color: var(--co-text);
+  color: var(--co-ink);
 }
 
 .co-nav-list__item[aria-current] .co-nav-list__label {
@@ -2986,7 +3142,8 @@ fieldset.co-nav-list {
   width: var(--co-marker-width);
   height: 22px;
   transform: translateY(-50%);
-  background: var(--co-accent);
+  /* A tinta da hora, pelo mesmo motivo da marca do trilho: 3:1 a todo minuto. */
+  background: var(--co-hora-ink);
 }
 
 /* ------------------------------------------------------------------ grão ---- */
@@ -3011,7 +3168,48 @@ fieldset.co-nav-list {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
 }
 
-/* Quem pede menos movimento não recebe transição nenhuma.
+/* ------------------------------------------------- toque e ponteiro ---- */
+
+/*
+ * O aparelho de toque é o padrão, e o ponteiro fino (o desktop, com mouse ou
+ * trackpad) ganha a escala dele (plano s7, ADR-022): o título de tela sobe de
+ * 26 para 30px, e o botão desce de 44 para 40px (o principal, de 50 para
+ * 46px), acima dos 24px que o WCAG 2.5.8 pede com ponteiro. Só o botão e o
+ * botão-ícone mudam: campo, busca, chip e segmentado ficam nos 44px do toque,
+ * que o plano não muda. A pergunta é o PONTEIRO, e não a largura: o telefone deitado
+ * continua sendo de toque, e o layout de celular dele também (s7, "Área
+ * segura"). Sem a media query (um navegador que não responde a ela), vale o
+ * de toque, que é o maior alvo.
+ */
+@media (pointer: fine) {
+  .co-text[data-variant="title-lg"] {
+    font-size: var(--co-text-30);
+  }
+
+  .co-button {
+    min-height: var(--co-button-height-fine);
+  }
+
+  .co-button[data-size="lg"] {
+    min-height: var(--co-button-height-lg-fine);
+  }
+
+  .co-icon-button {
+    width: var(--co-button-height-fine);
+    height: var(--co-button-height-fine);
+  }
+
+  .co-icon-button[data-size="lg"] {
+    width: var(--co-button-height-lg-fine);
+    height: var(--co-button-height-lg-fine);
+  }
+}
+
+/* Quem pede menos movimento não recebe transição nenhuma, e a entrada que
+ * subia passa a esmaecer em 120ms (`--co-duration-reduced`, a identidade:
+ * "deslocamento e escala viram esmaecer de 120 ms"). Um corte seco faria a
+ * folha aparecer de uma vez, sem dizer de onde veio; o esmaecer diz, sem mover
+ * nada.
  *
  * A trava de toque fica (ADR-013, adendos 1.8.1 e 1.8.2): ela não move nada, e
  * zerada devolveria o toque duplo justamente a quem pediu menos movimento. São
@@ -3037,9 +3235,23 @@ fieldset.co-nav-list {
     animation-duration: 400ms !important;
   }
 
+  /* A folha por cima esmaece, em vez de subir. Mais específica que `.co-root *`
+   * e também `!important`, e por isso vence o corte. A de dentro do cartão
+   * (`inline`) não tem animação nenhuma, e continua sem. */
+  .co-root .co-sheet:not([data-mode="inline"]) {
+    animation-name: co-esmaecer !important;
+    animation-duration: var(--co-duration-reduced) !important;
+    animation-timing-function: var(--co-ease-settle) !important;
+  }
+
   /* O card do carrossel não anda nem gira com o dedo: o arrasto só decide,
    * ao soltar, se troca de card. */
   .co-root .co-deck__card[data-dragging="true"] {
+    transform: none;
+  }
+
+  /* O botão não escala ao toque: a resposta é a cor do hover, sem movimento. */
+  .co-root .co-button:active {
     transform: none;
   }
 }

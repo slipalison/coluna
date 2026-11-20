@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "../atoms/Button";
 import { SearchField } from "../atoms/SearchField";
 import { Stack } from "../atoms/Stack";
@@ -63,7 +63,7 @@ export const Sobreposto: Story = {
           height: "520px",
           overflow: "hidden",
           borderRadius: "var(--co-radius-container)",
-          background: "var(--co-canvas)",
+          background: "var(--co-bg)",
         }}
       >
         <Stack gap={12} style={{ padding: "20px" }}>
@@ -194,7 +194,7 @@ function FolhaComBusca({ termoInicial = "arroz" }: { termoInicial?: string }) {
         height: "560px",
         overflow: "hidden",
         borderRadius: "var(--co-radius-container)",
-        background: "var(--co-canvas)",
+        background: "var(--co-bg)",
       }}
     >
       <Stack gap={12} style={{ padding: "20px" }}>
@@ -296,7 +296,7 @@ function FolhaDeLeitura() {
         height: "560px",
         overflow: "hidden",
         borderRadius: "var(--co-radius-container)",
-        background: "var(--co-canvas)",
+        background: "var(--co-bg)",
       }}
     >
       <Stack gap={12} style={{ padding: "20px" }}>
@@ -528,4 +528,81 @@ export const TelaCheiaEscuro: Story = {
   globals: { tema: "dark" },
   parameters: NA_PROPRIA_MOLDURA,
   render: () => <ReceitaEmTelaCheia />,
+};
+
+function ConfirmarApagar() {
+  const [aberta, abrir] = useState(true);
+  const [apagada, apagar] = useState(false);
+  const cancelar = useRef<HTMLButtonElement>(null);
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: "390px",
+        height: "480px",
+        overflow: "hidden",
+        borderRadius: "var(--co-radius-container)",
+        background: "var(--co-bg)",
+      }}
+    >
+      <Stack gap={12} style={{ padding: "20px" }}>
+        <Text variant="title-lg">Privacidade</Text>
+        <Text variant="footnote" tone="muted">
+          {apagada ? "A conta seria apagada agora." : "Nada foi apagado."}
+        </Text>
+        <Button variant="danger" onClick={() => abrir(true)}>
+          Apagar minha conta
+        </Button>
+      </Stack>
+
+      <Sheet
+        open={aberta}
+        onClose={() => abrir(false)}
+        title="Apagar a conta?"
+        role="alertdialog"
+        position="absolute"
+        initialFocus={cancelar}
+        footer={
+          <>
+            <Button ref={cancelar} variant="secondary" onClick={() => abrir(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                apagar(true);
+                abrir(false);
+              }}
+            >
+              Apagar de vez
+            </Button>
+          </>
+        }
+      >
+        <Text>Isto apaga o seu livro, a sua meta e o seu histórico. Não dá para desfazer.</Text>
+      </Sheet>
+    </div>
+  );
+}
+
+/**
+ * A confirmação de uma ação destrutiva: apagar a conta. É `role="alertdialog"`:
+ * o leitor de tela a anuncia como alerta e lê o corpo junto do título. O foco inicial vai para
+ * **Cancelar**, a ação menos destrutiva (o padrão de diálogo de alerta da
+ * WAI-ARIA), por `initialFocus` com o `ref` do `Button`.
+ *
+ * **O que conferir.** Abra pelo teclado (Tab até "Apagar minha conta", Enter) e
+ * tecle Enter de novo: a folha fecha, nada é apagado, e o foco volta ao botão
+ * que abriu. Apagar pede um Tab a mais até "Apagar de vez". Esc também cancela.
+ */
+export const ConfirmacaoClaro: Story = {
+  name: "Confirmação — claro",
+  globals: { tema: "light" },
+  render: () => <ConfirmarApagar />,
+};
+
+export const ConfirmacaoEscuro: Story = {
+  name: "Confirmação — escuro",
+  globals: { tema: "dark" },
+  render: () => <ConfirmarApagar />,
 };

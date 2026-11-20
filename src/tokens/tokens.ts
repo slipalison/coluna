@@ -21,7 +21,7 @@ import type { SemanticToken } from "./gerado";
 /**
  * Lê um token resolvido, já com o tema que estiver valendo no elemento.
  *
- * O elemento importa: com tema por subárvore, `--co-accent` no `<html>` e no
+ * O elemento importa: com tema por subárvore, `--co-bg` no `<html>` e no
  * painel de pré-visualização ao lado podem ser cores diferentes. Passe o nó
  * de onde a cor precisa sair, e não o documento inteiro.
  *

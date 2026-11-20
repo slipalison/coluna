@@ -45,7 +45,7 @@
     "prepare": "node scripts/gerar-tokens.mjs",
     "tokens": "node scripts/gerar-tokens.mjs",
     "dev": "vite build --watch",
-    "build": "npm run tokens && tsc --noEmit && vite build && node scripts/construir-css.mjs",
+    "build": "npm run tokens && tsc --noEmit && vite build && node scripts/construir-css.mjs && node scripts/varrer-csp.mjs dist",
     "test": "npm run tokens && vitest run --coverage",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",

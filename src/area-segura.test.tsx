@@ -28,7 +28,8 @@ import {
 /**
  * A área segura do aparelho (ADR-011): qual custom property cada regra lê, e a
  * sobrescrita de quem consome chegando até a regra. E o que a 1.7.0 pôs em cima
- * dela (ADR-012): o rodapé da barra de abas, que entra 14px na área de baixo, e
+ * dela (ADR-012): o rodapé da barra de abas, que na 2.0 termina 8px acima da
+ * área de baixo (o adendo 2.0 da ADR-012), e
  * a faixa sob o relógio, que a `Screen` monta sempre.
  *
  * O happy-dom troca `var()` pelo valor que o ancestral declarou, mas não faz
@@ -124,10 +125,11 @@ const BARRA = () => bloco(".co-tabbar");
 const RESERVA = '.co-screen[data-tabbar="true"]';
 
 /**
- * O rodapé da barra (ADR-012): os destinos entram `--co-space-14` na área de
- * baixo, e nunca descem dos 10px de respiro. É o MESMO texto na reserva.
+ * O rodapé da barra (ADR-012, adendo 2.0): os destinos terminam `--co-space-8`
+ * acima da área de baixo, e nunca descem dos 10px de respiro. É o MESMO texto
+ * na reserva.
  */
-const RODAPE = "max(var(--co-space-10), calc(var(--co-safe-bottom) - var(--co-space-14)))";
+const RODAPE = "max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8)))";
 /** A faixa sob o relógio (ADR-012) e a máscara que esmaece o desfoque dela. */
 const FAIXA = ".co-screen__statusbar";
 const MASCARA = "linear-gradient(to bottom, #000 0%, #000 75%, transparent 100%)";
@@ -161,6 +163,17 @@ it("a área segura é pública: quatro custom properties com env() e reserva de 
   const zerado = montar({ "--co-safe-top": "0px" });
   expect(blocoResolvido(zerado.semBarra)[0]).toBe("calc(28px + 0px)");
   expect(resolvido(zerado.cabecalho, "padding-block-start")).toBe("0px");
+});
+
+it("só o :root lê o env() da área segura: nenhum componente o escreve direto, a folha inclusive", () => {
+  // Um `env()` dentro da regra do componente não se zera de fora (ADR-011): a
+  // folha que lia `env(safe-area-inset-bottom)` recuava embaixo mesmo com o
+  // consumidor zerando `--co-safe-bottom`.
+  const diretos = REGRAS.filter((r) => lugar(r) !== ":root").flatMap((r) =>
+    r.declaracoes.filter(([, v]) => /env\(\s*safe-area-inset-/.test(v)).map(([p, v]) => `${lugar(r)} { ${p}: ${v} }`),
+  );
+  expect(diretos).toEqual([]);
+  expect(bloco(".co-sheet").filter(([p]) => p === "padding-bottom")).toEqual([["padding-bottom", "var(--co-safe-bottom)"]]);
 });
 
 it("a moldura soma a área segura de cima ao respiro de 28px", () => {
@@ -200,7 +213,7 @@ it("a calha lateral fica com o maior entre 16px e a área segura de cada lado", 
   expect([paisagem.esquerda, paisagem.direita]).toEqual([47, 47]);
 });
 
-it("a barra de abas entra 14px na área segura de baixo e nunca desce do respiro de 10px", () => {
+it("a barra de abas termina 8px acima da área segura de baixo e nunca desce do respiro de 10px", () => {
   // Prova por TEXTO: o happy-dom descarta o `max()` do `padding-bottom` e fica
   // com os 10px do atalho. O `max` vem DEPOIS do atalho, que senão o zeraria.
   expect(paddings(BARRA())).toEqual([
@@ -212,18 +225,19 @@ it("a barra de abas entra 14px na área segura de baixo e nunca desce do respiro
   // (`nav`, `*`, ainda que atrás de um `:not(...)`, ainda que só num tema).
   soEstesMexemNoPadding(classe("co-tabbar"), [".co-tabbar"]);
   expect(genericas(/^padding/), "regras genéricas com padding").toEqual([]);
-  soOsTokensDeclaram({ "--co-space-10": "10px", "--co-space-14": "14px" });
+  soOsTokensDeclaram({ "--co-space-10": "10px", "--co-space-8": "8px" });
 
-  // O gesto do indicador dispara nos últimos milímetros da borda, e não nos
-  // 34px inteiros: o rodapé é a área menos 14px, com o piso dos 10px.
+  // A camada de baixo fica no recuo mais 8px (o piso da área segura do
+  // Basalto, plano s7): 42px no iPhone, 32px no Android com furo, e nunca
+  // dentro da faixa do gesto, como a 1.x deixava (34 − 14 = 20px).
   const rodapes = [0, 21, 24, 30, 34, 48].map(
     (baixo) => paddingQueVale(BARRA(), aparelho(0, 0, baixo, 0)).baixo,
   );
-  expect(rodapes).toEqual([10, 10, 10, 16, 20, 34]);
+  expect(rodapes).toEqual([10, 29, 32, 38, 42, 56]);
   expect(paddingQueVale(BARRA(), aparelho(59, 0, 34, 0))).toEqual({
     topo: 10,
     direita: 10,
-    baixo: 20,
+    baixo: 42,
     esquerda: 10,
   });
   expect(paddingQueVale(BARRA(), SEM_AREA).baixo).toBe(10);
@@ -261,17 +275,17 @@ it("sem área segura a reserva da tela com barra continua 104px, e cresce o que 
   const medidas = [0, 21, 34, 48].map((baixo) => {
     const { comBarra } = montar({ "--co-safe-bottom": `${baixo}px` });
     const resolvida = resolvido(comBarra, "--co-screen-bottom");
-    expect(resolvida).toBe(`calc(104px - 10px + max(10px, calc(${baixo}px - 14px)))`);
+    expect(resolvida).toBe(`calc(104px - 10px + max(10px, calc(${baixo}px + 8px)))`);
     expect(blocoResolvido(comBarra)[1]).toBe(resolvida);
     const valor = avaliar(resolvida, SEM_AREA);
     expect(valor - paddingQueVale(BARRA(), aparelho(0, 0, baixo, 0)).baixo).toBe(94);
     return valor;
   });
-  expect(medidas).toEqual([104, 104, 114, 128]);
+  expect(medidas).toEqual([104, 123, 136, 150]);
   soOsTokensDeclaram({ "--co-border-width": "1px" });
 
   // E a folga em si: a barra mede o respiro de cima, o destino de 52px, o fio
-  // e o rodapé — 73px sem área segura, 83px com o indicador de 34px —, e a
+  // e o rodapé — 73px sem área segura, 105px com o indicador de 34px —, e a
   // última linha fica 31px acima dela com qualquer área de baixo. Um destino
   // mais baixo, ou um fio mais grosso, muda a folga sem tocar na reserva.
   const destino = Object.fromEntries(bloco(".co-tabbar__item"))["min-height"] ?? "";
@@ -280,7 +294,7 @@ it("sem área segura a reserva da tela com barra continua 104px, e cresce o que 
     const { topo, baixo: rodape } = paddingQueVale(BARRA(), aparelho(0, 0, baixo, 0));
     return topo + avaliar(destino, SEM_AREA) + avaliar(fio, SEM_AREA) + rodape;
   });
-  expect(barras).toEqual([73, 73, 83, 97]);
+  expect(barras).toEqual([73, 92, 105, 119]);
   expect(medidas.map((valor, i) => valor - (barras[i] ?? 0))).toEqual([31, 31, 31, 31]);
 });
 
@@ -478,7 +492,7 @@ it("a faixa é opaca na área do relógio e esmaece só no terço extra, com o d
     ["pointer-events", "none"],
     [
       "background",
-      "linear-gradient(to bottom, var(--co-canvas) 0%, var(--co-canvas) 75%, transparent 100%)",
+      "linear-gradient(to bottom, var(--co-bg) 0%, var(--co-bg) 75%, transparent 100%)",
     ],
     ["backdrop-filter", "blur(22px)"],
     ["-webkit-backdrop-filter", "blur(22px)"],
@@ -501,10 +515,10 @@ it("a faixa é opaca na área do relógio e esmaece só no terço extra, com o d
       classesDe(s).every((nome) => ["co-root", "co-screen", "co-grain"].includes(nome ?? "")),
   );
   expect(alcancam, "regras genéricas que alcançam a faixa").toEqual([]);
-  const canvas = REGRAS.filter((r) => r.declaracoes.some(([p]) => p === "--co-canvas"));
-  expect(canvas.map(lugar), "regras desta folha que redeclaram --co-canvas").toEqual([]);
+  const canvas = REGRAS.filter((r) => r.declaracoes.some(([p]) => p === "--co-bg"));
+  expect(canvas.map(lugar), "regras desta folha que redeclaram --co-bg").toEqual([]);
 
-  // Os dois temas pelo `--co-canvas`: o fundo da faixa é o da própria tela, opaco
+  // Os dois temas pelo `--co-bg`: o fundo da faixa é o da própria tela, opaco
   // até 75% e transparente no fim, no claro e no escuro.
   const temas = ["light", "dark"].map((tema) => {
     const { tela, faixa } = telaMontada(
@@ -521,7 +535,7 @@ it("a faixa é opaca na área do relógio e esmaece só no terço extra, com o d
     cleanup();
     return cor;
   });
-  expect(temas).toEqual(["#f2eef8", "#0d0b11"]);
+  expect(temas).toEqual(["#e9edea", "#101517"]);
 });
 
 it("a faixa tem a área de cima mais um terço, e 0 sem área segura", () => {

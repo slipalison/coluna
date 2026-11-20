@@ -26,14 +26,14 @@ violação, o PR não entra.
 
 | Propriedade | Limiar | Como se prova |
 |---|---|---|
-| Texto sobre superfície | ≥ 4,5:1; texto ≥ 24 px (ou ≥ 18,66 px em negrito) ≥ 3:1 | teste que calcula o contraste de cada par de texto sobre `canvas`, `surface`, `surface-raised` e `surface-sunken`, nos dois temas |
-| Limite de controle — campo, busca, chip, marca de radio e de checkbox, segmentado, stepper | ≥ 3:1 sobre a superfície onde o controle fica, nos dois temas | o mesmo teste, sobre o token de borda de controle (WCAG 1.4.11; o axe-core não mede contraste de não-texto) |
-| Anel de foco | ≥ 3:1 sobre a superfície | o mesmo teste |
-| Tamanho de letra | texto corrido, texto primário de lista e valor de campo ≥ 16 px; texto secundário e nota ≥ 14 px; legenda e rótulo em caixa-alta ≥ 12 px; rótulo da barra de abas ≥ 11 px (convenção do iOS), e só ele abaixo de 12 px; nenhuma variante de `Text` e nenhuma letra de componente abaixo do piso do seu papel (ADR-021) | `src/escala-de-letra.test.tsx`: toda letra da folha tem papel e fica no piso dele, cada variante e cada texto das peças no estilo computado, nenhuma história com letra à mão abaixo de 12 px — cada prova com a isca da 1.13.0 |
+| Texto sobre superfície | ≥ 4,5:1; texto ≥ 24 px (ou ≥ 18,66 px em negrito) ≥ 3:1 | `src/tokens/contraste.test.ts`: cada tinta (`ink` 1 a 3, `ok`, `warn`, `bad`) sobre `bg`, `surface` e `surface-2`, nos dois temas; `surface-3` não é fundo de texto; os lavados com a cor do estado e a tinta; e a cor da hora (`hora-ink`, `on-hora`) a cada 15 minutos do dia, convertida de OKLCH pelos dois jeitos de voltar ao sRGB (ADR-022) |
+| Limite de controle — campo, busca, chip, marca de radio e de checkbox, segmentado, stepper | ≥ 3:1 sobre a superfície onde o controle fica, nos dois temas | o mesmo teste, sobre `--co-control` (1,5 px, `--co-control-width`) e conferindo que cada controle o desenha (WCAG 1.4.11; o axe-core não mede contraste de não-texto) |
+| Anel de foco | ≥ 3:1 sobre a superfície | o mesmo teste, com `surface-3` |
+| Tamanho de letra | texto corrido, texto primário de lista e valor de campo ≥ 16 px; texto secundário e nota ≥ 14 px; legenda e rótulo em caixa-alta ≥ 12 px; rótulo da barra de abas ≥ 11 px (convenção do iOS), e só ele abaixo de 12 px; nenhuma variante de `Text` e nenhuma letra de componente abaixo do piso do seu papel (ADR-021). Acima do piso, a escala do "Relógio de Sol" (ADR-022): corpo, campo e botão 17 px, legenda e secundário 14 px, caixa alta 13 px, aba 11 px, título de tela 26 px no toque e 30 px com ponteiro fino | `src/escala-de-letra.test.tsx`: toda letra da folha tem papel e fica no piso dele, cada variante e cada texto das peças no estilo computado, nenhuma história com letra à mão abaixo de 12 px, e cada letra da tabela é a da identidade — cada prova com a sua isca |
 | Espaço | uma escala em que o espaço entre grupos possa ser 1,5 a 2 vezes o de dentro (4, 8, 12, 16, 24, 32, 48, 64) | revisão dos tokens |
-| Alvo | `--co-target-min` (44 px) em todo controle, com a moldura inteira tocável | teste de componente |
-| Cor | nunca é o único sinal (ADR-005); a paleta de dados (macros) fica separada da de ação, seleção e status, com luminâncias distintas entre si | teste sobre os tokens de dado |
-| Movimento | `prefers-reduced-motion` reduz o que não é essencial | já existe |
+| Alvo | `--co-target-min` (44 px) em todo controle no toque, com a moldura inteira tocável; com ponteiro fino, o botão e o botão-ícone têm 40 px e o principal 46 px (plano s7, ADR-022), acima dos 24 px do WCAG 2.5.8 | teste de componente; `src/botao.test.tsx` mede o projeto de toque e o de ponteiro |
+| Cor | nunca é o único sinal (ADR-005); os papéis do alimento têm a mesma luminosidade de propósito (a identidade), e se separam da tinta de ação e dos estados por croma e luminância (ADR-022); a cor da hora é cor de lugar, nunca de ação | `src/tokens/contraste.test.ts`, os papéis do alimento |
+| Movimento | `prefers-reduced-motion` reduz o que não é essencial; os tempos e as curvas da identidade, o toque abaixo de 100 ms, só `transform` e `opacity` animados | `src/forma-e-movimento.test.ts` |
 | Área segura | `--co-safe-*` (ADR-011) | já existe |
 
 ## 2. Os componentes
@@ -73,7 +73,7 @@ existe bloqueia só o cartão dono dela, que apaga a linha ao ser entregue.
 
 | Defeito | Cartão (`slipalison/basalto`) |
 |---|---|
-| Escala de texto com degraus de 1 px entre 11 e 16 px (o piso de letra foi pago no ADR-021); escala de espaço com 13 degraus de 2 px até 40; `--co-macro-protein` igual a `--co-accent` e `--co-macro-carb` igual a `--co-status`; rótulo de campo com a cara do rótulo de seção | #59 |
+| Escala de espaço com 13 degraus de 2 px até 40; rótulo de campo com a cara do rótulo de seção (o piso de letra foi pago no ADR-021, a escala de letra e as cores de macro saíram com a identidade do ADR-022) | #59 |
 | Sem ação no fim da `ListRow`; `Stepper` que não aceita digitação nem repete ao segurar | #60 |
 | Sem aviso temporário com "Desfazer" | #61 |
 | Sem campo de data em dia, mês e ano; sem `Skeleton` | #64 |

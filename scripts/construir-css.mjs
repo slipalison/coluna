@@ -4,7 +4,7 @@
  *   dist/styles.css   tokens + fontes + componentes, numa folha só. É o que o
  *                     aplicativo importa uma vez, na raiz.
  *   dist/tokens.css   só os tokens. O `index.html` do PWA pinta a barra do
- *                     sistema com `--co-canvas` sem montar um componente
+ *                     sistema com `--co-bg` sem montar um componente
  *                     React, e uma página estática pode querer só a paleta.
  *   dist/fonts/       os `.woff2` que o `@font-face` da folha cita, e a licença
  *                     OFL de cada família ao lado deles (ADR-014).
