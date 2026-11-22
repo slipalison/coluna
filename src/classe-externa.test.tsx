@@ -25,6 +25,10 @@ import { MacroBar } from "./molecules/MacroBar";
 import { NavList } from "./molecules/NavList";
 import { Notice } from "./molecules/Notice";
 import { PageHeader } from "./molecules/PageHeader";
+import { Plate } from "./molecules/Plate";
+import { RecipeCard } from "./molecules/RecipeCard";
+import { Skeleton } from "./molecules/Skeleton";
+import { Toast } from "./molecules/Toast";
 import { Pager } from "./molecules/Pager";
 import { Rail } from "./molecules/Rail";
 import { SegmentedControl } from "./molecules/SegmentedControl";
@@ -71,6 +75,18 @@ const CASOS: [nome: string, elemento: React.ReactElement, classeDoSistema: strin
       onChange={vi.fn()}
     />,
     "co-segmented",
+  ],
+  ["Plate", <Plate className="x" key="pl" summary="Falta 50% para o alvo" slices={[{ group: "veg", fraction: 0.5, label: "Brócolis · 80 g" }]} />, "co-plate"],
+  [
+    "RecipeCard",
+    <RecipeCard className="x" key="rc" title="Omelete" slices={[]} summary="Falta 100% para o alvo" kcal="320" time="10 min" origin="À mão" />,
+    "co-recipe-card",
+  ],
+  ["Skeleton", <Skeleton className="x" key="sk" label="Carregando" />, "co-skeleton"],
+  [
+    "Toast",
+    <Toast className="x" key="to" open message="Feito" onClose={vi.fn()} duration={5000} maxDuration={20000} />,
+    "co-toast",
   ],
   ["MacroBar", <MacroBar className="x" key="m" name="Proteína" value={1} target={2} />, "co-macro"],
   ["Input", <Input className="x" key="in" aria-label="Peso" />, "co-input"],

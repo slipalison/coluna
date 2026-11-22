@@ -1,4 +1,6 @@
 import { Text } from "../atoms/Text";
+import type { PlateGroup } from "./Plate";
+import { PLATE_PATTERN } from "./plate-pattern";
 
 /**
  * A amostra, e ela copia o desenho que nomeia.
@@ -8,15 +10,20 @@ import { Text } from "../atoms/Text";
  *   line    o traço cheio da série principal.
  *   dashed  o traço tracejado: tendência, projeção, a fórmula.
  *   band    a faixa pintada atrás das linhas: onde o número deveria morar.
+ *   hex     a coluna hexagonal do prato de colunas (`Plate`), com o padrão do
+ *           grupo (a mesma textura do setor, `plate-pattern.ts`).
  *
  * O ponto é o único redondo, e isso não abre exceção nenhuma ao ADR-004: a
  * amostra tem a forma da marca que ela explica. Um quadrado na legenda de um
  * gráfico de círculos ensinaria a procurar um quadrado que não está lá.
  */
-export type LegendSwatch = "square" | "point" | "line" | "dashed" | "band";
+export type LegendSwatch = "square" | "point" | "line" | "dashed" | "band" | "hex";
 
-/** Os tons do sistema, os mesmos do `Dot` e da `Slat` — nunca uma cor solta. */
-export type LegendTone = "accent" | "protein" | "carb" | "fat" | "status" | "neutral";
+/**
+ * Os tons do sistema, os mesmos do `Dot`, da `Slat` e do `Plate` — nunca uma
+ * cor solta. `veg`, `fruit` e `dairy` são os grupos do prato que não são macro.
+ */
+export type LegendTone = "accent" | "protein" | "carb" | "veg" | "fruit" | "dairy" | "fat" | "status" | "neutral";
 
 export interface LegendItem {
   /** O que a marca significa, escrito. É o texto, e não a cor, que carrega a legenda. */
@@ -59,6 +66,7 @@ export function Legend({ items, label, className }: Readonly<LegendProps>) {
             className="co-legend__swatch"
             data-swatch={item.swatch ?? "square"}
             data-tone={item.tone ?? "accent"}
+            data-pattern={item.swatch === "hex" && item.tone ? PLATE_PATTERN[item.tone as PlateGroup] : undefined}
             aria-hidden="true"
           />
           <Text as="span" variant="caption" tone="subtle">

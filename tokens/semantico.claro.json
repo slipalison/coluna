@@ -123,7 +123,7 @@
     "role-protein": {
       "$type": "other",
       "$value": "oklch(0.70 0.13 25)",
-      "$description": "Os papeis do alimento (prato, macro, legenda): mesma luminosidade e croma por tema, nenhum grita mais que o outro. Sempre com nome e quantidade ao lado (ADR-005)."
+      "$description": "Os papeis do alimento (prato, macro, legenda): mesma luminosidade e croma por tema, nenhum grita mais que o outro (a identidade, ADR-022). Os grupos se separam pelo padrao e pelo separador de setor, nunca so pela cor (ADR-025, adendo). Sempre com nome e quantidade ao lado (ADR-005)."
     },
     "role-carb": {
       "$type": "other",
@@ -144,6 +144,16 @@
     "role-fat": {
       "$type": "other",
       "$value": "oklch(0.70 0.13 300)"
+    },
+    "role-mark": {
+      "$type": "color",
+      "$value": "{pomes-950}",
+      "$description": "A tinta escura do padrao e do separador de setor do prato (e da amostra da legenda): passa em 3:1 sobre a cor de todo papel do alimento, nos dois temas."
+    },
+    "role-edge": {
+      "$type": "color",
+      "$value": "{pomes-950}",
+      "$description": "O contorno do separador de setor do prato, por baixo do traco escuro (role-mark): 3:1 contra a fissura (o fundo do prato) nos dois temas, claro no escuro, onde o traco escuro some contra o fundo."
     },
     "grain-opacity": {
       "$type": "other",

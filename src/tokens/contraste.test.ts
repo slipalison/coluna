@@ -484,31 +484,130 @@ describe.each(TEMAS)("a cor da hora no tema %s, o dia inteiro", (_nome, tema) =>
 
 // ------------------------------------------------- os papéis do alimento --
 
+/**
+ * Os seis grupos do prato, na ordem em que o app os escreve (a ordem do `Plate`:
+ * proteína, carboidrato, hortaliça, fruta, laticínio, gordura).
+ *
+ * A identidade (ADR-022) pede a MESMA luminosidade nos seis, para nenhum gritar
+ * mais que o outro, e o piso se cumpre sem mexer nela: a cor nunca é o único
+ * sinal (WCAG 1.4.1) e as partes do gráfico têm 3:1 contra o que está ao lado
+ * (1.4.11). Quem separa os grupos é o PADRÃO de cada um (o mesmo na amostra da
+ * legenda) e o separador de setor, em `role-mark`, que passa de 3:1 sobre todo
+ * grupo — provados em `src/livro-de-receitas.test.tsx` e aqui —, com a legenda
+ * em texto e o `summary` (ADR-005, ADR-025).
+ */
+const PAPEIS = ["role-protein", "role-carb", "role-veg", "role-fruit", "role-dairy", "role-fat"] as const;
+/** Quanto a luminância relativa de um papel do alimento fica longe da tinta de ação (ADR-022). */
+const DISTANCIA_DA_TINTA = 0.2;
+
 describe.each(TEMAS)("os papéis do alimento no tema %s", (_nome, tema) => {
-  const PAPEIS = ["role-protein", "role-carb", "role-veg", "role-fruit", "role-dairy", "role-fat"] as const;
   const partes = (token: string) => {
     const casado = /^oklch\(([\d.]+) ([\d.]+) ([\d.]+)\)$/.exec(cru(tema[token]));
     if (!casado) throw new Error(`${token} não é oklch(l c h)`);
     return { l: Number(casado[1]), c: Number(casado[2]), h: Number(casado[3]) };
   };
+  const luz = (papel: string, caminho: "cortada" | "reduzida") => {
+    const { l, c, h } = partes(papel);
+    return luminancia(oklchNosDoisCaminhos(l, c, h)[caminho]);
+  };
 
   it("têm os matizes da identidade e a mesma luminosidade (o carboidrato, +0,06), nenhum grita mais que o outro", () => {
     expect(PAPEIS.map((papel) => partes(papel).h)).toEqual([25, 80, 150, 350, 240, 300]);
     const base = partes("role-protein").l;
+    const croma = partes("role-protein").c;
     for (const papel of PAPEIS) {
       expect(partes(papel).l, papel).toBeCloseTo(papel === "role-carb" ? base + 0.06 : base, 5);
+      expect(partes(papel).c, papel).toBeCloseTo(papel === "role-dairy" ? croma * 0.8 : croma, 5);
     }
   });
 
-  it("se separam da tinta de ação: nenhum papel é acromático nem tem a luminosidade da tinta", () => {
+  it("se separam da tinta de ação em 0,2 de luminância, nos dois jeitos de voltar ao sRGB", () => {
     // A cor do dado nunca é o único sinal (o nome e a quantidade vão junto,
-    // ADR-005), e por isso o piso de 3:1 do WCAG 1.4.11 não se aplica a ela.
-    // O que se garante aqui é que ela não se confunde com a ação (a tinta) nem
-    // com o estado: croma de verdade e luminosidade longe da tinta.
+    // ADR-005). O que se garante aqui é que ela não se confunde com a ação (a
+    // tinta) nem com o estado: croma de verdade e luminância longe da tinta.
     const tinta = luminancia(cor(cru(tema["ink"])));
     for (const papel of PAPEIS) {
       expect(partes(papel).c, papel).toBeGreaterThan(0.09);
-      expect(Math.abs(luminancia(cor(cru(tema[papel]))) - tinta), papel).toBeGreaterThan(0.2);
+      for (const caminho of ["cortada", "reduzida"] as const) {
+        expect(Math.abs(luz(papel, caminho) - tinta), `${papel} (${caminho})`).toBeGreaterThan(DISTANCIA_DA_TINTA);
+      }
     }
+  });
+
+  it("a tinta escura do padrão e do separador (role-mark) passa em 3:1 sobre o fundo de CADA grupo, nos dois jeitos de voltar ao sRGB", () => {
+    // O padrão e o separador são o desenho que separa os setores (WCAG 1.4.11):
+    // a marca e o traço precisam se ver sobre a cor de qualquer papel.
+    const marca = cor(cru(tema["role-mark"]));
+    for (const papel of PAPEIS) {
+      for (const caminho of ["cortada", "reduzida"] as const) {
+        const { l, c, h } = partes(papel);
+        const r = razao(marca, oklchNosDoisCaminhos(l, c, h)[caminho]);
+        expect(r, `role-mark sobre ${papel} (${caminho}) deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
+      }
+    }
+  });
+
+  it("o separador de setor se vê: o traço escuro (role-mark) separa de cada grupo vizinho, e o contorno (role-edge) o separa da fissura, em 3:1 nos dois temas", () => {
+    // O traço fica na fissura entre duas células, sobre o fundo do prato (bg,
+    // surface ou surface-2) e entre duas cores de papel. No claro, a tinta
+    // escura passa dos dois lados. No escuro, a escura passa contra os papéis e
+    // some contra a fissura (1,05:1), e uma cor só não passa dos dois lados (os
+    // papéis têm luminância média): o contorno claro, por baixo do traço, é o
+    // que o separa da fissura, e o traço escuro, o que o separa dos papéis.
+    const fissuras = ["bg", "surface", "surface-2"].map((fundo) => cor(cru(tema[fundo])));
+    const marca = cor(cru(tema["role-mark"]));
+    const contorno = cor(cru(tema["role-edge"]));
+    for (const fundo of fissuras) {
+      const r = razao(contorno, fundo);
+      expect(r, `role-edge sobre a fissura deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
+    }
+    for (const papel of PAPEIS) {
+      for (const caminho of ["cortada", "reduzida"] as const) {
+        const { l, c, h } = partes(papel);
+        const fundoDoPapel = oklchNosDoisCaminhos(l, c, h)[caminho];
+        const r = razao(marca, fundoDoPapel);
+        expect(r, `role-mark sobre ${papel} (${caminho}) deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
+      }
+    }
+  });
+
+  it("a isca: o role-mark sozinho, o único traço do tema escuro antes do contorno, mede perto de 1:1 contra a fissura", () => {
+    // Prova que a medida morde: sem o `role-edge`, o traço escuro some no tema escuro.
+    if (_nome !== "escuro") return;
+    const marca = cor(cru(tema["role-mark"]));
+    const piores = ["bg", "surface", "surface-2"].map((fundo) => razao(marca, cor(cru(tema[fundo]))));
+    expect(Math.max(...piores)).toBeLessThan(1.5);
+  });
+
+  it("a isca: uma tinta de marca clara (role-mark baixado) reprova em 3:1 sobre algum grupo", () => {
+    // Prova que a medida morde: a tinta de ação do tema, clara no escuro e escura
+    // no claro, é o que NÃO pode servir de marca onde o fundo é do mesmo lado.
+    const clara = cor(cru(tema[_nome === "claro" ? "surface" : "ink"]));
+    const piores = PAPEIS.map((papel) => {
+      const { l, c, h } = partes(papel);
+      return razao(clara, oklchNosDoisCaminhos(l, c, h).cortada);
+    });
+    expect(Math.min(...piores)).toBeLessThan(PISO_DESENHO);
+  });
+});
+
+describe.each(TEMAS)("o prato, no tema %s: a célula vazia se vê", (_nome, tema) => {
+  const valor = (token: string) => cor(cru(tema[token]));
+
+  it("a célula vazia se contorna com o limite de controle, que passa em 3:1 sobre todo fundo onde o prato mora", () => {
+    // O trilho `surface-3` mede 1,2:1 contra o fundo: a parte que falta para o
+    // alvo só existia como uma mancha. O contorno é o desenho que a mostra.
+    expect(Object.fromEntries(bloco(".co-plate__cell:not([data-group])"))).toMatchObject({
+      stroke: "var(--co-control)",
+      "stroke-width": "var(--co-control-width)",
+    });
+    for (const fundo of ["bg", "surface", "surface-2"]) {
+      const r = razao(valor("control"), valor(fundo));
+      expect(r, `o contorno da célula vazia sobre ${fundo} deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
+    }
+  });
+
+  it("a isca: o trilho sozinho, sem contorno, fica abaixo de 3:1 sobre o fundo", () => {
+    expect(razao(valor("surface-3"), valor("bg"))).toBeLessThan(PISO_DESENHO);
   });
 });

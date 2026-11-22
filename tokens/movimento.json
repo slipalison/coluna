@@ -24,6 +24,11 @@
     "$value": "700ms",
     "$description": "O numero que rola."
   },
+  "duration-wave": {
+    "$type": "duration",
+    "$value": "12ms",
+    "$description": "A onda do prato de colunas: o atraso de cada anel, do centro para a borda."
+  },
   "duration-reduced": {
     "$type": "duration",
     "$value": "120ms",

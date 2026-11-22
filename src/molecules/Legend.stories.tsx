@@ -37,7 +37,7 @@ type Story = StoryObj<typeof meta>;
  */
 export const Calendário: Story = {};
 
-/** As cinco formas, e o que cada uma copia. */
+/** As seis formas, e o que cada uma copia. */
 export const AsFormas: Story = {
   name: "As formas",
   args: {
@@ -48,6 +48,7 @@ export const AsFormas: Story = {
       { label: "tendência", swatch: "line" },
       { label: "projeção", swatch: "dashed" },
       { label: "faixa da meta", swatch: "band" },
+      { label: "coluna do prato", swatch: "hex", tone: "veg" },
     ],
   },
 };

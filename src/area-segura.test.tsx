@@ -23,6 +23,7 @@ import {
   soEstesMexemNoPadding,
   soOsTokensDeclaram,
   BARRA_DE_ACAO,
+  RECUO_COM_AVISO,
 } from "./test/folha";
 
 /**
@@ -187,7 +188,15 @@ it("a moldura soma a área segura de cima ao respiro de 28px", () => {
   const moldura = bloco(".co-screen");
   // A barra de ação com abas (ADR-013) cita a moldura no seletor, mas pinta o
   // FILHO dela: o rodapé que ela muda é o da barra, e não o da moldura.
-  soEstesMexemNoPadding(classe("co-screen", "co-grain"), [".co-screen", BARRA_DE_ACAO.comAbas]);
+  // E as regras do aviso aberto (ADR-025, adendo) leem a tela para pôr espaço
+  // embaixo da JANELA (`:root`), e não da moldura.
+  soEstesMexemNoPadding(classe("co-screen", "co-grain"), [
+    ".co-screen",
+    BARRA_DE_ACAO.comAbas,
+    RECUO_COM_AVISO.comAbas,
+    RECUO_COM_AVISO.comBarra,
+    RECUO_COM_AVISO.comAmbas,
+  ]);
   expect(paddingQueVale(moldura, aparelho(59, 0, 34, 0)).topo).toBe(87);
   expect(paddingQueVale(moldura, SEM_AREA).topo).toBe(28);
 });
@@ -409,6 +418,8 @@ it("a altura da faixa do relógio é pública e declarada só no :root, a partir
       "scroll-padding-top",
       "--co-actionbar-height",
       "scroll-padding-bottom",
+      // O aviso aberto soma a altura dele ao recuo de baixo (ADR-025, adendo).
+      "--co-toast-reserve",
     ],
   ]);
 
@@ -632,6 +643,19 @@ it("só a faixa, o recuo da rolagem e a folha de altura cheia leem a altura dela
       `${BARRA_DE_ACAO.recuoComAbas} scroll-padding-bottom`,
       `${BARRA_DE_ACAO.recuo} scroll-padding-bottom`,
       `${BARRA_DE_ACAO.recuoComAmbas} scroll-padding-bottom`,
+      // E o recuo com o aviso aberto, que soma a altura dele (ADR-025, adendo).
+      ...Object.values(RECUO_COM_AVISO).map((recuo) => `${recuo} scroll-padding-bottom`),
+      // E o espaço embaixo da janela, para a última linha subir acima do aviso: só sem barras lê a área.
+      `${RECUO_COM_AVISO.sozinho} padding-bottom`,
+      // Desde o cartão #182, o aviso passageiro (ADR-025): ele flutua dentro
+      // da área segura, e acima das abas e da barra de ação pelo mesmo termo
+      // `max(...)` delas.
+      ".co-toast bottom",
+      ".co-toast left",
+      ".co-toast right",
+      ':root:has(.co-screen[data-tabbar="true"]) .co-toast:not([data-position]) bottom',
+      ':root:has(.co-screen[data-actionbar="true"] > .co-screen__actionbar :not(:empty)) .co-toast:not([data-position]) bottom',
+      ':root:has(.co-screen[data-tabbar="true"][data-actionbar="true"] > .co-screen__actionbar :not(:empty)) .co-toast:not([data-position]) bottom',
     ].sort(),
   );
 });
@@ -674,6 +698,7 @@ it("o foco do teclado não fica atrás da faixa: o :root recua a rolagem pela al
     BARRA_DE_ACAO.recuoComAbas,
     BARRA_DE_ACAO.recuo,
     BARRA_DE_ACAO.recuoComAmbas,
+    ...Object.values(RECUO_COM_AVISO),
   ]);
 
   // O MESMO texto da altura da faixa: lê a propriedade que sobrevive ao zero

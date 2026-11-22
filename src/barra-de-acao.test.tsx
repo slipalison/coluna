@@ -26,6 +26,7 @@ import {
   normalizar,
   paddingQueVale,
   partes,
+  RECUO_COM_AVISO,
   REGRAS,
   SEM_AREA,
   TRAVA_DE_TOQUE,
@@ -279,6 +280,13 @@ it("a barra de ação é fixa, na camada das abas e abaixo do painel, com o fund
       BARRA_DE_ACAO.arma,
       TRAVA_DE_TOQUE.rearma,
       `@ ${TRAVA_DE_TOQUE.excecao}`,
+      // O aviso passageiro sobe acima da barra pela mesma condição do recuo (ADR-025):
+      // só lê a condição, e não mexe na barra.
+      `${BARRA_DE_ACAO.recuo} .co-toast:not([data-position])`,
+      `${BARRA_DE_ACAO.recuoComAmbas} .co-toast:not([data-position])`,
+      // E o recuo com o aviso aberto, que a soma da altura dele ao da barra (ADR-025, adendo).
+      RECUO_COM_AVISO.comBarra,
+      RECUO_COM_AVISO.comAmbas,
     ].sort(),
   );
   // A divisão tem dois seletores (o primeiro nível e o botão em qualquer
@@ -867,7 +875,7 @@ it("a folha overlay se arma pelo relógio da camada, com o véu e o painel, e a 
   // O conteúdo do painel herda o ponteiro dele: nenhuma regra desta folha
   // declara `pointer-events` em outro lugar, a não ser o `none` de pintura
   // (a faixa, o fio do grupo, o grão, e a unidade, a lupa e o fim da busca, que
-  // deixam o toque cair no campo embaixo deles) e as duas travas. Um `auto`
+  // deixam o toque cair no campo embaixo deles, e o separador de setor do prato) e as duas travas. Um `auto`
   // declarado num controle o soltaria da trava da folha.
   const ponteiro = REGRAS.filter((r) => r.declaracoes.some(([p]) => p === "pointer-events")).map(
     (r) => `${lugar(r)}: ${Object.fromEntries(r.declaracoes)["pointer-events"]}`,
@@ -881,6 +889,9 @@ it("a folha overlay se arma pelo relógio da camada, com o véu e o painel, e a 
     ".co-input__unit: none",
     ".co-search__icon: none",
     ".co-search__end: none",
+    // E o separador de setor do prato (ADR-025, adendo): desenho, nunca alvo.
+    ".co-plate__divider-edge: none",
+    ".co-plate__divider: none",
     ".co-grain::after: none",
   ]);
 
@@ -1040,6 +1051,10 @@ it("as abas e a barra de ação se rearmam quando a folha overlay fecha, e só p
   expect(tiramAAnimacao, "regras que tiram a animação").toEqual([
     TRAVA_DE_TOQUE.rearma,
     '.co-sheet[data-mode="inline"]',
+    // As células do prato no esqueleto (que pulsa inteiro, sem a onda) e o
+    // esqueleto parado com menos movimento (ADR-025): nenhuma é trava.
+    '.co-plate__art[data-skeleton="true"] .co-plate__cell',
+    "@ .co-root .co-skeleton__item",
   ]);
 
   // Na cascata, a mesma tela numa sequência: sem folha, as barras armam (é a
@@ -1131,6 +1146,18 @@ it("o movimento reduzido não zera a trava da barra, das abas nem da folha", () 
     // não mexe em duração, e não toca na trava.
     ['.co-root .co-deck__card[data-dragging="true"]', [["transform", "none"]]],
     [".co-root .co-button:active", [["transform", "none"]]],
+    // O prato e o aviso passageiro esmaecem, e o esqueleto fica parado
+    // (slipalison/basalto#182, ADR-025): nenhum dos dois toca na trava.
+    [
+      '.co-root .co-plate__cell, .co-root .co-toast[data-open="true"]',
+      [
+        ["animation-name", "co-esmaecer !important"],
+        ["animation-duration", "var(--co-duration-reduced) !important"],
+        ["animation-timing-function", "var(--co-ease-settle) !important"],
+        ["animation-delay", "0s !important"],
+      ],
+    ],
+    [".co-root .co-skeleton__item", [["animation-name", "none !important"]]],
   ]);
   // A exceção é a união das três regras, seletor por seletor.
   expect(TRAVA_DE_TOQUE.excecao.split(", ").sort()).toEqual(

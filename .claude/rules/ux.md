@@ -60,6 +60,22 @@ violação, o PR não entra.
   conteúdo, o cabeçalho e o rodapé ficam fixos, e quem rola é o corpo — nada direto nele encolhe para rolar por
   dentro com uma linha de altura. Dentro de um card do `Deck`, o dedo de lado é do carrossel também sobre o painel
   de uma aba (ADR-020).
+- **O prato de colunas nunca vem sem a legenda em texto**, com o nome e os gramas de cada fatia, e sem o `summary`
+  (obrigatório) que diz quanto do alvo ele fecha ou quanto falta; o desenho sai `aria-hidden`, e o prato recebe a
+  composição pronta, sem calcular nada. **Os seis grupos se distinguem por PADRÃO** (uma textura de SVG por grupo, a
+  mesma na amostra da legenda) **e por separador de setor** (um traço escuro, com contorno claro no tema escuro, onde
+  o grupo muda entre duas células vizinhas, em toda ordem dos grupos), mantendo a luminosidade da identidade (ADR-022); a célula vazia tem
+  contorno de controle (≥ 3:1) (ADR-025).
+- **O cartão inteiro é o alvo** do `RecipeCard`, com pelo menos `--co-target-min`, e o nome do link é o título
+  (ADR-025).
+- **O aviso passageiro (`Toast`) anuncia por região viva que existe antes da mensagem**, não rouba o foco (salvo
+  `focusOnOpen`, para o aviso que nasce de uma ação da pessoa, e então o foco vai à mensagem, e não ao "Desfazer", para o Enter repetido não desfazer; nenhum atalho global, que sequestraria a digitação),
+  devolve o foco ao fechar com ele dentro, e some no tempo dado por quem usa, pausando com foco, ponteiro ou toque até
+  o teto, que é o prazo do servidor e que também espera quem está com o aviso. O aviso fixo aberto entra no recuo de
+  baixo da rolagem e reserva espaço embaixo do conteúdo, para a última linha não ficar sob ele (WCAG 2.2.1, 2.4.11,
+  4.1.3; ADR-025).
+- **O esqueleto anuncia o rótulo uma vez e o pulso acaba** antes de 5 s, parado com `prefers-reduced-motion`
+  (WCAG 2.2.2; ADR-025).
 - **Ícone de ação tem nome acessível**; o × é fechar ou limpar, nunca apagar.
 - **Toda peça funciona a 320 px** sem rolagem lateral e com o texto a 200%.
 - **Os estados vêm prontos**: carregando, vazio, erro, desligado com motivo.
@@ -75,8 +91,7 @@ existe bloqueia só o cartão dono dela, que apaga a linha ao ser entregue.
 |---|---|
 | Escala de espaço com 13 degraus de 2 px até 40; rótulo de campo com a cara do rótulo de seção (o piso de letra foi pago no ADR-021, a escala de letra e as cores de macro saíram com a identidade do ADR-022) | #59 |
 | Sem ação no fim da `ListRow`; `Stepper` que não aceita digitação nem repete ao segurar | #60 |
-| Sem aviso temporário com "Desfazer" | #61 |
-| Sem campo de data em dia, mês e ano; sem `Skeleton` | #64 |
+| Sem campo de data em dia, mês e ano | #64 |
 
 ## Checklist do PR (o revisor bloqueia em qualquer ❌)
 

@@ -216,8 +216,9 @@ sistema admite**, e ele passa em 4,5:1 sobre todo fundo de texto, nos dois
 temas. Abaixo dele só existe `--co-control`, que passa em 3:1 e serve para
 **desenho** e para o limite de controle, nunca para texto
 ([ADR-005](docs/adr/005-cor-nunca-sozinha.md), [ADR-022](docs/adr/022-a-identidade-relogio-de-sol.md)).
-Os papéis do alimento (`--co-role-*`) têm a mesma luminosidade de propósito:
-nenhum grita mais que o outro, e o nome e a quantidade vão sempre ao lado.
+Os papéis do alimento (`--co-role-*`) se distinguem por padrão e por separador
+de setor, e não só pela cor, com a luminosidade da identidade. O nome e a
+quantidade vão sempre ao lado.
 
 ---
 
@@ -230,7 +231,7 @@ nenhum grita mais que o outro, e o nome e a quantidade vão sempre ao lado.
 **Moléculas** — `Group` `ListRow` `Reckoning` `MacroBar` `Stat` `Notice`
 `SegmentedControl` `Stepper` `ScreenHeader` `PageHeader` `TabBar` `Rail`
 `NavList` `Pager` `Field` `Sheet` `Legend` `Ruler` `Disclosure` `EmptyState`
-`Diff` `Deck` `Tabs`
+`Diff` `Deck` `Tabs` `Plate` `RecipeCard` `Toast` `Skeleton`
 
 **Padrões** — no catálogo, `Padrões/Casca` monta a casca vazia do Basalto
 (Hoje, Livro e Você) no celular, com e sem a área segura emulada pelos tokens, e
@@ -519,7 +520,10 @@ Nenhum componente injeta `<style>` nem escreve o atributo `style`: a CSP de quem
 consome (`style-src 'self'`) recusaria. Movimento e cor por elemento vão pelo
 CSS de arquivo e pelo CSSOM. Um teste monta todo componente exportado sob uma
 vigia, uma varredura lê `src/` e o `npm run build` lê o `dist/`
-([ADR-024](docs/adr/024-a-hora-pelo-cssom-e-a-guarda-da-csp.md)).
+([ADR-024](docs/adr/024-a-hora-pelo-cssom-e-a-guarda-da-csp.md)). A onda do
+prato, a entrada do aviso e o pulso do esqueleto são classes com `@keyframes`,
+com o atraso por anel numa regra da folha, e não num atributo
+([ADR-025](docs/adr/025-o-prato-o-cartao-o-aviso-e-o-esqueleto.md)).
 
 ---
 
@@ -567,3 +571,4 @@ a esteira reprova o que estiver fora.
 - [ADR-022 — a identidade "Relógio de Sol" (Coluna 2.0)](docs/adr/022-a-identidade-relogio-de-sol.md)
 - [ADR-023 — as fontes do "Relógio de Sol"](docs/adr/023-as-fontes-do-relogio-de-sol.md)
 - [ADR-024 — a hora pelo CSSOM, e a guarda da CSP](docs/adr/024-a-hora-pelo-cssom-e-a-guarda-da-csp.md)
+- [ADR-025 — o prato, o cartão de receita, o aviso com "Desfazer" e o esqueleto](docs/adr/025-o-prato-o-cartao-o-aviso-e-o-esqueleto.md)
