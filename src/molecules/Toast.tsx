@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode, type RefObject } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, type ReactNode, type RefObject } from "react";
 import { Button } from "../atoms/Button";
 import { Icon } from "../atoms/Icon";
 import { IconButton } from "../atoms/IconButton";
@@ -46,10 +46,14 @@ export interface ToastProps {
   tone?: "neutral" | "warn";
   /**
    * O aviso nasceu de uma ação da pessoa (marcar feita, apagar): ao abrir, o
-   * foco vai ao "Desfazer", e ao fechar volta ao elemento de onde veio (ou a
-   * `returnFocus`). Sem isto (o padrão), o aviso NÃO move o foco: ele pode
-   * nascer de um efeito, de um prazo ou de outra aba, e roubar o foco de quem
-   * digita é pior que perder o atalho. Quem consome decide quando usar.
+   * foco vai à MENSAGEM do aviso (a caixa, que é um grupo com o nome da
+   * mensagem e da ação que há), e NÃO ao botão "Desfazer": quem marcou com o
+   * Enter e aperta o Enter de novo (ou o segura) não desfaz sem querer, porque o
+   * Enter na mensagem não faz nada. O "Desfazer" é o próximo no Tab, e ao fechar
+   * o foco volta ao elemento de origem (ou a `returnFocus`). Sem isto (o
+   * padrão), o aviso NÃO move o foco: ele pode nascer de um efeito, de um prazo
+   * ou de outra aba, e roubar o foco de quem digita é pior que perder o atalho.
+   * Quem consome decide quando usar.
    */
   focusOnOpen?: boolean;
   /**
@@ -118,6 +122,7 @@ export function Toast({
       );
     }
   }, [tetoInvalido, maxDuration, duration]);
+  const idMensagem = useId();
   const caixa = useRef<HTMLDivElement>(null);
   const origem = useRef<HTMLElement | null>(null);
   /** De onde o foco veio quando `focusOnOpen` o levou ao aviso (o `relatedTarget` pode vir vazio). */
@@ -208,14 +213,15 @@ export function Toast({
     return () => document.removeEventListener("pointerdown", fora, true);
   }, [open, soltar]);
 
-  // O aviso que nasce de uma ação da pessoa leva o foco ao "Desfazer" ao abrir;
-  // ao fechar, o foco volta a quem o tinha. Depois do efeito do tempo, para a
+  // O aviso que nasce de uma ação da pessoa leva o foco à mensagem ao abrir (e
+  // não ao "Desfazer": o Enter que marcou ou o que repete não desfaz); ao
+  // fechar, o foco volta a quem o tinha. Depois do efeito do tempo, para a
   // pausa do foco valer desde a abertura.
   useEffect(() => {
     if (!open || !focoAoAbrir.current) return;
     const de = document.activeElement;
     origemFixada.current = de instanceof HTMLElement && de !== document.body && !caixa.current?.contains(de) ? de : null;
-    caixa.current?.querySelector<HTMLElement>(".co-toast__action, .co-toast__close")?.focus();
+    caixa.current?.focus();
   }, [open]);
 
   // Fechou por fora (quem consome pôs `open` em false) com o foco dentro: devolve.
@@ -234,6 +240,8 @@ export function Toast({
       ref={caixa}
       className={classe}
       tabIndex={-1}
+      role={open ? "group" : undefined}
+      aria-labelledby={open ? idMensagem : undefined}
       data-open={open ? "true" : undefined}
       data-tone={tone === "neutral" ? undefined : tone}
       data-position={position === "fixed" ? undefined : position}
@@ -278,7 +286,7 @@ export function Toast({
           <Icon name="alert" size={20} />
         </span>
       ) : null}
-      <div className="co-toast__message" role="status" aria-live="polite" aria-atomic="true">
+      <div id={idMensagem} className="co-toast__message" role="status" aria-live="polite" aria-atomic="true">
         {open ? (
           <Text as="span" variant="body">
             {message}

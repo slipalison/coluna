@@ -188,7 +188,8 @@ const ARESTAS: readonly PlateEdge[] = (() => {
 
 /**
  * Os separadores de setor: onde duas células vizinhas pintam grupos DIFERENTES,
- * a aresta entre elas ganha um traço escuro. Separa qualquer par de grupos em
+ * a aresta entre elas ganha um traço escuro (`role-mark`), com um contorno por
+ * baixo (`role-edge`, claro no tema escuro) que o separa da fissura. Separa qualquer par de grupos em
  * qualquer ordem — a célula do meio toca os seis, e a última fatia encosta na
  * primeira quando o prato fecha —, sem depender da cor.
  * Célula vazia não entra: ela já tem o contorno dela.
@@ -305,10 +306,10 @@ export function PlateArt({ slices, size = "lg", over = false, skeleton = false, 
         );
       })}
       {arestas.length > 0 ? (
-        <path
-          className="co-plate__divider"
-          d={arestas.map((e) => e.d).join("")}
-        />
+        <>
+          <path className="co-plate__divider-edge" d={arestas.map((e) => e.d).join("")} />
+          <path className="co-plate__divider" d={arestas.map((e) => e.d).join("")} />
+        </>
       ) : null}
     </svg>
   );

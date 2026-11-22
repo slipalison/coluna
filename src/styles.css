@@ -3302,7 +3302,19 @@ fieldset.co-nav-list {
 .co-plate__dot { fill: var(--co-role-mark); }
 
 /* O separador de setor: onde o grupo muda entre duas células vizinhas, a
- * aresta entre elas ganha um traço escuro, que não escala com o prato. */
+ * aresta entre elas ganha um traço escuro (`role-mark`, 3:1 sobre todo papel),
+ * com um contorno por baixo (`role-edge`, 3:1 contra a fissura): no tema escuro
+ * o traço escuro sozinho some contra o fundo (1,05:1), e uma cor só não passa
+ * dos dois lados. Nenhum dos dois escala com o prato. */
+.co-plate__divider-edge {
+  fill: none;
+  stroke: var(--co-role-edge);
+  stroke-width: 3px;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
 .co-plate__divider {
   fill: none;
   stroke: var(--co-role-mark);

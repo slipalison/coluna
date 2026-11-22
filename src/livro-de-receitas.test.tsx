@@ -231,8 +231,14 @@ describe("Plate", () => {
     expect(arestas).toBe(plateDividers(plateFill(ALMOCO)).length);
     expect(arestas).toBeGreaterThan(8);
     expect(Object.fromEntries(bloco(".co-plate__divider"))).toMatchObject({ stroke: "var(--co-role-mark)", fill: "none" });
+    // E, por baixo dele, o contorno claro no escuro (token próprio): sem ele o traço some contra a fissura.
+    const contorno = container.querySelector(".co-plate__divider-edge");
+    expect(contorno?.getAttribute("d")).toBe(caminho?.getAttribute("d"));
+    expect(contorno?.nextElementSibling).toBe(caminho);
+    expect(Object.fromEntries(bloco(".co-plate__divider-edge"))).toMatchObject({ stroke: "var(--co-role-edge)", fill: "none" });
     const so = render(<Plate slices={[{ group: "veg", fraction: 0.5, label: "Brócolis · 80 g" }]} summary={RESUMO} />);
     expect(so.container.querySelector(".co-plate__divider")).toBeNull();
+    expect(so.container.querySelector(".co-plate__divider-edge")).toBeNull();
   });
 
   it.each(TEMAS)("no tema %s, o mini e o grande passam no axe", async (tema) => {
@@ -569,13 +575,55 @@ describe("Toast", () => {
     expect(regiao.textContent).not.toMatch(/alt|tecla|foco/i);
   });
 
-  it("focusOnOpen: o aviso que nasce de uma ação da pessoa leva o foco ao Desfazer, e o foco volta ao elemento de origem", async () => {
+  it("focusOnOpen: o foco vai à MENSAGEM do aviso (a caixa, com o nome dela), e não ao Desfazer; o foco não fica coberto", async () => {
+    const eu = usuario();
+    const { container } = render(<ComAviso focoAoAbrir />);
+    await eu.click(screen.getByRole("button", { name: "Marcar feita" }));
+    const aviso = container.querySelector(".co-toast") as HTMLElement;
+    // A caixa é um grupo com o nome da mensagem (e da ação que há), para o leitor de tela.
+    const grupo = screen.getByRole("group", { name: /Almoço marcado como feito/ });
+    expect(grupo).toBe(aviso);
+    expect(grupo).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Desfazer" })).not.toHaveFocus();
+    // O foco está no próprio aviso, a camada fixa de cima: nada o cobre, e ela é a do z-index 30.
+    expect(Object.fromEntries(bloco(".co-toast"))).toMatchObject({ position: "fixed", "z-index": "30" });
+    expect(document.activeElement).toBe(aviso);
+  });
+
+  it("focusOnOpen: dois Enter seguidos não desfazem — o primeiro marca, o segundo cai na mensagem e não faz nada", async () => {
+    const desfez = vi.fn();
+    const fechou = vi.fn();
+    const eu = usuario();
+    render(<ComAviso focoAoAbrir aoDesfazer={desfez} aoFechar={fechou} />);
+    await eu.click(screen.getByRole("button", { name: "Lista" }));
+    await eu.tab();
+    expect(screen.getByRole("button", { name: "Marcar feita" })).toHaveFocus();
+    await eu.keyboard("{Enter}{Enter}");
+    expect(desfez).not.toHaveBeenCalled();
+    expect(fechou).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Desfazer" })).toBeInTheDocument();
+  });
+
+  it("focusOnOpen: o Enter segurado (repeat) não desfaz", async () => {
+    const desfez = vi.fn();
+    const eu = usuario();
+    render(<ComAviso focoAoAbrir aoDesfazer={desfez} />);
+    await eu.click(screen.getByRole("button", { name: "Lista" }));
+    await eu.tab();
+    // Três keydown com o Enter pressionado: o primeiro marca, os que repetem caem na mensagem.
+    await eu.keyboard("{Enter>3/}");
+    expect(desfez).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Desfazer" })).toBeInTheDocument();
+  });
+
+  it("focusOnOpen: Tab e depois Enter desfaz, e o foco volta ao elemento de origem", async () => {
     const desfez = vi.fn();
     const fechou = vi.fn();
     const eu = usuario();
     render(<ComAviso focoAoAbrir aoDesfazer={desfez} aoFechar={fechou} />);
     const marcar = screen.getByRole("button", { name: "Marcar feita" });
     await eu.click(marcar);
+    await eu.tab();
     expect(screen.getByRole("button", { name: "Desfazer" })).toHaveFocus();
     await eu.keyboard("{Enter}");
     expect(desfez).toHaveBeenCalledTimes(1);
@@ -596,11 +644,18 @@ describe("Toast", () => {
     expect(marcar).toHaveFocus();
   });
 
-  it("sem focusOnOpen (o padrão), abrir não move o foco", async () => {
-    render(<ComAviso />);
+  it("sem focusOnOpen (o padrão), nada muda: o aviso não rouba o foco, nem o do teclado", async () => {
+    const eu = usuario();
+    const { container } = render(<ComAviso />);
     const marcar = screen.getByRole("button", { name: "Marcar feita" });
-    await usuario().click(marcar);
+    await eu.click(marcar);
     expect(marcar).toHaveFocus();
+    expect(container.querySelector(".co-toast")).not.toHaveFocus();
+    // O Enter seguinte continua no gatilho, e o Desfazer é só uma parada do Tab.
+    await eu.keyboard("{Enter}");
+    expect(marcar).toHaveFocus();
+    await eu.tab();
+    expect(screen.getByRole("button", { name: "Desfazer" })).toHaveFocus();
   });
 
   it("um teto menor ou igual ao tempo não derruba a tela: avisa no console e usa 10 vezes o tempo", () => {

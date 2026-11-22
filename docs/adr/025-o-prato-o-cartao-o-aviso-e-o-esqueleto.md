@@ -102,9 +102,16 @@ que reprova o código de antes).
    - **Nenhum atalho global.** A primeira rodada pôs Alt+N para levar o foco ao aviso, e a segunda mediu o defeito:
      no macOS, Option+N é a tecla morta do "ã" (`key: "Dead"`, `code: "KeyN"`), o foco saltava do campo para o
      "Desfazer", e o espaço seguinte o acionava. O atalho saiu. No lugar vem `focusOnOpen`, para o aviso que nasce de
-     uma ação da pessoa: o foco vai ao "Desfazer" ao abrir e volta ao elemento de origem ao fechar. É opt-in porque o
-     aviso pode nascer de um efeito ou de um prazo, e roubar o foco de quem digita é pior que perder o atalho; quem
-     consome decide quando usar. O anúncio diz a mensagem e que há uma ação, sem citar tecla.
+     uma ação da pessoa: ao abrir, o foco vai à MENSAGEM do aviso (a caixa, um grupo com o nome da mensagem e da ação que
+     há), e volta ao elemento de origem ao fechar. É opt-in porque o aviso pode nascer de um efeito ou de um prazo, e
+     roubar o foco de quem digita é pior que perder o atalho; quem consome decide quando usar. O anúncio diz a mensagem
+     e que há uma ação, sem citar tecla.
+   - **O foco não vai ao "Desfazer".** A primeira versão do `focusOnOpen` o levava ao botão, e a terceira rodada mediu
+     o defeito: quem marcava com o Enter e apertava o Enter de novo (ou o segurava) desfazia a ação na hora, sem saber,
+     porque o segundo Enter caía no botão que acabara de ganhar o foco. Com o foco na mensagem, o Enter ali não faz
+     nada e o "Desfazer" é o próximo no Tab: sem truque de tempo, sem ignorar `keydown`. O foco fica no próprio aviso,
+     a camada fixa de cima, e não é coberto (WCAG 2.4.11); o nome do grupo traz a mensagem e a ação para o leitor de
+     tela (4.1.2, 4.1.3).
    - `maxDuration` menor ou igual a `duration` anula a pausa. A primeira rodada o recusava com `RangeError` no render, e
      a segunda mediu que isso derrubava a tela inteira de quem consome. Agora o componente avisa no console e usa
      `10 × duration`.
@@ -140,3 +147,9 @@ que reprova o código de antes).
      faltando, a célula do meio inclusive. O teste gera as 720 ordens, com e sem grupo faltando, acha a vizinhança pelas
      coordenadas das células e exige um separador entre toda vizinha de grupos diferentes e nenhum entre as do mesmo
      grupo. A legenda em texto e o `summary` continuam, e nenhum texto mora sobre a cor de um grupo.
+   - **O separador no tema escuro.** A terceira rodada mediu o traço escuro a 14:1 no claro, e a 1,05:1 contra a
+     fissura no escuro, onde ele some. Uma cor só não passa de 3:1 dos dois lados: os papéis têm a luminosidade da
+     identidade (ADR-022, luminância média), e contra eles um traço claro mede menos de 3:1. Por isso o separador tem
+     dois traços: por baixo, um contorno com token próprio, `--co-role-edge` (claro no escuro, 3:1 contra o fundo do
+     prato nos dois temas), e por cima o `--co-role-mark`, que segue o que separa cada grupo do vizinho (3:1 sobre
+     todo papel). O teste mede os dois pares nos dois temas, com a isca do `role-mark` sozinho no escuro.

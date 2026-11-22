@@ -63,13 +63,13 @@ violação, o PR não entra.
 - **O prato de colunas nunca vem sem a legenda em texto**, com o nome e os gramas de cada fatia, e sem o `summary`
   (obrigatório) que diz quanto do alvo ele fecha ou quanto falta; o desenho sai `aria-hidden`, e o prato recebe a
   composição pronta, sem calcular nada. **Os seis grupos se distinguem por PADRÃO** (uma textura de SVG por grupo, a
-  mesma na amostra da legenda) **e por separador de setor** (um traço escuro onde o grupo muda entre duas células
-  vizinhas, em toda ordem dos grupos), mantendo a luminosidade da identidade (ADR-022); a célula vazia tem
+  mesma na amostra da legenda) **e por separador de setor** (um traço escuro, com contorno claro no tema escuro, onde
+  o grupo muda entre duas células vizinhas, em toda ordem dos grupos), mantendo a luminosidade da identidade (ADR-022); a célula vazia tem
   contorno de controle (≥ 3:1) (ADR-025).
 - **O cartão inteiro é o alvo** do `RecipeCard`, com pelo menos `--co-target-min`, e o nome do link é o título
   (ADR-025).
 - **O aviso passageiro (`Toast`) anuncia por região viva que existe antes da mensagem**, não rouba o foco (salvo
-  `focusOnOpen`, para o aviso que nasce de uma ação da pessoa; nenhum atalho global, que sequestraria a digitação),
+  `focusOnOpen`, para o aviso que nasce de uma ação da pessoa, e então o foco vai à mensagem, e não ao "Desfazer", para o Enter repetido não desfazer; nenhum atalho global, que sequestraria a digitação),
   devolve o foco ao fechar com ele dentro, e some no tempo dado por quem usa, pausando com foco, ponteiro ou toque até
   o teto, que é o prazo do servidor e que também espera quem está com o aviso. O aviso fixo aberto entra no recuo de
   baixo da rolagem e reserva espaço embaixo do conteúdo, para a última linha não ficar sob ele (WCAG 2.2.1, 2.4.11,

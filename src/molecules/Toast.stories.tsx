@@ -102,8 +102,9 @@ export const DeVerdade: Story = {
 
 /**
  * O aviso que nasce de uma ação da pessoa (`focusOnOpen`): ao marcar feita, o
- * foco vai ao "Desfazer"; Enter desfaz, Esc dispensa, e o foco volta a "Marcar
- * feita". O app decide quando usar: um aviso que nasce de um efeito não deve
+ * foco vai à MENSAGEM do aviso, e não ao "Desfazer" (um segundo Enter, ou o
+ * Enter segurado, não desfaz sem querer); Tab chega ao "Desfazer", Enter desfaz,
+ * Esc dispensa, e o foco volta a "Marcar feita". O app decide quando usar: um aviso que nasce de um efeito não deve
  * roubar o foco de quem digita.
  */
 export const FocoAoAbrir: Story = {

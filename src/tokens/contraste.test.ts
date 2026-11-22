@@ -547,6 +547,38 @@ describe.each(TEMAS)("os papéis do alimento no tema %s", (_nome, tema) => {
     }
   });
 
+  it("o separador de setor se vê: o traço escuro (role-mark) separa de cada grupo vizinho, e o contorno (role-edge) o separa da fissura, em 3:1 nos dois temas", () => {
+    // O traço fica na fissura entre duas células, sobre o fundo do prato (bg,
+    // surface ou surface-2) e entre duas cores de papel. No claro, a tinta
+    // escura passa dos dois lados. No escuro, a escura passa contra os papéis e
+    // some contra a fissura (1,05:1), e uma cor só não passa dos dois lados (os
+    // papéis têm luminância média): o contorno claro, por baixo do traço, é o
+    // que o separa da fissura, e o traço escuro, o que o separa dos papéis.
+    const fissuras = ["bg", "surface", "surface-2"].map((fundo) => cor(cru(tema[fundo])));
+    const marca = cor(cru(tema["role-mark"]));
+    const contorno = cor(cru(tema["role-edge"]));
+    for (const fundo of fissuras) {
+      const r = razao(contorno, fundo);
+      expect(r, `role-edge sobre a fissura deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
+    }
+    for (const papel of PAPEIS) {
+      for (const caminho of ["cortada", "reduzida"] as const) {
+        const { l, c, h } = partes(papel);
+        const fundoDoPapel = oklchNosDoisCaminhos(l, c, h)[caminho];
+        const r = razao(marca, fundoDoPapel);
+        expect(r, `role-mark sobre ${papel} (${caminho}) deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
+      }
+    }
+  });
+
+  it("a isca: o role-mark sozinho, o único traço do tema escuro antes do contorno, mede perto de 1:1 contra a fissura", () => {
+    // Prova que a medida morde: sem o `role-edge`, o traço escuro some no tema escuro.
+    if (_nome !== "escuro") return;
+    const marca = cor(cru(tema["role-mark"]));
+    const piores = ["bg", "surface", "surface-2"].map((fundo) => razao(marca, cor(cru(tema[fundo]))));
+    expect(Math.max(...piores)).toBeLessThan(1.5);
+  });
+
   it("a isca: uma tinta de marca clara (role-mark baixado) reprova em 3:1 sobre algum grupo", () => {
     // Prova que a medida morde: a tinta de ação do tema, clara no escuro e escura
     // no claro, é o que NÃO pode servir de marca onde o fundo é do mesmo lado.

@@ -890,6 +890,7 @@ it("a folha overlay se arma pelo relógio da camada, com o véu e o painel, e a 
     ".co-search__icon: none",
     ".co-search__end: none",
     // E o separador de setor do prato (ADR-025, adendo): desenho, nunca alvo.
+    ".co-plate__divider-edge: none",
     ".co-plate__divider: none",
     ".co-grain::after: none",
   ]);
