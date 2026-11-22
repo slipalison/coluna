@@ -60,6 +60,7 @@ export function Skeleton({ label, shape = "recipe-card", count = 1, className }:
               <span className="co-skeleton__lines">
                 <span className="co-skeleton__bone" data-bone="title" />
                 <span className="co-skeleton__bone" data-bone="meta" />
+                <span className="co-skeleton__bone" data-bone="summary" />
                 <span className="co-skeleton__bone" data-bone="legend" />
                 <span className="co-skeleton__bone" data-bone="legend-2" />
               </span>

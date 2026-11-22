@@ -110,7 +110,7 @@ export type { TabBarProps, TabItem } from "./molecules/TabBar";
 export { Tabs } from "./molecules/Tabs";
 export type { TabsItem, TabsProps } from "./molecules/Tabs";
 
-export { Toast, TOAST_FOCUS_SHORTCUT } from "./molecules/Toast";
+export { Toast } from "./molecules/Toast";
 export type { ToastCloseReason, ToastProps } from "./molecules/Toast";
 
 export { readToken, semanticTokens } from "./tokens/tokens";

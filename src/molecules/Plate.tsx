@@ -1,5 +1,7 @@
+import { useId } from "react";
 import { Text } from "../atoms/Text";
 import { Legend } from "./Legend";
+import { PLATE_PATTERN, type PlatePatternKind } from "./plate-pattern";
 
 /**
  * Os grupos do prato, os papéis do alimento da identidade (design/identidade.md):
@@ -150,6 +152,95 @@ export function plateFill(slices: readonly PlateSlice[]): (PlateGroup | undefine
   return PLATE_CELLS.map((_, i) => grupos[i]);
 }
 
+// ------------------------------------------------ o separador de setor --
+
+/** Os pares de células vizinhas (índice menor primeiro) e a aresta que as divide, uma vez. */
+interface PlateEdge {
+  a: number;
+  b: number;
+  /** A aresta compartilhada, do vértice ao vértice, no raio inteiro da casa (no meio da fissura). */
+  d: string;
+}
+
+/**
+ * As arestas entre células vizinhas, achadas pelas COORDENADAS: a vizinha de
+ * uma célula de topo chato está a 3^½ do raio, na direção de 30° + 60°·k, e a
+ * aresta que as divide liga os vértices k e k + 1 da célula.
+ */
+const ARESTAS: readonly PlateEdge[] = (() => {
+  const achadas: PlateEdge[] = [];
+  PLATE_CELLS.forEach((celula, a) => {
+    for (let k = 0; k < 6; k++) {
+      const graus = 60 * k + 30;
+      const x = celula.x + RAIO * Math.sqrt(3) * Math.cos((graus * Math.PI) / 180);
+      const y = celula.y + RAIO * Math.sqrt(3) * Math.sin((graus * Math.PI) / 180);
+      const b = PLATE_CELLS.findIndex((o) => Math.abs(o.x - x) < 0.1 && Math.abs(o.y - y) < 0.1);
+      if (b <= a) continue;
+      const vertice = (n: number) => {
+        const angulo = (Math.PI / 3) * n;
+        return `${arredondar(celula.x + RAIO * Math.cos(angulo))} ${arredondar(celula.y + RAIO * Math.sin(angulo))}`;
+      };
+      achadas.push({ a, b, d: `M${vertice(k)}L${vertice(k + 1)}` });
+    }
+  });
+  return achadas;
+})();
+
+/**
+ * Os separadores de setor: onde duas células vizinhas pintam grupos DIFERENTES,
+ * a aresta entre elas ganha um traço escuro. Separa qualquer par de grupos em
+ * qualquer ordem — a célula do meio toca os seis, e a última fatia encosta na
+ * primeira quando o prato fecha —, sem depender de matiz nem de luminância.
+ * Célula vazia não entra: ela já tem o contorno dela.
+ */
+export function plateDividers(fill: readonly (PlateGroup | undefined)[]): { a: number; b: number }[] {
+  return arestasDeSetor(fill).map(({ a, b }) => ({ a, b }));
+}
+
+const arestasDeSetor = (fill: readonly (PlateGroup | undefined)[]) =>
+  ARESTAS.filter(({ a, b }) => fill[a] !== undefined && fill[b] !== undefined && fill[a] !== fill[b]);
+
+// ------------------------------------------------------- os padrões --
+
+/** A marca de cada padrão, em unidades do viewBox: uma telha que se repete e, às vezes, gira. */
+const FORMAS: Record<PlatePatternKind, { tamanho: number; giro: number; marcas: "linha" | "grade" | "pontos" }> = {
+  diagonal: { tamanho: 5, giro: 45, marcas: "linha" },
+  "counter-diagonal": { tamanho: 5, giro: -45, marcas: "linha" },
+  horizontal: { tamanho: 5, giro: 0, marcas: "linha" },
+  vertical: { tamanho: 5, giro: 90, marcas: "linha" },
+  cross: { tamanho: 6, giro: 0, marcas: "grade" },
+  dots: { tamanho: 5, giro: 0, marcas: "pontos" },
+};
+
+/**
+ * O `<pattern>` de um grupo: o fundo é a cor do papel (uma classe da folha) e
+ * as marcas, a tinta escura `--co-role-mark`. Atributos de apresentação, e
+ * nenhum `style`: a CSP (`style-src 'self'`) aceita (ADR-024).
+ */
+function Padrao({ id, grupo }: { id: string; grupo: PlateGroup }) {
+  const { tamanho, giro, marcas } = FORMAS[PLATE_PATTERN[grupo]];
+  const meio = tamanho / 2;
+  return (
+    <pattern
+      id={id}
+      patternUnits="userSpaceOnUse"
+      width={tamanho}
+      height={tamanho}
+      patternTransform={giro === 0 ? undefined : `rotate(${giro})`}
+    >
+      <rect className="co-plate__ground" data-group={grupo} width={tamanho} height={tamanho} />
+      {marcas === "linha" ? <line className="co-plate__mark" x1="0" y1={meio} x2={tamanho} y2={meio} /> : null}
+      {marcas === "grade" ? (
+        <>
+          <line className="co-plate__mark" x1="0" y1={meio} x2={tamanho} y2={meio} />
+          <line className="co-plate__mark" x1={meio} y1="0" x2={meio} y2={tamanho} />
+        </>
+      ) : null}
+      {marcas === "pontos" ? <circle className="co-plate__dot" cx={meio} cy={meio} r="1.2" /> : null}
+    </pattern>
+  );
+}
+
 export interface PlateArtProps {
   slices: readonly PlateSlice[];
   size?: "sm" | "lg";
@@ -164,6 +255,11 @@ export interface PlateArtProps {
  * usam, e nenhum deles o mostra sem o texto que ele ilustra. Não é exportado
  * pelo pacote: um prato sem legenda seria cor sozinha.
  *
+ * O setor de cada grupo tem o PADRÃO dele (`plate-pattern.ts`) e, onde o grupo
+ * muda entre duas células vizinhas, um separador escuro (`plateDividers`): a
+ * luminância sozinha não separa seis grupos, e assim nenhum par se confunde em
+ * cinza, por protanopia ou no prato mini.
+ *
  * Cada célula é um `<polygon>` com a chave da posição E do grupo: quando a
  * composição muda, só as células que trocam de grupo nascem de novo, e a
  * animação de entrada delas, atrasada pelo anel (`data-ring`), faz a onda do
@@ -171,7 +267,10 @@ export interface PlateArtProps {
  * por anel, e a CSP do app continua de pé (ADR-024, ADR-025).
  */
 export function PlateArt({ slices, size = "lg", over = false, skeleton = false, className }: PlateArtProps) {
+  const prefixo = useId().replace(/[^\w-]/g, "");
   const grupos = skeleton ? PLATE_CELLS.map(() => undefined) : plateFill(slices);
+  const usados = [...new Set(grupos.filter((g): g is PlateGroup => g !== undefined))];
+  const arestas = arestasDeSetor(grupos);
   const classe = className ? `co-plate__art ${className}` : "co-plate__art";
   return (
     <svg
@@ -183,6 +282,13 @@ export function PlateArt({ slices, size = "lg", over = false, skeleton = false, 
       aria-hidden="true"
       focusable="false"
     >
+      {usados.length > 0 ? (
+        <defs>
+          {usados.map((grupo) => (
+            <Padrao key={grupo} id={`${prefixo}-${grupo}`} grupo={grupo} />
+          ))}
+        </defs>
+      ) : null}
       <circle className="co-plate__rim" cx="0" cy="0" r={ARO} />
       {PLATE_CELLS.map((celula, i) => {
         const grupo = grupos[i];
@@ -192,10 +298,18 @@ export function PlateArt({ slices, size = "lg", over = false, skeleton = false, 
             className="co-plate__cell"
             data-ring={celula.ring}
             data-group={grupo}
+            data-pattern={grupo ? PLATE_PATTERN[grupo] : undefined}
+            fill={grupo ? `url(#${prefixo}-${grupo})` : undefined}
             points={PONTOS[i]}
           />
         );
       })}
+      {arestas.length > 0 ? (
+        <path
+          className="co-plate__divider"
+          d={arestas.map((e) => e.d).join("")}
+        />
+      ) : null}
     </svg>
   );
 }

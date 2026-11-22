@@ -10,10 +10,12 @@ import { Toast } from "./Toast";
  *
  * Anuncia por região viva (que existe antes da mensagem), não rouba o foco,
  * some no tempo dado por quem usa e **pausa** enquanto tiver o foco ou o
- * ponteiro, até um teto também dado por quem usa (maior que o tempo, ou a API
- * recusa). Com o foco dentro, o teto não fecha o aviso: ele espera o foco sair.
- * **Alt+N** leva o foco ao aviso aberto, de qualquer lugar. Fechou com o foco
- * dentro, o foco volta para onde estava. O Esc dispensa.
+ * ponteiro ou toque, até um teto também dado por quem usa (o prazo do servidor,
+ * maior que o tempo). Com o foco dentro, o ponteiro em cima ou o dedo nele, o
+ * teto não fecha o aviso: ele espera a pessoa soltá-lo. Nenhum atalho global;
+ * `focusOnOpen` leva o foco ao "Desfazer" quando o aviso nasce de uma ação da
+ * pessoa. Fechou com o foco dentro, o foco volta para onde estava. O Esc
+ * dispensa.
  *
  * Nas histórias ele fica no fluxo (`position="static"`); no app, preso
  * embaixo, acima das abas e da barra de ação.
@@ -56,8 +58,8 @@ export const MensagemLonga: Story = {
 
 /**
  * De verdade: marque feita, e o aviso aparece por 6 s. Passe o ponteiro, leve
- * o foco (Alt+N) até ele, e o tempo para; o teto é de 30 s, e com o foco no
- * aviso ele espera o foco sair. Desfazer devolve o foco a "Marcar feita".
+ * o foco (Tab) ou o dedo até ele, e o tempo para; o teto é de 30 s, e com
+ * alguém no aviso ele espera a pessoa soltá-lo. Desfazer devolve o foco a "Marcar feita".
  */
 export const DeVerdade: Story = {
   name: "De verdade",
@@ -96,6 +98,18 @@ export const DeVerdade: Story = {
       </Stack>
     );
   },
+};
+
+/**
+ * O aviso que nasce de uma ação da pessoa (`focusOnOpen`): ao marcar feita, o
+ * foco vai ao "Desfazer"; Enter desfaz, Esc dispensa, e o foco volta a "Marcar
+ * feita". O app decide quando usar: um aviso que nasce de um efeito não deve
+ * roubar o foco de quem digita.
+ */
+export const FocoAoAbrir: Story = {
+  name: "Foco ao abrir",
+  args: { open: false, focusOnOpen: true },
+  render: DeVerdade.render as NonNullable<Story["render"]>,
 };
 
 /** A 320 px: a mensagem quebra, a ação e o fechar ficam com os 44 px. */

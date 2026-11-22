@@ -4,10 +4,11 @@ import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { useRef, useState, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { PLATE_CELLS, Plate, plateCounts, plateFill, type PlateSlice } from "./molecules/Plate";
+import { PLATE_CELLS, Plate, plateCounts, plateDividers, plateFill, type PlateGroup, type PlateSlice } from "./molecules/Plate";
+import { PLATE_PATTERN } from "./molecules/plate-pattern";
 import { RecipeCard } from "./molecules/RecipeCard";
 import { Skeleton } from "./molecules/Skeleton";
-import { Toast, TOAST_FOCUS_SHORTCUT, type ToastCloseReason } from "./molecules/Toast";
+import { Toast, type ToastCloseReason } from "./molecules/Toast";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import "./styles.css";
 import { aparelho, avaliar, bloco, dentroDe, lugar, REGRAS } from "./test/folha";
@@ -150,6 +151,90 @@ describe("Plate", () => {
     expect(screen.getByRole("article")).toContainElement(resumo);
   });
 
+  it("cada grupo tem o seu padrão, em SVG de marcação (nada de style): seis diferentes, e o mesmo na amostra da legenda", () => {
+    const todos: PlateSlice[] = (Object.keys(PLATE_PATTERN) as PlateGroup[]).map((group) => ({
+      group,
+      fraction: 1 / 6,
+      label: `${group} · 10 g`,
+    }));
+    const { container } = render(<Plate slices={todos} summary={RESUMO} />);
+    // Seis grupos, seis padrões diferentes.
+    expect(new Set(Object.values(PLATE_PATTERN)).size).toBe(6);
+    const padroes = [...container.querySelectorAll("pattern")];
+    expect(padroes).toHaveLength(6);
+    const assinatura = (p: Element) =>
+      `${p.getAttribute("patternTransform") ?? ""}|${p.getAttribute("width")}|${[...p.querySelectorAll(".co-plate__mark, .co-plate__dot")].map((m) => m.outerHTML).join("")}`;
+    expect(new Set(padroes.map(assinatura)).size, "cada padrão desenha uma marca diferente").toBe(6);
+    // Cada célula cheia pinta com o padrão do grupo dela (o fundo é a cor do papel e as marcas, a tinta escura).
+    for (const group of Object.keys(PLATE_PATTERN) as PlateGroup[]) {
+      const celula = container.querySelector(`.co-plate__cell[data-group="${group}"]`) as SVGElement;
+      const alvo = /^url\(#(.+)\)$/.exec(celula.getAttribute("fill") ?? "")?.[1];
+      const padrao = alvo ? container.querySelector(`pattern[id="${alvo}"]`) : null;
+      expect(padrao, `padrão da célula de ${group}`).not.toBeNull();
+      expect(padrao?.querySelector(".co-plate__ground")?.getAttribute("data-group")).toBe(group);
+      expect(celula.getAttribute("data-pattern")).toBe(PLATE_PATTERN[group]);
+    }
+    // A amostra da legenda tem o MESMO padrão do setor, e a folha o desenha, um diferente por padrão.
+    const amostras = [...container.querySelectorAll(".co-legend__swatch")];
+    expect(amostras.map((a) => a.getAttribute("data-pattern"))).toEqual(
+      (Object.keys(PLATE_PATTERN) as PlateGroup[]).map((g) => PLATE_PATTERN[g]),
+    );
+    const imagens = Object.values(PLATE_PATTERN).map((nome) => {
+      const imagem = Object.fromEntries(bloco(`.co-legend__swatch[data-pattern="${nome}"]`))["background-image"];
+      expect(imagem, `a amostra do padrão ${nome}`).toMatch(/gradient\(/);
+      return imagem;
+    });
+    expect(new Set(imagens).size).toBe(6);
+    // Nada de estilo injetado: nem no SVG, nem na amostra.
+    expect(container.querySelectorAll("[style]")).toHaveLength(0);
+  });
+
+  it("onde o grupo muda há um separador de setor, em toda ordem dos seis grupos e com grupo faltando", () => {
+    // A adjacência vem das COORDENADAS das células (vizinha é a que está a
+    // 3^½ do raio), e não da lista que o componente usa.
+    const alcance = Math.sqrt(3) * 10 * 1.01;
+    const vizinhas: [number, number][] = [];
+    for (let a = 0; a < PLATE_CELLS.length; a++) {
+      for (let b = a + 1; b < PLATE_CELLS.length; b++) {
+        const [ca, cb] = [PLATE_CELLS[a], PLATE_CELLS[b]];
+        if (ca && cb && Math.hypot(ca.x - cb.x, ca.y - cb.y) <= alcance) vizinhas.push([a, b]);
+      }
+    }
+    // O prato de 37 células tem 90 pares vizinhos (3·(3n²+3n+1)... = 90 para n=3).
+    expect(vizinhas).toHaveLength(90);
+    const grupos = Object.keys(PLATE_PATTERN) as PlateGroup[];
+    const permutacoes = (lista: PlateGroup[]): PlateGroup[][] =>
+      lista.length <= 1 ? [lista] : lista.flatMap((g, i) => permutacoes([...lista.slice(0, i), ...lista.slice(i + 1)]).map((r) => [g, ...r]));
+    let conferidos = 0;
+    for (const ordem of permutacoes(grupos)) {
+      // Todos os seis, e a ordem sem o grupo da vez (grupo faltando muda quem toca quem).
+      for (const faltando of [undefined, ...ordem.slice(0, 2)]) {
+        const fatias = ordem.filter((g) => g !== faltando).map((group) => ({ group, fraction: 1 / 6, label: group }));
+        const preenchido = plateFill(fatias);
+        const esperado = vizinhas
+          .filter(([a, b]) => preenchido[a] !== undefined && preenchido[b] !== undefined && preenchido[a] !== preenchido[b])
+          .map(([a, b]) => `${a}-${b}`)
+          .sort();
+        const dado = plateDividers(preenchido).map(({ a, b }) => `${Math.min(a, b)}-${Math.max(a, b)}`).sort();
+        expect(dado, `ordem ${ordem.join(",")} sem ${faltando ?? "nenhum"}`).toEqual(esperado);
+        conferidos++;
+      }
+    }
+    expect(conferidos).toBe(720 * 3);
+  });
+
+  it("o separador desenha uma aresta por par vizinho de grupos diferentes, em tinta escura, e o prato de um grupo só não tem nenhum", () => {
+    const { container } = render(<Plate slices={ALMOCO} summary={RESUMO} />);
+    const caminho = container.querySelector(".co-plate__divider");
+    expect(caminho).not.toBeNull();
+    const arestas = (caminho?.getAttribute("d") ?? "").split("M").filter(Boolean).length;
+    expect(arestas).toBe(plateDividers(plateFill(ALMOCO)).length);
+    expect(arestas).toBeGreaterThan(8);
+    expect(Object.fromEntries(bloco(".co-plate__divider"))).toMatchObject({ stroke: "var(--co-role-mark)", fill: "none" });
+    const so = render(<Plate slices={[{ group: "veg", fraction: 0.5, label: "Brócolis · 80 g" }]} summary={RESUMO} />);
+    expect(so.container.querySelector(".co-plate__divider")).toBeNull();
+  });
+
   it.each(TEMAS)("no tema %s, o mini e o grande passam no axe", async (tema) => {
     expect(
       await semViolacao(
@@ -233,12 +318,14 @@ function ComAviso({
   duracao = 5000,
   teto = 20000,
   comRetorno = false,
+  focoAoAbrir = false,
 }: {
   aoFechar?: (motivo: ToastCloseReason) => void;
   aoDesfazer?: () => void;
   duracao?: number;
   teto?: number;
   comRetorno?: boolean;
+  focoAoAbrir?: boolean;
 }) {
   const [aberto, abrir] = useState(false);
   const retorno = useRef<HTMLButtonElement>(null);
@@ -263,6 +350,7 @@ function ComAviso({
         duration={duracao}
         maxDuration={teto}
         returnFocus={comRetorno ? retorno : undefined}
+        focusOnOpen={focoAoAbrir}
       />
     </>
   );
@@ -388,64 +476,160 @@ describe("Toast", () => {
     expect(marcar).toHaveFocus();
   });
 
-  it("o teto continua fechando o aviso sem foco dentro, ainda que o tempo da pausa não tenha acabado", async () => {
+  it("o ponteiro em cima segura o teto como o foco: o aviso espera o ponteiro sair, e fecha com o motivo timeout", async () => {
     const fechou = vi.fn();
     const { container } = render(<ComAviso aoFechar={fechou} duracao={4000} teto={12000} />);
     await usuario().click(screen.getByRole("button", { name: "Marcar feita" }));
     const aviso = container.querySelector(".co-toast") as HTMLElement;
-    // O ponteiro em cima pausa o tempo, mas não segura o teto.
     fireEvent.pointerEnter(aviso);
-    avancar(11000);
+    // Muito além do teto de 12 s, com o ponteiro parado em cima: o Desfazer fica.
+    avancar(120000);
     expect(fechou).not.toHaveBeenCalled();
-    avancar(1100);
+    expect(screen.getByRole("button", { name: "Desfazer" })).toBeInTheDocument();
+    fireEvent.pointerLeave(aviso);
     expect(fechou).toHaveBeenCalledWith("timeout");
   });
 
-  it(`${TOAST_FOCUS_SHORTCUT} leva o foco ao aviso aberto, de onde a pessoa estiver, e o foco volta ao fechar`, async () => {
+  it("no toque, tocar no aviso o segura (tempo e teto) até tocar fora; a caixa é focável por script e não entra no Tab", async () => {
+    const fechou = vi.fn();
+    const { container } = render(<ComAviso aoFechar={fechou} duracao={4000} teto={12000} />);
+    await usuario().click(screen.getByRole("button", { name: "Marcar feita" }));
+    const aviso = container.querySelector(".co-toast") as HTMLElement;
+    expect(aviso).toHaveAttribute("tabindex", "-1");
+    // O dedo na mensagem: o ponteiro de toque não tem "em cima" depois que levanta.
+    fireEvent.pointerDown(aviso, { pointerType: "touch" });
+    fireEvent.pointerLeave(aviso);
+    avancar(120000);
+    expect(fechou).not.toHaveBeenCalled();
+    // Um toque fora solta o aviso: o teto já tinha passado, e ele fecha.
+    fireEvent.pointerDown(document.body, { pointerType: "touch" });
+    expect(fechou).toHaveBeenCalledWith("timeout");
+  });
+
+  it("no toque, antes do teto, soltar o aviso volta a contar o tempo que faltava", async () => {
+    const fechou = vi.fn();
+    const { container } = render(<ComAviso aoFechar={fechou} duracao={4000} teto={60000} />);
+    await usuario().click(screen.getByRole("button", { name: "Marcar feita" }));
+    const aviso = container.querySelector(".co-toast") as HTMLElement;
+    avancar(3000);
+    fireEvent.pointerDown(aviso, { pointerType: "touch" });
+    avancar(30000);
+    expect(fechou).not.toHaveBeenCalled();
+    fireEvent.pointerDown(document.body, { pointerType: "touch" });
+    avancar(900);
+    expect(fechou).not.toHaveBeenCalled();
+    avancar(200);
+    expect(fechou).toHaveBeenCalledWith("timeout");
+  });
+
+  it("o clique na mensagem leva o foco à caixa, e o foco dentro segura o teto", async () => {
     const fechou = vi.fn();
     const eu = usuario();
-    render(<ComAviso aoFechar={fechou} duracao={4000} teto={20000} />);
+    render(<ComAviso aoFechar={fechou} duracao={4000} teto={12000} />);
     const marcar = screen.getByRole("button", { name: "Marcar feita" });
-    // Sem aviso aberto, a tecla não faz nada.
-    marcar.focus();
-    fireEvent.keyDown(document.body, { key: "n", code: "KeyN", altKey: true });
-    expect(marcar).toHaveFocus();
     await eu.click(marcar);
-    // Sem o Alt, ou com outro modificador, não é o atalho.
-    fireEvent.keyDown(document.body, { key: "n", code: "KeyN" });
-    fireEvent.keyDown(document.body, { key: "n", code: "KeyN", altKey: true, ctrlKey: true });
-    expect(marcar).toHaveFocus();
-    // O atalho leva o foco ao Desfazer, sem passar pelas paradas do meio do documento.
-    const acionou = fireEvent.keyDown(document.body, { key: "n", code: "KeyN", altKey: true });
-    expect(acionou, "o atalho consome a tecla").toBe(false);
+    await eu.click(screen.getByText("Almoço marcado como feito"));
+    const aviso = document.querySelector(".co-toast") as HTMLElement;
+    expect(aviso).toHaveFocus();
+    // O mouse que clicou fica em cima; só o foco segura daqui em diante.
+    fireEvent.pointerLeave(aviso);
+    avancar(120000);
+    expect(fechou).not.toHaveBeenCalled();
+    act(() => marcar.focus());
+    expect(fechou).toHaveBeenCalledWith("timeout");
+  });
+
+  it("nenhum atalho global: Alt+N, nem a tecla morta do macOS que compõe o ã, mexe no foco ou no aviso", async () => {
+    const desfez = vi.fn();
+    const eu = usuario();
+    render(
+      <>
+        <input aria-label="Alimento" />
+        <ComAviso aoDesfazer={desfez} />
+      </>,
+    );
+    const campo = screen.getByLabelText("Alimento");
+    await eu.click(screen.getByRole("button", { name: "Marcar feita" }));
+    campo.focus();
+    // O Option+N do macOS (layout US) é a tecla morta do "ã": `key: "Dead"`, `code: "KeyN"`.
+    const tecla = fireEvent.keyDown(campo, { key: "Dead", code: "KeyN", altKey: true });
+    fireEvent.keyDown(document.body, { key: "n", code: "KeyN", altKey: true });
+    expect(tecla, "a tecla não é consumida").toBe(true);
+    expect(campo).toHaveFocus();
+    await eu.keyboard(" ");
+    expect(desfez).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Desfazer" })).toBeInTheDocument();
+  });
+
+  it("o anúncio não cita tecla: diz só a mensagem e que há uma ação", async () => {
+    render(<ComAviso />);
+    await usuario().click(screen.getByRole("button", { name: "Marcar feita" }));
+    const regiao = screen.getByRole("status");
+    expect(regiao).toHaveTextContent("Ação no aviso: Desfazer.");
+    expect(regiao.textContent).not.toMatch(/alt|tecla|foco/i);
+  });
+
+  it("focusOnOpen: o aviso que nasce de uma ação da pessoa leva o foco ao Desfazer, e o foco volta ao elemento de origem", async () => {
+    const desfez = vi.fn();
+    const fechou = vi.fn();
+    const eu = usuario();
+    render(<ComAviso focoAoAbrir aoDesfazer={desfez} aoFechar={fechou} />);
+    const marcar = screen.getByRole("button", { name: "Marcar feita" });
+    await eu.click(marcar);
     expect(screen.getByRole("button", { name: "Desfazer" })).toHaveFocus();
-    // E o foco volta para onde estava quando o aviso fecha.
+    await eu.keyboard("{Enter}");
+    expect(desfez).toHaveBeenCalledTimes(1);
+    expect(fechou).toHaveBeenCalledWith("action");
+    expect(marcar).toHaveFocus();
+  });
+
+  it("focusOnOpen: o Esc devolve o foco ao elemento de origem, e a pausa do foco vale desde a abertura", async () => {
+    const fechou = vi.fn();
+    const eu = usuario();
+    render(<ComAviso focoAoAbrir aoFechar={fechou} duracao={4000} teto={12000} />);
+    const marcar = screen.getByRole("button", { name: "Marcar feita" });
+    await eu.click(marcar);
+    avancar(60000);
+    expect(fechou).not.toHaveBeenCalled();
     await eu.keyboard("{Escape}");
     expect(fechou).toHaveBeenCalledWith("dismiss");
     expect(marcar).toHaveFocus();
   });
 
-  it("o anúncio do aviso diz a tecla que leva o foco até ele", async () => {
+  it("sem focusOnOpen (o padrão), abrir não move o foco", async () => {
     render(<ComAviso />);
-    await usuario().click(screen.getByRole("button", { name: "Marcar feita" }));
-    expect(screen.getByRole("status")).toHaveTextContent(`${TOAST_FOCUS_SHORTCUT} leva o foco ao aviso`);
+    const marcar = screen.getByRole("button", { name: "Marcar feita" });
+    await usuario().click(marcar);
+    expect(marcar).toHaveFocus();
   });
 
-  it("a API recusa um teto menor ou igual ao tempo: ele anularia a pausa", () => {
-    const erro = vi.spyOn(console, "error").mockImplementation(() => {});
+  it("um teto menor ou igual ao tempo não derruba a tela: avisa no console e usa 10 vezes o tempo", () => {
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
     for (const [duracao, teto] of [
       [5000, 5000],
       [5000, 4000],
       [5000, Number.NaN],
     ] as const) {
-      expect(
-        () => render(<Toast open message="x" onClose={vi.fn()} duration={duracao} maxDuration={teto} />),
-        `duration ${duracao}, maxDuration ${teto}`,
-      ).toThrow(/maxDuration .* precisa ser maior que duration/);
+      aviso.mockClear();
+      const fechou = vi.fn();
+      const { container, unmount } = render(
+        <Toast open message="x" actionLabel="Desfazer" onClose={fechou} duration={duracao} maxDuration={teto} position="static" />,
+      );
+      expect(aviso, `duration ${duracao}, maxDuration ${teto}`).toHaveBeenCalledTimes(1);
+      expect(String(aviso.mock.calls[0]?.[0])).toMatch(/maxDuration .* maior que duration/);
+      // O teto corrigido é 10 × duration: com o ponteiro em cima, o aviso passa dos 5 s e só o teto o espera.
+      fireEvent.pointerEnter(container.querySelector(".co-toast") as HTMLElement);
+      act(() => vi.advanceTimersByTime(duracao * 10 + 1000));
+      expect(fechou).not.toHaveBeenCalled();
+      fireEvent.pointerLeave(container.querySelector(".co-toast") as HTMLElement);
+      expect(fechou).toHaveBeenCalledWith("timeout");
+      unmount();
     }
-    // O controle: um teto maior passa.
-    expect(() => render(<Toast open message="x" onClose={vi.fn()} duration={5000} maxDuration={5001} />)).not.toThrow();
-    erro.mockRestore();
+    // O controle: um teto maior não avisa nada.
+    aviso.mockClear();
+    render(<Toast open message="x" onClose={vi.fn()} duration={5000} maxDuration={5001} />);
+    expect(aviso).not.toHaveBeenCalled();
+    aviso.mockRestore();
   });
 
   it("a isca: sem a pausa, o tempo acabaria com o foco no Desfazer", async () => {
@@ -534,6 +718,28 @@ describe("o recuo da rolagem com o aviso aberto (WCAG 2.2, 2.4.11)", () => {
     }
   });
 
+  it.each(CASOS)("%s: sobra espaço embaixo do conteúdo para a última linha subir acima do aviso, e não só o recuo", (_caso, recuo, _aviso) => {
+    // O `scroll-padding` só vale para quem ainda tem para onde rolar: a última
+    // linha da página já está no fim, e o aviso fixo a cobria (92% a 390px).
+    // Enquanto o aviso está aberto, a janela ganha espaço embaixo: o da tela
+    // (a reserva das barras, igual ao recuo de baixo sem aviso) MAIS este
+    // `padding-bottom` tem de passar do recuo com o aviso, que é onde ele termina.
+    const barras: Record<string, string> = {
+      "sem barras": ":root",
+      "com as abas": `:root:has(${TABS})`,
+      "com a barra de ação": `:root:has(${ACAO})`,
+      "com as duas": `:root:has(${AMBAS})`,
+    };
+    for (const baixo of [0, 34]) {
+      const tela = aparelho(0, 0, baixo, 0);
+      const fim = avaliar(valor(recuo, "scroll-padding-bottom"), tela);
+      const extra = avaliar(valor(recuo, "padding-bottom"), tela);
+      const reservaDasBarras = avaliar(valor(barras[_caso] ?? ":root", "scroll-padding-bottom"), tela);
+      expect(reservaDasBarras + extra, `${_caso}, área ${baixo}px`).toBeGreaterThanOrEqual(fim);
+      expect(extra, `${_caso}: o espaço extra é positivo`).toBeGreaterThan(0);
+    }
+  });
+
   it("a condição de cada caso pesa mais na cascata que a do caso de que ele parte (dois :has() contra um)", () => {
     // `:root:has(A):has(B)` vale mais que `:root:has(B)` e que `:root:has(A)`:
     // com as duas condições, o caso composto é o que vale, em vez de o aviso
@@ -567,6 +773,14 @@ describe("Skeleton", () => {
     expect(prato).not.toBeNull();
     expect(prato?.querySelectorAll(".co-plate__cell[data-group]")).toHaveLength(0);
     expect(prato?.querySelectorAll(".co-plate__cell")).toHaveLength(37);
+  });
+
+  it("o esqueleto do cartão tem a altura do cartão real, com um osso para o resumo, e o do prato não se confunde com um prato vazio", () => {
+    const { container } = render(<Skeleton label="Carregando" />);
+    expect(container.querySelector('.co-skeleton__bone[data-bone="summary"]')).not.toBeNull();
+    expect(Object.fromEntries(bloco('.co-skeleton[data-shape="recipe-card"] .co-skeleton__item'))["min-height"]).toBe("10rem");
+    // Sem o contorno de controle: parado, ele não vira um prato vazio de verdade ("Falta 100%").
+    expect(Object.fromEntries(bloco('.co-plate__art[data-skeleton="true"] .co-plate__cell:not([data-group])'))["stroke"]).toBe("none");
   });
 
   it("o pulso é de opacidade e acaba: seis meias-voltas de 700ms, abaixo dos 5s do WCAG 2.2.2", () => {

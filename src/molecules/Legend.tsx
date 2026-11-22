@@ -1,4 +1,6 @@
 import { Text } from "../atoms/Text";
+import type { PlateGroup } from "./Plate";
+import { PLATE_PATTERN } from "./plate-pattern";
 
 /**
  * A amostra, e ela copia o desenho que nomeia.
@@ -8,7 +10,8 @@ import { Text } from "../atoms/Text";
  *   line    o traço cheio da série principal.
  *   dashed  o traço tracejado: tendência, projeção, a fórmula.
  *   band    a faixa pintada atrás das linhas: onde o número deveria morar.
- *   hex     a coluna hexagonal do prato de colunas (`Plate`).
+ *   hex     a coluna hexagonal do prato de colunas (`Plate`), com o padrão do
+ *           grupo (a mesma textura do setor, `plate-pattern.ts`).
  *
  * O ponto é o único redondo, e isso não abre exceção nenhuma ao ADR-004: a
  * amostra tem a forma da marca que ela explica. Um quadrado na legenda de um
@@ -63,6 +66,7 @@ export function Legend({ items, label, className }: Readonly<LegendProps>) {
             className="co-legend__swatch"
             data-swatch={item.swatch ?? "square"}
             data-tone={item.tone ?? "accent"}
+            data-pattern={item.swatch === "hex" && item.tone ? PLATE_PATTERN[item.tone as PlateGroup] : undefined}
             aria-hidden="true"
           />
           <Text as="span" variant="caption" tone="subtle">

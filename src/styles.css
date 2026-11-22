@@ -2597,6 +2597,38 @@ button.co-chip {
   clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
 }
 
+/*
+ * O padrão de cada grupo na amostra `hex`: o MESMO do setor do prato
+ * (`plate-pattern.ts`), em `gradient()` de arquivo, na tinta escura. A amostra
+ * liga o nome ao setor sem depender do matiz.
+ */
+.co-legend__swatch[data-pattern="diagonal"] {
+  background-image: repeating-linear-gradient(45deg, var(--co-role-mark) 0 1px, transparent 1px 3px);
+}
+
+.co-legend__swatch[data-pattern="counter-diagonal"] {
+  background-image: repeating-linear-gradient(-45deg, var(--co-role-mark) 0 1px, transparent 1px 3px);
+}
+
+.co-legend__swatch[data-pattern="horizontal"] {
+  background-image: repeating-linear-gradient(0deg, var(--co-role-mark) 0 1px, transparent 1px 3px);
+}
+
+.co-legend__swatch[data-pattern="vertical"] {
+  background-image: repeating-linear-gradient(90deg, var(--co-role-mark) 0 1px, transparent 1px 3px);
+}
+
+.co-legend__swatch[data-pattern="cross"] {
+  background-image:
+    repeating-linear-gradient(0deg, var(--co-role-mark) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, var(--co-role-mark) 0 1px, transparent 1px 4px);
+}
+
+.co-legend__swatch[data-pattern="dots"] {
+  background-image: radial-gradient(circle, var(--co-role-mark) 0.9px, transparent 1.2px);
+  background-size: 4px 4px;
+}
+
 /* -------------------------------------------------------------- revelação --- */
 
 .co-disclosure__summary {
@@ -3229,7 +3261,6 @@ fieldset.co-nav-list {
  * 12ms por anel (`--co-duration-wave`). Só `transform` e `opacity`.
  */
 .co-plate__cell {
-  fill: var(--co-surface-3);
   transform-box: fill-box;
   transform-origin: center;
   animation: co-plate-celula var(--co-duration-base) var(--co-ease-spring) backwards;
@@ -3242,17 +3273,43 @@ fieldset.co-nav-list {
  * prato, para o mini não virar um borrão (WCAG 1.4.11).
  */
 .co-plate__cell:not([data-group]) {
+  fill: var(--co-surface-3);
   stroke: var(--co-control);
   stroke-width: var(--co-control-width);
   vector-effect: non-scaling-stroke;
 }
 
-.co-plate__cell[data-group="protein"] { fill: var(--co-role-protein); }
-.co-plate__cell[data-group="carb"] { fill: var(--co-role-carb); }
-.co-plate__cell[data-group="veg"] { fill: var(--co-role-veg); }
-.co-plate__cell[data-group="fruit"] { fill: var(--co-role-fruit); }
-.co-plate__cell[data-group="dairy"] { fill: var(--co-role-dairy); }
-.co-plate__cell[data-group="fat"] { fill: var(--co-role-fat); }
+/*
+ * A célula cheia pinta com o PADRÃO do grupo (`fill="url(#…)"` no SVG, um
+ * `<pattern>` por grupo usado): o fundo é a cor do papel e as marcas, a tinta
+ * escura. A luminância sozinha não separa seis grupos (ADR-025, adendo), e o
+ * padrão é a mesma textura da amostra da legenda. Só arquivo e marcação:
+ * nenhum estilo injetado.
+ */
+.co-plate__ground[data-group="protein"] { fill: var(--co-role-protein); }
+.co-plate__ground[data-group="carb"] { fill: var(--co-role-carb); }
+.co-plate__ground[data-group="veg"] { fill: var(--co-role-veg); }
+.co-plate__ground[data-group="fruit"] { fill: var(--co-role-fruit); }
+.co-plate__ground[data-group="dairy"] { fill: var(--co-role-dairy); }
+.co-plate__ground[data-group="fat"] { fill: var(--co-role-fat); }
+
+.co-plate__mark {
+  stroke: var(--co-role-mark);
+  stroke-width: 1.5;
+}
+
+.co-plate__dot { fill: var(--co-role-mark); }
+
+/* O separador de setor: onde o grupo muda entre duas células vizinhas, a
+ * aresta entre elas ganha um traço escuro, que não escala com o prato. */
+.co-plate__divider {
+  fill: none;
+  stroke: var(--co-role-mark);
+  stroke-width: var(--co-border-width);
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
 
 .co-plate__cell[data-ring="1"] { animation-delay: var(--co-duration-wave); }
 .co-plate__cell[data-ring="2"] { animation-delay: calc(var(--co-duration-wave) * 2); }
@@ -3260,6 +3317,10 @@ fieldset.co-nav-list {
 
 /* O esqueleto não entra em onda: ele pulsa inteiro, mais abaixo. */
 .co-plate__art[data-skeleton="true"] .co-plate__cell { animation: none; }
+
+/* E ele não se confunde com um prato vazio de verdade ("Falta 100%"): sem o
+ * contorno, que é o que diz quanto falta. */
+.co-plate__art[data-skeleton="true"] .co-plate__cell:not([data-group]) { stroke: none; }
 
 @keyframes co-plate-celula {
   from {
@@ -3392,9 +3453,20 @@ fieldset.co-nav-list {
  * Cada caso vem depois dos de uma só condição e pesa mais que eles na cascata
  * (dois `:has()`), então o aviso sobe o recuo das barras em vez de trocá-lo.
  * Sem aviso aberto, nada disto vale.
+ *
+ * O `scroll-padding` só vale para quem ainda tem para onde rolar: a ÚLTIMA
+ * linha da página já está no fim, e o aviso a cobria (92% a 390px). Por isso a
+ * janela ganha também `padding-bottom` enquanto o aviso está aberto: a reserva
+ * da tela (igual ao recuo de baixo das barras, ADR-013) mais este espaço passa
+ * do recuo com o aviso, e a última linha sobe acima dele. Sem barras, o espaço
+ * é o recuo inteiro; com elas, a altura reservada do aviso menos 15px (os 31px
+ * de repouso da reserva das barras, que o aviso já usa, menos os 16px de
+ * respiro dele).
  */
 :root:has(.co-toast[data-open="true"]:not([data-position])) {
   scroll-padding-bottom: calc(max(var(--co-space-16), calc(var(--co-safe-bottom) + var(--co-space-8)))
+    + var(--co-toast-reserve) + var(--co-space-8));
+  padding-bottom: calc(max(var(--co-space-16), calc(var(--co-safe-bottom) + var(--co-space-8)))
     + var(--co-toast-reserve) + var(--co-space-8));
 }
 
@@ -3402,12 +3474,14 @@ fieldset.co-nav-list {
   scroll-padding-bottom: calc(73px - var(--co-space-10)
     + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8))) + var(--co-space-8)
     + var(--co-toast-reserve) + var(--co-space-8));
+  padding-bottom: calc(var(--co-toast-reserve) - 15px);
 }
 
 :root:has(.co-screen[data-actionbar="true"] > .co-screen__actionbar :not(:empty)):has(.co-toast[data-open="true"]:not([data-position])) {
   scroll-padding-bottom: calc(var(--co-actionbar-height) - var(--co-space-10)
     + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8))) + var(--co-space-8)
     + var(--co-toast-reserve) + var(--co-space-8));
+  padding-bottom: calc(var(--co-toast-reserve) - 15px);
 }
 
 :root:has(.co-screen[data-tabbar="true"][data-actionbar="true"] > .co-screen__actionbar :not(:empty)):has(.co-toast[data-open="true"]:not([data-position])) {
@@ -3415,6 +3489,7 @@ fieldset.co-nav-list {
     + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8)))
     + var(--co-actionbar-height) + var(--co-space-8)
     + var(--co-toast-reserve) + var(--co-space-8));
+  padding-bottom: calc(var(--co-toast-reserve) - 15px);
 }
 
 .co-toast[data-open="true"] {
@@ -3473,10 +3548,10 @@ fieldset.co-nav-list {
   animation: co-skeleton-pulso var(--co-duration-roll) var(--co-ease-move) 6 alternate;
 }
 
-/* A altura do cartão de receita típico (título, números e a legenda em duas
- * linhas), para a lista não pular quando os cartões chegam. */
+/* A altura do cartão de receita típico (título, números, o resumo do prato e a
+ * legenda em duas linhas), para a lista não pular quando os cartões chegam. */
 .co-skeleton[data-shape="recipe-card"] .co-skeleton__item {
-  min-height: 8.5rem;
+  min-height: 10rem;
   display: flex;
   align-items: flex-start;
   gap: var(--co-space-12);
@@ -3505,6 +3580,7 @@ fieldset.co-nav-list {
 
 .co-skeleton__bone[data-bone="title"] { width: 70%; height: var(--co-space-16); }
 .co-skeleton__bone[data-bone="meta"] { width: 50%; }
+.co-skeleton__bone[data-bone="summary"] { width: 60%; }
 .co-skeleton__bone[data-bone="legend"] { width: 85%; }
 .co-skeleton__bone[data-bone="legend-2"] { width: 55%; }
 

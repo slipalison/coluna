@@ -875,7 +875,7 @@ it("a folha overlay se arma pelo relógio da camada, com o véu e o painel, e a 
   // O conteúdo do painel herda o ponteiro dele: nenhuma regra desta folha
   // declara `pointer-events` em outro lugar, a não ser o `none` de pintura
   // (a faixa, o fio do grupo, o grão, e a unidade, a lupa e o fim da busca, que
-  // deixam o toque cair no campo embaixo deles) e as duas travas. Um `auto`
+  // deixam o toque cair no campo embaixo deles, e o separador de setor do prato) e as duas travas. Um `auto`
   // declarado num controle o soltaria da trava da folha.
   const ponteiro = REGRAS.filter((r) => r.declaracoes.some(([p]) => p === "pointer-events")).map(
     (r) => `${lugar(r)}: ${Object.fromEntries(r.declaracoes)["pointer-events"]}`,
@@ -889,6 +889,8 @@ it("a folha overlay se arma pelo relógio da camada, com o véu e o painel, e a 
     ".co-input__unit: none",
     ".co-search__icon: none",
     ".co-search__end: none",
+    // E o separador de setor do prato (ADR-025, adendo): desenho, nunca alvo.
+    ".co-plate__divider: none",
     ".co-grain::after: none",
   ]);
 

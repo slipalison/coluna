@@ -32,7 +32,7 @@ violação, o PR não entra.
 | Tamanho de letra | texto corrido, texto primário de lista e valor de campo ≥ 16 px; texto secundário e nota ≥ 14 px; legenda e rótulo em caixa-alta ≥ 12 px; rótulo da barra de abas ≥ 11 px (convenção do iOS), e só ele abaixo de 12 px; nenhuma variante de `Text` e nenhuma letra de componente abaixo do piso do seu papel (ADR-021). Acima do piso, a escala do "Relógio de Sol" (ADR-022): corpo, campo e botão 17 px, legenda e secundário 14 px, caixa alta 13 px, aba 11 px, título de tela 26 px no toque e 30 px com ponteiro fino | `src/escala-de-letra.test.tsx`: toda letra da folha tem papel e fica no piso dele, cada variante e cada texto das peças no estilo computado, nenhuma história com letra à mão abaixo de 12 px, e cada letra da tabela é a da identidade — cada prova com a sua isca |
 | Espaço | uma escala em que o espaço entre grupos possa ser 1,5 a 2 vezes o de dentro (4, 8, 12, 16, 24, 32, 48, 64) | revisão dos tokens |
 | Alvo | `--co-target-min` (44 px) em todo controle no toque, com a moldura inteira tocável; com ponteiro fino, o botão e o botão-ícone têm 40 px e o principal 46 px (plano s7, ADR-022), acima dos 24 px do WCAG 2.5.8 | teste de componente; `src/botao.test.tsx` mede o projeto de toque e o de ponteiro |
-| Cor | nunca é o único sinal (ADR-005); os seis papéis do alimento têm luminâncias distintas entre si (todo par ≥ 1,2:1 e os vizinhos na ordem do prato ≥ 1,5:1, para um setor não se fundir ao vizinho em cinza; o matiz e o croma são os da identidade), e se separam da tinta de ação e dos estados por croma e luminância (ADR-022, ADR-025 adendo); a cor da hora é cor de lugar, nunca de ação; a célula vazia do prato tem contorno de controle (≥ 3:1) | `src/tokens/contraste.test.ts`, os papéis do alimento e a célula vazia |
+| Cor | nunca é o único sinal (ADR-005); os papéis do alimento têm a mesma luminosidade de propósito (a identidade), e se separam da tinta de ação e dos estados por croma e luminância (ADR-022); a cor da hora é cor de lugar, nunca de ação | `src/tokens/contraste.test.ts`, os papéis do alimento |
 | Movimento | `prefers-reduced-motion` reduz o que não é essencial; os tempos e as curvas da identidade, o toque abaixo de 100 ms, só `transform` e `opacity` animados | `src/forma-e-movimento.test.ts` |
 | Área segura | `--co-safe-*` (ADR-011) | já existe |
 
@@ -62,14 +62,18 @@ violação, o PR não entra.
   de uma aba (ADR-020).
 - **O prato de colunas nunca vem sem a legenda em texto**, com o nome e os gramas de cada fatia, e sem o `summary`
   (obrigatório) que diz quanto do alvo ele fecha ou quanto falta; o desenho sai `aria-hidden`, e o prato recebe a
-  composição pronta, sem calcular nada (ADR-025).
+  composição pronta, sem calcular nada. **Os seis grupos se distinguem por PADRÃO** (uma textura de SVG por grupo, a
+  mesma na amostra da legenda) **e por separador de setor** (um traço escuro onde o grupo muda entre duas células
+  vizinhas, em toda ordem dos grupos), porque a luminância sozinha não separa seis grupos; a célula vazia tem
+  contorno de controle (≥ 3:1) (ADR-025).
 - **O cartão inteiro é o alvo** do `RecipeCard`, com pelo menos `--co-target-min`, e o nome do link é o título
   (ADR-025).
-- **O aviso passageiro (`Toast`) anuncia por região viva que existe antes da mensagem**, não rouba o foco, devolve o
-  foco ao fechar com ele dentro, e some no tempo dado por quem usa, pausando com foco ou ponteiro até um teto também
-  dado por quem usa — maior que o tempo, ou a API recusa, e que NÃO fecha o aviso com o foco dentro. Alt+N leva o foco
-  ao aviso aberto, e o aviso fixo aberto entra no recuo de baixo da rolagem, para o foco não parar atrás dele (WCAG
-  2.2.1, 2.4.11, 4.1.3; ADR-025).
+- **O aviso passageiro (`Toast`) anuncia por região viva que existe antes da mensagem**, não rouba o foco (salvo
+  `focusOnOpen`, para o aviso que nasce de uma ação da pessoa; nenhum atalho global, que sequestraria a digitação),
+  devolve o foco ao fechar com ele dentro, e some no tempo dado por quem usa, pausando com foco, ponteiro ou toque até
+  o teto, que é o prazo do servidor e que também espera quem está com o aviso. O aviso fixo aberto entra no recuo de
+  baixo da rolagem e reserva espaço embaixo do conteúdo, para a última linha não ficar sob ele (WCAG 2.2.1, 2.4.11,
+  4.1.3; ADR-025).
 - **O esqueleto anuncia o rótulo uma vez e o pulso acaba** antes de 5 s, parado com `prefers-reduced-motion`
   (WCAG 2.2.2; ADR-025).
 - **Ícone de ação tem nome acessível**; o × é fechar ou limpar, nunca apagar.

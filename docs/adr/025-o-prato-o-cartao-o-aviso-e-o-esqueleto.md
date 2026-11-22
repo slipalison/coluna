@@ -90,41 +90,59 @@ faria as meias-voltas piscarem.
 
 ## Adendo (2026-11-22) — a revisão de UX do PR da Coluna (slipalison/coluna#22)
 
-A revisão independente mediu quatro defeitos de piso, todos BLOCK, e o PR os conserta (cada um com o teste que reprova
-o código de antes):
+A revisão independente mediu defeitos de piso em duas rodadas, todos BLOCK, e o PR os conserta (cada um com o teste
+que reprova o código de antes).
 
-1. **`Toast`: o teto não fecha o aviso com o foco dentro.** A decisão da §3 dizia que o teto vencia a pausa, e quem
-   chegava ao "Desfazer" pelo teclado e demorava perdia a ação (WCAG 2.2.1). Agora o teto só fecha sem foco dentro;
-   com o foco dentro, ele espera o foco sair e fecha com `timeout`. O ponteiro em cima continua sem segurar o teto. A
-   API recusa (`RangeError`) `maxDuration` menor ou igual a `duration`, que anulava a pausa. E como o aviso fixo não é
-   a próxima parada do Tab, **Alt+N** (`TOAST_FOCUS_SHORTCUT`) leva o foco ao aviso aberto, de qualquer lugar, e o
-   anúncio diz a tecla. (F6 não: o navegador o toma.)
-2. **`Toast` fixo cobre o item focado (WCAG 2.4.11).** O aviso aberto soma ao `scroll-padding-bottom` do `:root` o
-   `bottom` dele em cada caso (sem barras, com as abas, com a barra de ação, com as duas) mais `--co-toast-reserve`
-   (a borda, o respiro e três linhas de corpo) e um respiro. São quatro regras `:root:has(A):has(aviso)`, que pesam
-   mais que as das barras sozinhas, para somar em vez de trocar.
-3. **`Plate` e o cartão: quanto falta para o alvo em texto.** `summary` é obrigatório no `Plate` e no `RecipeCard`
-   ("Fecha 90% do alvo do almoço", "Falta 10% para o alvo", "Passou 40 kcal do alvo"): escrito por quem consome, visível
-   junto da legenda e lido pelo leitor de tela, como o "Passou 40 kcal do alvo" de antes. O prato continua sem calcular
-   nada. A célula vazia ganha o contorno de `--co-control` (3:1 sobre `bg`, `surface` e `surface-2`), com
-   `vector-effect: non-scaling-stroke`, e não só o trilho `surface-3`, que mede 1,2:1 contra o fundo.
-4. **Os seis grupos do prato têm luminâncias distintas.** O ADR-022 §3 pedia "a mesma luminosidade"; a regra de UX da
-   Coluna pede o contrário ("luminâncias distintas"; o caso histórico era proteína × gordura em 1,03:1), e o piso
-   vence. Só a luminosidade OKLCH dos seis tokens muda, com o matiz e o croma da identidade, nos dois temas: do mais
-   claro ao mais escuro, carboidrato, laticínio, hortaliça, proteína, fruta e gordura. Piso medido na luminância
-   relativa do WCAG, nos dois jeitos de voltar ao sRGB: todo par ≥ 1,2:1 e os vizinhos na ordem do prato (proteína,
-   carboidrato, hortaliça, fruta, laticínio, gordura) ≥ 1,5:1. Por isso a distância da tinta de ação cai de 0,2 para
-   0,1 em luminância: o piso entre os seis não cabe numa faixa tão estreita. Nenhum texto mora sobre a cor de um
-   grupo (a legenda, o `Dot` e a `MacroBar` põem o nome ao lado, em tinta), então o contraste de texto não muda; a borda
-   que a mudança afeta é a da célula vazia, no item 3.
-
-Valores (OKLCH L, matiz e croma intactos):
-
-| grupo | claro, antes → depois | escuro, antes → depois |
-|---|---|---|
-| `role-protein` | 0,70 → 0,63 | 0,68 → 0,69 |
-| `role-carb` | 0,76 → 0,82 | 0,74 → 0,88 |
-| `role-veg` | 0,70 → 0,67 | 0,68 → 0,72 |
-| `role-fruit` | 0,70 → 0,58 | 0,68 → 0,63 |
-| `role-dairy` | 0,70 → 0,74 | 0,68 → 0,80 |
-| `role-fat` | 0,70 → 0,51 | 0,68 → 0,57 |
+1. **`Toast`: quem está com o aviso não perde o "Desfazer" por demorar** (WCAG 2.2.1).
+   - O teto (`maxDuration`) é o prazo do servidor (no Basalto, 2 min), e não o pulso do aviso. Passou dele, o aviso
+     fecha, menos enquanto alguém está com ele: o foco dentro, o ponteiro em cima ou o dedo que tocou nele (a caixa é
+     focável por script, `tabIndex={-1}`, fora do Tab). Quando a pessoa solta o aviso, ele fecha com `timeout` se o
+     teto já tinha passado, e senão volta a contar o tempo que faltava. O toque não tem "em cima" depois que o dedo
+     levanta, e por isso o toque na caixa a segura até um toque fora dela.
+   - **Nenhum atalho global.** A primeira rodada pôs Alt+N para levar o foco ao aviso, e a segunda mediu o defeito:
+     no macOS, Option+N é a tecla morta do "ã" (`key: "Dead"`, `code: "KeyN"`), o foco saltava do campo para o
+     "Desfazer", e o espaço seguinte o acionava. O atalho saiu. No lugar vem `focusOnOpen`, para o aviso que nasce de
+     uma ação da pessoa: o foco vai ao "Desfazer" ao abrir e volta ao elemento de origem ao fechar. É opt-in porque o
+     aviso pode nascer de um efeito ou de um prazo, e roubar o foco de quem digita é pior que perder o atalho; quem
+     consome decide quando usar. O anúncio diz a mensagem e que há uma ação, sem citar tecla.
+   - `maxDuration` menor ou igual a `duration` anula a pausa. A primeira rodada o recusava com `RangeError` no render, e
+     a segunda mediu que isso derrubava a tela inteira de quem consome. Agora o componente avisa no console e usa
+     `10 × duration`.
+2. **`Toast` fixo não cobre o foco (WCAG 2.4.11).**
+   - O aviso aberto soma ao `scroll-padding-bottom` do `:root` o `bottom` dele em cada caso (sem barras, com as abas,
+     com a barra de ação, com as duas) mais `--co-toast-reserve` (a borda, o respiro e três linhas de corpo) e um
+     respiro: quatro regras `:root:has(A):has(aviso)`, que pesam mais que as das barras sozinhas, para somar em vez de
+     trocar.
+   - O `scroll-padding` só vale para quem ainda tem para onde rolar, e a última linha da página já está no fim (92% de
+     cobertura a 390 px). Enquanto o aviso está aberto, a janela ganha também `padding-bottom`: a reserva da tela (o
+     recuo das barras, ADR-013) mais esse espaço passa de onde o aviso termina.
+3. **`Plate` e `RecipeCard`: quanto falta para o alvo em texto.** `summary` é obrigatório ("Fecha 90% do alvo do
+   almoço", "Falta 10% para o alvo", "Passou 40 kcal do alvo"): escrito por quem consome, visível junto da legenda e
+   lido pelo leitor de tela. O prato continua sem calcular nada. A célula vazia ganha o contorno de `--co-control`
+   (3:1 sobre `bg`, `surface` e `surface-2`), com `vector-effect: non-scaling-stroke`; o esqueleto do prato não o leva,
+   para não se confundir com um prato vazio de verdade. O esqueleto do cartão ganhou um osso para o resumo e a altura
+   do cartão real (10 rem), para a lista não pular.
+4. **Os seis grupos do prato se distinguem por PADRÃO e por separador de setor, e a luminância é secundária.**
+   - **O que a revisão mediu.** Com a luminância sozinha, o menor par ficava em 1,23:1 (proteína × fruta, no claro).
+     A premissa dos "vizinhos na ordem do prato" não vale: a ordem é de quem consome, a célula do meio toca os seis
+     grupos, um grupo que falta junta outro par, e a última fatia encosta na primeira quando o prato fecha. Em cinza,
+     ou para quem não distingue o vermelho do verde, a fronteira entre setores continuava quase invisível.
+   - **Por que não só luminância.** Entre o fundo e a tinta de ação não cabem seis degraus largos: a cor do dado se
+     separa da cor de ação por 0,2 de luminância (ADR-022), e seis níveis a 1,5:1 pediriam cerca de 7,6:1 de ponta a
+     ponta. A rodada anterior baixou essa distância de 0,2 para 0,1 para caber os números, e a linha "Cor" da regra de
+     UX foi reescrita com o que os tokens alcançavam. Era afrouxar a checagem para caber, e **foi desfeito: a
+     distância volta a 0,2 (medida nos dois jeitos de voltar ao sRGB) e a linha "Cor" volta ao texto de antes**.
+   - **A decisão.** Cada grupo tem um **padrão** próprio, uma textura de SVG (`<pattern>`, marcação, e não estilo
+     injetado, por causa da CSP): traço inclinado nos dois sentidos, horizontal, vertical, grade e pontos, na tinta
+     escura `--co-role-mark` (≥ 3:1 sobre a cor de todo grupo, nos dois temas). A amostra da `Legend` desenha o mesmo
+     padrão, por `gradient()` de arquivo, e assim liga o nome ao setor sem depender do matiz. Onde o grupo muda entre
+     duas células vizinhas há um **separador de setor** (um traço escuro na aresta compartilhada), em toda ordem dos
+     seis grupos e com grupo faltando, a célula do meio inclusive. O teste gera as 720 ordens, com e sem grupo
+     faltando, acha a vizinhança pelas coordenadas das células e exige um separador entre toda vizinha de grupos
+     diferentes e nenhum entre as do mesmo grupo.
+   - **A luminância**, onde o piso de 0,2 deixa, fica em degraus, um por grupo (do mais claro ao mais escuro:
+     carboidrato, laticínio, hortaliça, proteína, fruta, gordura), com todo par a pelo menos 1,1:1. Só a luminosidade
+     OKLCH dos seis tokens muda, com o matiz e o croma da identidade (claro, antes → depois: proteína 0,70 → 0,72,
+     carboidrato 0,76 → 0,82, hortaliça 0,70 → 0,72, fruta 0,70 → 0,69, laticínio 0,70 → 0,77, gordura 0,70 → 0,65;
+     escuro: 0,68 → 0,76, 0,74 → 0,86, 0,68 → 0,77, 0,68 → 0,73, 0,68 → 0,82, 0,68 → 0,68). Nenhum texto mora sobre a
+     cor de um grupo (a legenda, o `Dot` e a `MacroBar` põem o nome ao lado, em tinta).

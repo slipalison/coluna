@@ -122,8 +122,8 @@
     },
     "role-protein": {
       "$type": "other",
-      "$value": "oklch(0.63 0.13 25)",
-      "$description": "Os papeis do alimento (prato, macro, legenda): o matiz e o croma da identidade, e luminancias distintas entre os seis (do mais claro ao mais escuro: carb, dairy, veg, protein, fruit, fat), para um setor nao se fundir ao vizinho em cinza (ADR-025, adendo). Sempre com nome e quantidade ao lado (ADR-005)."
+      "$value": "oklch(0.72 0.13 25)",
+      "$description": "Os papeis do alimento (prato, macro, legenda): o matiz e o croma da identidade, cada grupo num degrau de luminancia (do mais claro ao mais escuro: carb, dairy, veg, protein, fruit, fat), a 0,2 de luminancia da tinta de acao. A luminancia sozinha nao separa seis grupos: o padrao de cada um e o separador de setor separam (ADR-025, adendo). Sempre com nome e quantidade ao lado (ADR-005)."
     },
     "role-carb": {
       "$type": "other",
@@ -131,19 +131,24 @@
     },
     "role-veg": {
       "$type": "other",
-      "$value": "oklch(0.67 0.13 150)"
+      "$value": "oklch(0.72 0.13 150)"
     },
     "role-fruit": {
       "$type": "other",
-      "$value": "oklch(0.58 0.13 350)"
+      "$value": "oklch(0.69 0.13 350)"
     },
     "role-dairy": {
       "$type": "other",
-      "$value": "oklch(0.74 0.104 240)"
+      "$value": "oklch(0.77 0.104 240)"
     },
     "role-fat": {
       "$type": "other",
-      "$value": "oklch(0.51 0.13 300)"
+      "$value": "oklch(0.65 0.13 300)"
+    },
+    "role-mark": {
+      "$type": "color",
+      "$value": "{pomes-950}",
+      "$description": "A tinta escura do padrao e do separador de setor do prato (e da amostra da legenda): passa em 3:1 sobre a cor de todo papel do alimento, nos dois temas."
     },
     "grain-opacity": {
       "$type": "other",

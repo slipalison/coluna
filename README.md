@@ -216,9 +216,9 @@ sistema admite**, e ele passa em 4,5:1 sobre todo fundo de texto, nos dois
 temas. Abaixo dele só existe `--co-control`, que passa em 3:1 e serve para
 **desenho** e para o limite de controle, nunca para texto
 ([ADR-005](docs/adr/005-cor-nunca-sozinha.md), [ADR-022](docs/adr/022-a-identidade-relogio-de-sol.md)).
-Os papéis do alimento (`--co-role-*`) têm luminâncias distintas de propósito
-(todo par de grupos acima de 1,2:1, e os vizinhos do prato acima de 1,5:1): em
-cinza, um setor não se funde ao vizinho, e o nome e a quantidade vão sempre ao lado.
+Os papéis do alimento (`--co-role-*`) se distinguem por padrão e por separador
+de setor, e não só pela cor: a luminância sozinha não separa seis grupos. O nome
+e a quantidade vão sempre ao lado.
 
 ---
 
