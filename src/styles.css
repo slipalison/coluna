@@ -3282,8 +3282,9 @@ fieldset.co-nav-list {
 /*
  * A célula cheia pinta com o PADRÃO do grupo (`fill="url(#…)"` no SVG, um
  * `<pattern>` por grupo usado): o fundo é a cor do papel e as marcas, a tinta
- * escura. A luminância sozinha não separa seis grupos (ADR-025, adendo), e o
- * padrão é a mesma textura da amostra da legenda. Só arquivo e marcação:
+ * escura. A cor nunca é o único sinal (ADR-005): o padrão separa os grupos, e é
+ * a mesma textura da amostra da legenda; a luminosidade segue a da identidade
+ * (ADR-022). Só arquivo e marcação:
  * nenhum estilo injetado.
  */
 .co-plate__ground[data-group="protein"] { fill: var(--co-role-protein); }

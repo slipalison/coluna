@@ -190,7 +190,7 @@ const ARESTAS: readonly PlateEdge[] = (() => {
  * Os separadores de setor: onde duas células vizinhas pintam grupos DIFERENTES,
  * a aresta entre elas ganha um traço escuro. Separa qualquer par de grupos em
  * qualquer ordem — a célula do meio toca os seis, e a última fatia encosta na
- * primeira quando o prato fecha —, sem depender de matiz nem de luminância.
+ * primeira quando o prato fecha —, sem depender da cor.
  * Célula vazia não entra: ela já tem o contorno dela.
  */
 export function plateDividers(fill: readonly (PlateGroup | undefined)[]): { a: number; b: number }[] {
@@ -257,8 +257,8 @@ export interface PlateArtProps {
  *
  * O setor de cada grupo tem o PADRÃO dele (`plate-pattern.ts`) e, onde o grupo
  * muda entre duas células vizinhas, um separador escuro (`plateDividers`): a
- * luminância sozinha não separa seis grupos, e assim nenhum par se confunde em
- * cinza, por protanopia ou no prato mini.
+ * cor nunca é o único sinal, e assim nenhum par se confunde em cinza, por
+ * protanopia ou no prato mini.
  *
  * Cada célula é um `<polygon>` com a chave da posição E do grupo: quando a
  * composição muda, só as células que trocam de grupo nascem de novo, e a
@@ -319,9 +319,9 @@ export function PlateArt({ slices, size = "lg", over = false, skeleton = false, 
  *
  * Um mosaico de 37 colunas hexagonais, vistas de cima, que se completa
  * exatamente quando a receita fecha o alvo da refeição. Cada célula tem a cor
- * do grupo do alimento, e os seis grupos têm luminâncias distintas entre si:
- * em cinza, ou para quem não distingue o matiz, um setor não se funde ao
- * vizinho. A célula vazia tem contorno de controle (3:1), e não só um fundo
+ * do grupo do alimento, com a mesma luminosidade nos seis (a identidade,
+ * ADR-022), e cada grupo tem o seu padrão e o seu separador de setor: em cinza,
+ * ou para quem não distingue o matiz, um setor não se funde ao vizinho. A célula vazia tem contorno de controle (3:1), e não só um fundo
  * quase igual ao da tela.
  *
  * A cor nunca é o único sinal (ADR-005): a legenda, com o nome e os gramas de

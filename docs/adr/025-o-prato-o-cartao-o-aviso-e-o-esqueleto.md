@@ -122,27 +122,21 @@ que reprova o código de antes).
    (3:1 sobre `bg`, `surface` e `surface-2`), com `vector-effect: non-scaling-stroke`; o esqueleto do prato não o leva,
    para não se confundir com um prato vazio de verdade. O esqueleto do cartão ganhou um osso para o resumo e a altura
    do cartão real (10 rem), para a lista não pular.
-4. **Os seis grupos do prato se distinguem por PADRÃO e por separador de setor, e a luminância é secundária.**
-   - **O que a revisão mediu.** Com a luminância sozinha, o menor par ficava em 1,23:1 (proteína × fruta, no claro).
-     A premissa dos "vizinhos na ordem do prato" não vale: a ordem é de quem consome, a célula do meio toca os seis
-     grupos, um grupo que falta junta outro par, e a última fatia encosta na primeira quando o prato fecha. Em cinza,
-     ou para quem não distingue o vermelho do verde, a fronteira entre setores continuava quase invisível.
-   - **Por que não só luminância.** Entre o fundo e a tinta de ação não cabem seis degraus largos: a cor do dado se
-     separa da cor de ação por 0,2 de luminância (ADR-022), e seis níveis a 1,5:1 pediriam cerca de 7,6:1 de ponta a
-     ponta. A rodada anterior baixou essa distância de 0,2 para 0,1 para caber os números, e a linha "Cor" da regra de
-     UX foi reescrita com o que os tokens alcançavam. Era afrouxar a checagem para caber, e **foi desfeito: a
-     distância volta a 0,2 (medida nos dois jeitos de voltar ao sRGB) e a linha "Cor" volta ao texto de antes**.
+4. **Os seis grupos do prato se distinguem por PADRÃO e por separador de setor, e a luminosidade é a da identidade
+   (ADR-022).**
+   - **O que a revisão mediu.** Com a cor sozinha (a mesma luminosidade nos seis), o contraste entre os grupos ficava
+     entre 1,00 e 1,31:1: em cinza, ou para quem não distingue o vermelho do verde, proteína, fruta e gordura viravam
+     uma mancha só, e a amostra da legenda não ligava o nome ao setor.
+   - **O piso que vale.** Não é a luminância dos papéis: a cor nunca é o único sinal (WCAG 1.4.1, ADR-005), e as partes
+     do gráfico têm 3:1 contra o que está ao lado (1.4.11). Isso se cumpre sem mexer na identidade, e as tentativas de
+     mexer nela foram desfeitas: baixar a distância da tinta de ação de 0,2 para 0,1 e escalonar a luminância dos seis
+     grupos não separam seis grupos (entre o fundo e a tinta não cabem seis degraus largos) e contradiziam a linha "Cor"
+     da regra de UX. Os papéis voltam à luminosidade, ao matiz e ao croma de antes, com a distância da tinta em 0,2.
    - **A decisão.** Cada grupo tem um **padrão** próprio, uma textura de SVG (`<pattern>`, marcação, e não estilo
      injetado, por causa da CSP): traço inclinado nos dois sentidos, horizontal, vertical, grade e pontos, na tinta
      escura `--co-role-mark` (≥ 3:1 sobre a cor de todo grupo, nos dois temas). A amostra da `Legend` desenha o mesmo
-     padrão, por `gradient()` de arquivo, e assim liga o nome ao setor sem depender do matiz. Onde o grupo muda entre
-     duas células vizinhas há um **separador de setor** (um traço escuro na aresta compartilhada), em toda ordem dos
-     seis grupos e com grupo faltando, a célula do meio inclusive. O teste gera as 720 ordens, com e sem grupo
-     faltando, acha a vizinhança pelas coordenadas das células e exige um separador entre toda vizinha de grupos
-     diferentes e nenhum entre as do mesmo grupo.
-   - **A luminância**, onde o piso de 0,2 deixa, fica em degraus, um por grupo (do mais claro ao mais escuro:
-     carboidrato, laticínio, hortaliça, proteína, fruta, gordura), com todo par a pelo menos 1,1:1. Só a luminosidade
-     OKLCH dos seis tokens muda, com o matiz e o croma da identidade (claro, antes → depois: proteína 0,70 → 0,72,
-     carboidrato 0,76 → 0,82, hortaliça 0,70 → 0,72, fruta 0,70 → 0,69, laticínio 0,70 → 0,77, gordura 0,70 → 0,65;
-     escuro: 0,68 → 0,76, 0,74 → 0,86, 0,68 → 0,77, 0,68 → 0,73, 0,68 → 0,82, 0,68 → 0,68). Nenhum texto mora sobre a
-     cor de um grupo (a legenda, o `Dot` e a `MacroBar` põem o nome ao lado, em tinta).
+     padrão, por `gradient()` de arquivo, e assim liga o nome ao setor. Onde o grupo muda entre duas células vizinhas há
+     um **separador de setor** (um traço escuro na aresta compartilhada), em toda ordem dos seis grupos e com grupo
+     faltando, a célula do meio inclusive. O teste gera as 720 ordens, com e sem grupo faltando, acha a vizinhança pelas
+     coordenadas das células e exige um separador entre toda vizinha de grupos diferentes e nenhum entre as do mesmo
+     grupo. A legenda em texto e o `summary` continuam, e nenhum texto mora sobre a cor de um grupo.

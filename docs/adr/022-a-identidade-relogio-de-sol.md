@@ -113,10 +113,6 @@ botão.
 luminosidade e o mesmo croma por tema: nenhum grita mais que o outro. O `Dot`,
 o `Slat`, o `Legend` e a `MacroBar` os usam.
 
-> **Emenda (ADR-025, adendo):** a "mesma luminosidade" não separa seis grupos, e a distância da tinta de ação
-> continua em 0,2. Os seis papéis passam a se distinguir por padrão e por separador de setor, e a luminância fica em
-> degraus onde esse piso deixa (matiz e croma daqui).
-
 **O 3:1 da paleta de dado cai.** O teste da 1.13 exigia 3:1 da cor de macro
 sobre todo fundo; no claro, a luminosidade da identidade (0,70) mede 1,5 a
 2,7:1. A identidade vence (fonte 2, acima das ADRs): a cor do dado nunca é o
@@ -125,7 +121,7 @@ sobre todo fundo; no claro, a luminosidade da identidade (0,70) mede 1,5 a
 "necessário para entender o conteúdo". O teste passa a provar o que a
 identidade garante: os matizes, a mesma luminosidade, e a distância da tinta de
 ação (croma de verdade e luminância longe da `ink`). A frase da regra de UX
-"luminâncias distintas entre si" também cede: a identidade pedia o contrário (ver a emenda acima).
+"luminâncias distintas entre si" também cede: a identidade pede o contrário.
 
 ### 4. A forma
 

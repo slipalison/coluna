@@ -64,7 +64,7 @@ violação, o PR não entra.
   (obrigatório) que diz quanto do alvo ele fecha ou quanto falta; o desenho sai `aria-hidden`, e o prato recebe a
   composição pronta, sem calcular nada. **Os seis grupos se distinguem por PADRÃO** (uma textura de SVG por grupo, a
   mesma na amostra da legenda) **e por separador de setor** (um traço escuro onde o grupo muda entre duas células
-  vizinhas, em toda ordem dos grupos), porque a luminância sozinha não separa seis grupos; a célula vazia tem
+  vizinhas, em toda ordem dos grupos), mantendo a luminosidade da identidade (ADR-022); a célula vazia tem
   contorno de controle (≥ 3:1) (ADR-025).
 - **O cartão inteiro é o alvo** do `RecipeCard`, com pelo menos `--co-target-min`, e o nome do link é o título
   (ADR-025).

@@ -488,31 +488,17 @@ describe.each(TEMAS)("a cor da hora no tema %s, o dia inteiro", (_nome, tema) =>
  * Os seis grupos do prato, na ordem em que o app os escreve (a ordem do `Plate`:
  * proteína, carboidrato, hortaliça, fruta, laticínio, gordura).
  *
- * A luminância sozinha NÃO separa seis grupos: entre o fundo e a tinta de ação
- * (a cor do dado se separa dela por 0,2 de luminância, ADR-022) não cabem seis
- * degraus largos. Quem separa os grupos é o PADRÃO de cada um (a textura do
- * setor e a mesma da amostra da legenda) e o separador de setor, provados em
- * `src/livro-de-receitas.test.tsx`. A luminância fica em degraus onde o piso da
- * tinta deixa (ADR-025, adendo): cada grupo num degrau próprio, nenhum par
- * igual.
+ * A identidade (ADR-022) pede a MESMA luminosidade nos seis, para nenhum gritar
+ * mais que o outro, e o piso se cumpre sem mexer nela: a cor nunca é o único
+ * sinal (WCAG 1.4.1) e as partes do gráfico têm 3:1 contra o que está ao lado
+ * (1.4.11). Quem separa os grupos é o PADRÃO de cada um (o mesmo na amostra da
+ * legenda) e o separador de setor, em `role-mark`, que passa de 3:1 sobre todo
+ * grupo — provados em `src/livro-de-receitas.test.tsx` e aqui —, com a legenda
+ * em texto e o `summary` (ADR-005, ADR-025).
  */
 const PAPEIS = ["role-protein", "role-carb", "role-veg", "role-fruit", "role-dairy", "role-fat"] as const;
-/** A luminância relativa mais próxima que dois grupos podem ter, em razão: abaixo disto os dois são o mesmo degrau. */
-const DEGRAU_MINIMO = 1.1;
-/** Quanto a luminância relativa de um papel do alimento fica longe da tinta de ação (ADR-022): o piso VOLTOU aos 0,2. */
+/** Quanto a luminância relativa de um papel do alimento fica longe da tinta de ação (ADR-022). */
 const DISTANCIA_DA_TINTA = 0.2;
-
-/** A razão de luminância de cada par de grupos, com o nome do par. */
-function razoesDosPares(luminancias: readonly number[], nomes: readonly string[]) {
-  const pares: { par: string; razao: number }[] = [];
-  for (let a = 0; a < luminancias.length; a += 1) {
-    for (let b = a + 1; b < luminancias.length; b += 1) {
-      const [x, y] = [luminancias[a] ?? 0, luminancias[b] ?? 0];
-      pares.push({ par: `${nomes[a]} × ${nomes[b]}`, razao: (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) });
-    }
-  }
-  return pares;
-}
 
 describe.each(TEMAS)("os papéis do alimento no tema %s", (_nome, tema) => {
   const partes = (token: string) => {
@@ -525,19 +511,20 @@ describe.each(TEMAS)("os papéis do alimento no tema %s", (_nome, tema) => {
     return luminancia(oklchNosDoisCaminhos(l, c, h)[caminho]);
   };
 
-  it("têm os matizes da identidade, e o croma da identidade (o laticínio, ×0,8)", () => {
+  it("têm os matizes da identidade e a mesma luminosidade (o carboidrato, +0,06), nenhum grita mais que o outro", () => {
     expect(PAPEIS.map((papel) => partes(papel).h)).toEqual([25, 80, 150, 350, 240, 300]);
+    const base = partes("role-protein").l;
     const croma = partes("role-protein").c;
     for (const papel of PAPEIS) {
+      expect(partes(papel).l, papel).toBeCloseTo(papel === "role-carb" ? base + 0.06 : base, 5);
       expect(partes(papel).c, papel).toBeCloseTo(papel === "role-dairy" ? croma * 0.8 : croma, 5);
     }
   });
 
-  it("se separam da tinta de ação em 0,2 de luminância, nos dois jeitos de voltar ao sRGB: o piso não baixa para caber", () => {
+  it("se separam da tinta de ação em 0,2 de luminância, nos dois jeitos de voltar ao sRGB", () => {
     // A cor do dado nunca é o único sinal (o nome e a quantidade vão junto,
-    // ADR-005), e por isso o piso de 3:1 do WCAG 1.4.11 não se aplica a ela.
-    // O que se garante aqui é que ela não se confunde com a ação (a tinta) nem
-    // com o estado: croma de verdade e luminância longe da tinta.
+    // ADR-005). O que se garante aqui é que ela não se confunde com a ação (a
+    // tinta) nem com o estado: croma de verdade e luminância longe da tinta.
     const tinta = luminancia(cor(cru(tema["ink"])));
     for (const papel of PAPEIS) {
       expect(partes(papel).c, papel).toBeGreaterThan(0.09);
@@ -547,17 +534,9 @@ describe.each(TEMAS)("os papéis do alimento no tema %s", (_nome, tema) => {
     }
   });
 
-  it("cada grupo tem o seu degrau de luminância: nenhum par no mesmo degrau, nos dois jeitos de voltar ao sRGB", () => {
-    for (const caminho of ["cortada", "reduzida"] as const) {
-      const luminancias = PAPEIS.map((papel) => luz(papel, caminho));
-      const abaixo = razoesDosPares(luminancias, PAPEIS).filter(({ razao }) => razao < DEGRAU_MINIMO);
-      expect(abaixo, `${caminho}, no tema ${_nome}`).toEqual([]);
-    }
-  });
-
-  it("a tinta escura do padrão passa em 3:1 sobre o fundo de CADA grupo, e a do separador também", () => {
-    // O padrão e o separador são desenho que separa os setores (WCAG 1.4.11): a
-    // marca e o traço precisam se ver sobre a cor de qualquer papel.
+  it("a tinta escura do padrão e do separador (role-mark) passa em 3:1 sobre o fundo de CADA grupo, nos dois jeitos de voltar ao sRGB", () => {
+    // O padrão e o separador são o desenho que separa os setores (WCAG 1.4.11):
+    // a marca e o traço precisam se ver sobre a cor de qualquer papel.
     const marca = cor(cru(tema["role-mark"]));
     for (const papel of PAPEIS) {
       for (const caminho of ["cortada", "reduzida"] as const) {
@@ -568,11 +547,15 @@ describe.each(TEMAS)("os papéis do alimento no tema %s", (_nome, tema) => {
     }
   });
 
-  it("a isca: o piso de 0,1 que a rodada anterior pôs deixaria passar a cor que se confunde com a tinta", () => {
-    // Prova que a distância de 0,2 morde: um papel a 0,06 ou 0,04 da tinta passaria um piso frouxo e reprova aqui.
-    const tinta = luminancia(cor(cru(tema["ink"])));
-    const perto = luminancia(cor(`oklch(${_nome === "claro" ? 0.42 : 0.93} 0.13 25)`));
-    expect(Math.abs(perto - tinta)).toBeLessThan(DISTANCIA_DA_TINTA);
+  it("a isca: uma tinta de marca clara (role-mark baixado) reprova em 3:1 sobre algum grupo", () => {
+    // Prova que a medida morde: a tinta de ação do tema, clara no escuro e escura
+    // no claro, é o que NÃO pode servir de marca onde o fundo é do mesmo lado.
+    const clara = cor(cru(tema[_nome === "claro" ? "surface" : "ink"]));
+    const piores = PAPEIS.map((papel) => {
+      const { l, c, h } = partes(papel);
+      return razao(clara, oklchNosDoisCaminhos(l, c, h).cortada);
+    });
+    expect(Math.min(...piores)).toBeLessThan(PISO_DESENHO);
   });
 });
 

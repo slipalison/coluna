@@ -3,7 +3,8 @@ import type { PlateGroup } from "./Plate";
 /**
  * O padrão de cada grupo do prato: a textura do setor e a MESMA da amostra da
  * legenda, para o setor se ligar ao nome sem depender do matiz nem da
- * luminância (que sozinha não separa seis grupos, ADR-025, adendo). Seis
+ * cor (a luminosidade é a da identidade, ADR-022, e a cor nunca é o único sinal,
+ * ADR-005). Seis
  * formas diferentes de marca, na tinta escura `--co-role-mark`: traço
  * inclinado de um lado e do outro, horizontal, vertical, grade e pontos.
  *

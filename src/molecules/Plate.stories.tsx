@@ -16,7 +16,8 @@ import { Plate, type PlateSlice } from "./Plate";
  * `summary` (obrigatório) diz quanto do alvo o prato fecha: a cor nunca é o
  * único sinal (ADR-005), e o desenho sai `aria-hidden`.
  *
- * Os seis grupos têm luminâncias distintas (em cinza, um setor não se funde ao
+ * Os seis grupos têm a luminosidade da identidade e se separam pelo padrão de
+ * cada um e pelo separador de setor (em cinza, um setor não se funde ao
  * vizinho), e a célula vazia tem contorno de controle.
  */
 const ALMOCO: PlateSlice[] = [
