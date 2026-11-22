@@ -632,6 +632,15 @@ it("só a faixa, o recuo da rolagem e a folha de altura cheia leem a altura dela
       `${BARRA_DE_ACAO.recuoComAbas} scroll-padding-bottom`,
       `${BARRA_DE_ACAO.recuo} scroll-padding-bottom`,
       `${BARRA_DE_ACAO.recuoComAmbas} scroll-padding-bottom`,
+      // Desde o cartão #182, o aviso passageiro (ADR-025): ele flutua dentro
+      // da área segura, e acima das abas e da barra de ação pelo mesmo termo
+      // `max(...)` delas.
+      ".co-toast bottom",
+      ".co-toast left",
+      ".co-toast right",
+      ':root:has(.co-screen[data-tabbar="true"]) .co-toast:not([data-position]) bottom',
+      ':root:has(.co-screen[data-actionbar="true"] > .co-screen__actionbar :not(:empty)) .co-toast:not([data-position]) bottom',
+      ':root:has(.co-screen[data-tabbar="true"][data-actionbar="true"] > .co-screen__actionbar :not(:empty)) .co-toast:not([data-position]) bottom',
     ].sort(),
   );
 });

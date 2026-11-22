@@ -64,6 +64,9 @@ describe("a forma", () => {
     expect(raio(".co-group")).toBe("var(--co-radius-container)");
     expect(raio(".co-surface")).toBe("var(--co-radius-container)");
     expect(raio(".co-notice")).toBe("var(--co-radius-container)");
+    // O cartão de receita é cartão (22px, a identidade), e o aviso passageiro também.
+    expect(raio(".co-recipe-card")).toBe("var(--co-radius-container)");
+    expect(raio('.co-toast[data-open="true"]')).toBe("var(--co-radius-container)");
     expect(raio(".co-chip")).toBe("var(--co-radius-pill)");
     // O segmentado é pílula de UMA fileira: meia altura dela, e não 999px, para
     // a quebra em linhas não tirar a opção do canto da curva (lote 1, item 2).
@@ -91,17 +94,18 @@ describe("a forma", () => {
       .filter((regra) => regra.declaracoes.some(([p, v]) => p === "box-shadow" && v !== "none"))
       .map((regra) => [lugar(regra), Object.fromEntries(regra.declaracoes)["box-shadow"]]);
 
-  it("a sombra fica só no que flutua: a folha, e o degrau curto do destino atual do trilho", () => {
+  it("a sombra fica só no que flutua: a folha, o aviso passageiro aberto, e o degrau curto do destino atual do trilho", () => {
     expect(comSombra(REGRAS)).toEqual([
       [".co-sheet", "var(--co-shadow-float)"],
       ['.co-rail__item[aria-current="page"]', "var(--co-shadow-lift)"],
+      ['.co-toast[data-open="true"]', "var(--co-shadow-float)"],
     ]);
   });
 
   it("a isca: um cartão com sombra reprova", () => {
     const cartao: Regra = { profundidade: 0, seletores: [".co-group"], declaracoes: [["box-shadow", "var(--co-shadow-float)"]] };
     expect(comSombra([...REGRAS, cartao])).toContainEqual([".co-group", "var(--co-shadow-float)"]);
-    expect(comSombra([...REGRAS, cartao])).toHaveLength(3);
+    expect(comSombra([...REGRAS, cartao])).toHaveLength(4);
   });
 
   it("nada de barra colorida na lateral: nenhum border-left nem border-right de cor", () => {

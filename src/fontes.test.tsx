@@ -285,7 +285,7 @@ describe("o título e o número têm o peso escrito", () => {
       regra.declaracoes.filter(([propriedade]) => nomes.includes(propriedade));
 
     const titulos = comFonte("--co-font-display");
-    expect(titulos.map(lugar)).toEqual(['.co-text[data-variant="title-lg"]']);
+    expect(titulos.map(lugar)).toEqual(['.co-text[data-variant="title-lg"]', ".co-recipe-card__title"]);
     for (const regra of titulos) {
       expect(leitura(regra, ["font-weight", "font-stretch"]), lugar(regra)).toEqual([
         ["font-weight", "700"],

@@ -2555,6 +2555,9 @@ button.co-chip {
 
 .co-legend__swatch[data-tone="protein"] { --co-legend-color: var(--co-role-protein); }
 .co-legend__swatch[data-tone="carb"] { --co-legend-color: var(--co-role-carb); }
+.co-legend__swatch[data-tone="veg"] { --co-legend-color: var(--co-role-veg); }
+.co-legend__swatch[data-tone="fruit"] { --co-legend-color: var(--co-role-fruit); }
+.co-legend__swatch[data-tone="dairy"] { --co-legend-color: var(--co-role-dairy); }
 .co-legend__swatch[data-tone="fat"] { --co-legend-color: var(--co-role-fat); }
 .co-legend__swatch[data-tone="status"] { --co-legend-color: var(--co-ok); }
 .co-legend__swatch[data-tone="neutral"] { --co-legend-color: var(--co-ink-3); }
@@ -2579,6 +2582,13 @@ button.co-chip {
   width: 14px;
   height: 8px;
   opacity: 0.3;
+}
+
+/* A coluna do prato: o hexágono de topo chato, do tamanho da célula mini. */
+.co-legend__swatch[data-swatch="hex"] {
+  width: 12px;
+  height: 10.4px;
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
 }
 
 /* -------------------------------------------------------------- revelação --- */
@@ -3146,6 +3156,306 @@ fieldset.co-nav-list {
   background: var(--co-hora-ink);
 }
 
+/* ------------------------------------------------------------------ prato --- */
+
+/*
+ * O prato de colunas (design/identidade.md): 37 colunas hexagonais vistas de
+ * cima, cada uma na cor do grupo do alimento, e a legenda em texto sempre ao
+ * lado (ADR-005). O desenho e a legenda dividem uma fileira que quebra: a
+ * 320px, a legenda desce para baixo do prato, e nada rola de lado.
+ */
+.co-plate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--co-space-16) var(--co-space-24);
+}
+
+.co-plate[data-size="sm"] { gap: var(--co-space-8) var(--co-space-12); }
+
+.co-plate__legend {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+
+/* No grande, a legenda é uma coluna: um grupo por linha, lido de cima a baixo
+ * ao lado do prato. */
+.co-plate[data-size="lg"] .co-plate__legend {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.co-plate__art {
+  display: block;
+  flex-shrink: 0;
+  width: 224px;
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.co-plate__art[data-size="sm"] { width: 64px; }
+
+/* O aro é a borda do prato, uma fissura. Passou do alvo, ele fica tracejado
+ * na cor de atenção — e o texto que diz quanto passou é do app, ao lado. */
+.co-plate__rim {
+  fill: none;
+  stroke: var(--co-line);
+  stroke-width: 1.5;
+}
+
+.co-plate__art[data-over="true"] .co-plate__rim {
+  stroke: var(--co-warn);
+  stroke-width: 3;
+  stroke-dasharray: 6 5;
+}
+
+/*
+ * A célula vazia é o trilho; a cheia, o papel do alimento. A célula que muda
+ * de grupo nasce de novo (a chave dela é a posição e o grupo), e a entrada
+ * dela assenta com a mola, atrasada pelo anel: a onda do centro para a borda,
+ * 12ms por anel (`--co-duration-wave`). Só `transform` e `opacity`.
+ */
+.co-plate__cell {
+  fill: var(--co-surface-3);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: co-plate-celula var(--co-duration-base) var(--co-ease-spring) backwards;
+}
+
+.co-plate__cell[data-group="protein"] { fill: var(--co-role-protein); }
+.co-plate__cell[data-group="carb"] { fill: var(--co-role-carb); }
+.co-plate__cell[data-group="veg"] { fill: var(--co-role-veg); }
+.co-plate__cell[data-group="fruit"] { fill: var(--co-role-fruit); }
+.co-plate__cell[data-group="dairy"] { fill: var(--co-role-dairy); }
+.co-plate__cell[data-group="fat"] { fill: var(--co-role-fat); }
+
+.co-plate__cell[data-ring="1"] { animation-delay: var(--co-duration-wave); }
+.co-plate__cell[data-ring="2"] { animation-delay: calc(var(--co-duration-wave) * 2); }
+.co-plate__cell[data-ring="3"] { animation-delay: calc(var(--co-duration-wave) * 3); }
+
+/* O esqueleto não entra em onda: ele pulsa inteiro, mais abaixo. */
+.co-plate__art[data-skeleton="true"] .co-plate__cell { animation: none; }
+
+@keyframes co-plate-celula {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------- cartão de receita -- */
+
+/*
+ * O cartão inteiro é o alvo: o link (ou o botão) mora no título, e o
+ * `::after` dele cobre o cartão — o "link esticado". O anel de foco é desse
+ * `::after`, por fora do cartão, e não do texto do título.
+ */
+.co-recipe-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--co-space-12);
+  min-height: var(--co-target-min);
+  padding: var(--co-space-16);
+  background: var(--co-surface);
+  border: var(--co-border-width) solid var(--co-line);
+  border-radius: var(--co-radius-container);
+  transition: border-color var(--co-duration-quick) var(--co-ease-settle);
+}
+
+.co-recipe-card:hover { border-color: var(--co-control); }
+
+.co-recipe-card__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--co-space-4);
+  min-width: 0;
+}
+
+/* O título de receita é da Bricolage, como o de tela (a identidade). */
+.co-recipe-card__title {
+  font-family: var(--co-font-display);
+  font-weight: 700;
+  font-stretch: 88%;
+  letter-spacing: var(--co-tracking-tight);
+  overflow-wrap: anywhere;
+}
+
+.co-recipe-card__action {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.co-recipe-card__action::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--co-radius-container);
+}
+
+.co-root .co-recipe-card__action:focus-visible { outline: none; }
+
+.co-root .co-recipe-card__action:focus-visible::after {
+  outline: 2px solid var(--co-focus);
+  outline-offset: 2px;
+}
+
+.co-recipe-card__legend { margin-top: var(--co-space-4); }
+
+/* ------------------------------------------------------- aviso passageiro --- */
+
+/*
+ * O aviso passageiro flutua embaixo, acima das barras, dentro da área segura,
+ * e tem a sombra do que flutua (a identidade). Fechado, ele continua no
+ * documento — a região viva tem de existir antes da mensagem —, mas vazio,
+ * sem caixa e sem ocupar o toque de ninguém.
+ */
+.co-toast {
+  position: fixed;
+  right: max(var(--co-space-16), var(--co-safe-right));
+  bottom: max(var(--co-space-16), calc(var(--co-safe-bottom) + var(--co-space-8)));
+  left: max(var(--co-space-16), var(--co-safe-left));
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-8);
+  max-width: 32rem;
+  margin-inline: auto;
+}
+
+.co-toast[data-position="static"] {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  z-index: auto;
+}
+
+/* Com as abas, o aviso fica 8px acima delas: a altura da barra de abas é o
+ * mesmo termo da `.co-screen__actionbar` (ADR-012); com a barra de ação, soma
+ * a fileira dela (ADR-013). */
+:root:has(.co-screen[data-tabbar="true"]) .co-toast:not([data-position]) {
+  bottom: calc(73px - var(--co-space-10)
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8))) + var(--co-space-8));
+}
+
+:root:has(.co-screen[data-actionbar="true"] > .co-screen__actionbar :not(:empty)) .co-toast:not([data-position]) {
+  bottom: calc(var(--co-actionbar-height) - var(--co-space-10)
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8))) + var(--co-space-8));
+}
+
+:root:has(.co-screen[data-tabbar="true"][data-actionbar="true"] > .co-screen__actionbar :not(:empty)) .co-toast:not([data-position]) {
+  bottom: calc(73px - var(--co-space-10)
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8)))
+    + var(--co-actionbar-height) + var(--co-space-8));
+}
+
+.co-toast[data-open="true"] {
+  padding: var(--co-space-4) var(--co-space-4) var(--co-space-4) var(--co-space-16);
+  background: var(--co-surface);
+  border: var(--co-border-width) solid var(--co-line);
+  border-radius: var(--co-radius-container);
+  box-shadow: var(--co-shadow-float);
+  animation: co-toast-entrar var(--co-duration-base) var(--co-ease-settle);
+}
+
+.co-toast[data-open="true"][data-tone="warn"] { background: var(--co-warn-soft); }
+
+.co-toast__icon {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--co-warn);
+}
+
+.co-toast__message {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.co-toast[data-open="true"] .co-toast__message { padding-block: var(--co-space-8); }
+
+/* As ações do aviso não trazem a pastilha da superfície: sobre o lavado de
+ * atenção ela viraria uma mancha que parece foco. */
+.co-toast__action,
+.co-toast__close {
+  flex-shrink: 0;
+  background: transparent;
+}
+
+@keyframes co-toast-entrar {
+  from {
+    transform: translateY(var(--co-space-16));
+    opacity: 0;
+  }
+}
+
+/* -------------------------------------------------------------- esqueleto --- */
+
+/*
+ * A forma do que vem, no trilho (`surface-3`), reta como conteúdo. O pulso é
+ * só de opacidade e acaba: seis meias-voltas de 700ms, 4,2s (WCAG 2.2.2).
+ */
+.co-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--co-space-12);
+}
+
+.co-skeleton__item {
+  animation: co-skeleton-pulso var(--co-duration-roll) var(--co-ease-move) 6 alternate;
+}
+
+/* A altura do cartão de receita típico (título, números e a legenda em duas
+ * linhas), para a lista não pular quando os cartões chegam. */
+.co-skeleton[data-shape="recipe-card"] .co-skeleton__item {
+  min-height: 8.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--co-space-12);
+  padding: var(--co-space-16);
+  background: var(--co-surface);
+  border: var(--co-border-width) solid var(--co-line);
+  border-radius: var(--co-radius-container);
+}
+
+.co-skeleton__lines {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--co-space-8);
+  min-width: 0;
+  padding-top: var(--co-space-4);
+}
+
+.co-skeleton__bone {
+  display: block;
+  width: 100%;
+  height: var(--co-space-12);
+  border-radius: var(--co-radius-content);
+  background: var(--co-surface-3);
+}
+
+.co-skeleton__bone[data-bone="title"] { width: 70%; height: var(--co-space-16); }
+.co-skeleton__bone[data-bone="meta"] { width: 50%; }
+.co-skeleton__bone[data-bone="legend"] { width: 85%; }
+.co-skeleton__bone[data-bone="legend-2"] { width: 55%; }
+
+@keyframes co-skeleton-pulso {
+  to {
+    opacity: 0.55;
+  }
+}
+
 /* ------------------------------------------------------------------ grão ---- */
 
 /*
@@ -3253,5 +3563,21 @@ fieldset.co-nav-list {
   /* O botão não escala ao toque: a resposta é a cor do hover, sem movimento. */
   .co-root .co-button:active {
     transform: none;
+  }
+
+  /* O prato troca as cores de uma vez, com um esmaecer, sem a onda nem a
+   * mola; o aviso esmaece em vez de subir (a identidade, ADR-025). */
+  .co-root .co-plate__cell,
+  .co-root .co-toast[data-open="true"] {
+    animation-name: co-esmaecer !important;
+    animation-duration: var(--co-duration-reduced) !important;
+    animation-timing-function: var(--co-ease-settle) !important;
+    animation-delay: 0s !important;
+  }
+
+  /* O esqueleto fica parado. Sem isto, o corte geral de 0,01ms faria as seis
+   * meias-voltas piscarem de uma vez. */
+  .co-root .co-skeleton__item {
+    animation-name: none !important;
   }
 }

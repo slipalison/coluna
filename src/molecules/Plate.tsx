@@ -1,0 +1,223 @@
+import { Legend } from "./Legend";
+
+/**
+ * Os grupos do prato, os papéis do alimento da identidade (design/identidade.md):
+ * proteína, carboidrato, hortaliça, fruta, laticínio e gordura. O tempero não
+ * entra no prato. É um enum, e não uma cor: a proteína tem a mesma cor em toda
+ * tela do aplicativo, e quem consome não escolhe o tom.
+ */
+export type PlateGroup = "protein" | "carb" | "veg" | "fruit" | "dairy" | "fat";
+
+export interface PlateSlice {
+  group: PlateGroup;
+  /**
+   * A fatia do prato, de 0 a 1, já calculada por quem consome (a fração do
+   * alvo da refeição que este grupo ocupa). O prato não faz conta de
+   * nutrição: só desenha.
+   */
+  fraction: number;
+  /** O nome e os gramas, escritos: "Frango · 150 g". É o texto, e não a cor, que carrega a informação. */
+  label: string;
+}
+
+export interface PlateProps {
+  /** A composição pronta, na ordem em que as fatias se seguem no prato, do topo, no sentido do relógio. */
+  slices: readonly PlateSlice[];
+  /**
+   * `sm` é o prato mini, do cartão de receita e do painel do editor; `lg` é o
+   * grande, da receita aberta.
+   */
+  size?: "sm" | "lg";
+  /**
+   * A receita passou do alvo. O aro do prato fica tracejado, na cor de
+   * atenção; o número que diz quanto passou é do app, em texto, ao lado — o
+   * aro sozinho não diz nada a quem não vê a cor (ADR-005).
+   */
+  over?: boolean;
+  /** O nome da legenda para o leitor de tela. */
+  label?: string;
+  className?: string | undefined;
+}
+
+// ------------------------------------------------------------ a geometria --
+
+/** Os anéis em volta da célula do meio: 3 anéis, 37 células (1 + 6 + 12 + 18). */
+const ANEIS = 3;
+/** O raio de uma célula (do centro ao vértice), na unidade do viewBox. */
+const RAIO = 10;
+/** A célula desenhada é menor que a casa dela: o vão entre as duas é a fissura. */
+const DESENHO = 0.88;
+
+export interface PlateCell {
+  /** A distância, em anéis, até a célula do meio: a onda anda por ela. */
+  ring: number;
+  x: number;
+  y: number;
+  /** O ângulo em volta do meio, do topo, no sentido do relógio, em graus. */
+  angle: number;
+}
+
+const arredondar = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * As células do prato, em coordenadas axiais de hexágono de topo chato, na
+ * ordem em que o prato se enche: o meio primeiro, depois cada uma pelo ângulo
+ * em volta do meio, a partir do topo, no sentido do relógio. Encher nessa
+ * ordem faz cada grupo virar um setor contínuo, como a fatia de um prato, e a
+ * parte vazia ficar junta no fim — o prato "se completa" quando fecha o alvo.
+ */
+function celulas(): PlateCell[] {
+  const todas: PlateCell[] = [];
+  for (let q = -ANEIS; q <= ANEIS; q++) {
+    for (let r = Math.max(-ANEIS, -q - ANEIS); r <= Math.min(ANEIS, -q + ANEIS); r++) {
+      const x = RAIO * 1.5 * q;
+      const y = RAIO * Math.sqrt(3) * (r + q / 2);
+      const ring = Math.max(Math.abs(q), Math.abs(r), Math.abs(-q - r));
+      // atan2 a partir do topo, no sentido do relógio (y cresce para baixo).
+      const angle = ring === 0 ? -1 : (Math.atan2(x, -y) * 180) / Math.PI;
+      todas.push({ ring, x: arredondar(x), y: arredondar(y), angle: angle < 0 && ring > 0 ? angle + 360 : angle });
+    }
+  }
+  return todas.sort((a, b) => a.angle - b.angle || a.ring - b.ring);
+}
+
+export const PLATE_CELLS: readonly PlateCell[] = celulas();
+
+/** Os seis vértices de uma célula de topo chato em volta de (x, y). */
+function hexagono(x: number, y: number, raio: number): string {
+  return Array.from({ length: 6 }, (_, k) => {
+    const a = (Math.PI / 3) * k;
+    return `${arredondar(x + raio * Math.cos(a))},${arredondar(y + raio * Math.sin(a))}`;
+  }).join(" ");
+}
+
+const PONTOS = PLATE_CELLS.map((c) => hexagono(c.x, c.y, RAIO * DESENHO));
+/** O aro: um círculo que passa por fora da última fileira, com folga. */
+const ARO = RAIO * (ANEIS * 2 + 0.6);
+const LADO = ARO + 4;
+const CAIXA = `${-LADO} ${-LADO} ${LADO * 2} ${LADO * 2}`;
+
+/**
+ * Quantas células cada fatia pinta, pelo maior resto: a soma das frações vira
+ * a parte cheia do prato (grampeada em 1), e cada fatia maior que zero pinta
+ * pelo menos uma célula, para nenhum grupo da legenda sumir do desenho. É
+ * desenho, e não conta de nutrição: a fração chega pronta.
+ */
+export function plateCounts(slices: readonly Pick<PlateSlice, "fraction">[], total = PLATE_CELLS.length): number[] {
+  const fracoes = slices.map((s) => (Number.isFinite(s.fraction) ? Math.max(0, s.fraction) : 0));
+  const soma = fracoes.reduce((a, b) => a + b, 0);
+  if (soma === 0) return fracoes.map(() => 0);
+  const cheias = Math.round(Math.min(1, soma) * total);
+  const exatas = fracoes.map((f) => (f / soma) * cheias);
+  const contas = exatas.map(Math.floor);
+  const ordem = exatas.map((e, i) => [e - Math.floor(e), i] as const).sort((a, b) => b[0] - a[0] || a[1] - b[1]);
+  let falta = cheias - contas.reduce((a, b) => a + b, 0);
+  for (const [, i] of ordem) {
+    if (falta <= 0) break;
+    contas[i] = (contas[i] ?? 0) + 1;
+    falta--;
+  }
+  // A fatia pequena demais para uma célula ganha uma, tirada da maior.
+  fracoes.forEach((f, i) => {
+    if (f > 0 && contas[i] === 0) {
+      const maior = contas.indexOf(Math.max(...contas));
+      if ((contas[maior] ?? 0) > 1) {
+        contas[maior] = (contas[maior] ?? 0) - 1;
+        contas[i] = 1;
+      }
+    }
+  });
+  return contas;
+}
+
+/** O grupo de cada célula, na ordem de `PLATE_CELLS`; `undefined` é célula vazia. */
+export function plateFill(slices: readonly PlateSlice[]): (PlateGroup | undefined)[] {
+  const contas = plateCounts(slices);
+  const grupos: (PlateGroup | undefined)[] = [];
+  slices.forEach((s, i) => {
+    for (let k = 0; k < (contas[i] ?? 0); k++) grupos.push(s.group);
+  });
+  return PLATE_CELLS.map((_, i) => grupos[i]);
+}
+
+export interface PlateArtProps {
+  slices: readonly PlateSlice[];
+  size?: "sm" | "lg";
+  over?: boolean;
+  /** O esqueleto: as células todas vazias, e elas pulsam enquanto carrega. */
+  skeleton?: boolean;
+  className?: string | undefined;
+}
+
+/**
+ * Só o desenho, sem a legenda: o `Plate`, o `RecipeCard` e o `Skeleton` o
+ * usam, e nenhum deles o mostra sem o texto que ele ilustra. Não é exportado
+ * pelo pacote: um prato sem legenda seria cor sozinha.
+ *
+ * Cada célula é um `<polygon>` com a chave da posição E do grupo: quando a
+ * composição muda, só as células que trocam de grupo nascem de novo, e a
+ * animação de entrada delas, atrasada pelo anel (`data-ring`), faz a onda do
+ * centro para a borda. Nada de atributo `style`: o atraso é uma regra da folha
+ * por anel, e a CSP do app continua de pé (ADR-024, ADR-025).
+ */
+export function PlateArt({ slices, size = "lg", over = false, skeleton = false, className }: PlateArtProps) {
+  const grupos = skeleton ? PLATE_CELLS.map(() => undefined) : plateFill(slices);
+  const classe = className ? `co-plate__art ${className}` : "co-plate__art";
+  return (
+    <svg
+      className={classe}
+      data-size={size}
+      data-over={over ? "true" : undefined}
+      data-skeleton={skeleton ? "true" : undefined}
+      viewBox={CAIXA}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <circle className="co-plate__rim" cx="0" cy="0" r={ARO} />
+      {PLATE_CELLS.map((celula, i) => {
+        const grupo = grupos[i];
+        return (
+          <polygon
+            key={`${i}:${grupo ?? "vazia"}`}
+            className="co-plate__cell"
+            data-ring={celula.ring}
+            data-group={grupo}
+            points={PONTOS[i]}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+/**
+ * O prato de colunas: a imagem de toda receita, nunca uma foto.
+ *
+ * Um mosaico de 37 colunas hexagonais, vistas de cima, que se completa
+ * exatamente quando a receita fecha o alvo da refeição. Cada célula tem a cor
+ * do grupo do alimento, com a mesma luminosidade em todos os grupos, para
+ * nenhum gritar mais que o outro.
+ *
+ * A cor nunca é o único sinal (ADR-005): a legenda, com o nome e os gramas de
+ * cada fatia, vem SEMPRE junto, em texto. Por isso o desenho sai `aria-hidden`
+ * — quem não vê a cor lê a legenda, que é uma lista com nome.
+ *
+ * O prato recebe a composição pronta e não calcula nada: a fração de cada
+ * grupo vem de quem consome. Quando ela muda, as células que trocam de cor
+ * entram numa onda do centro para a borda, 12 ms por anel
+ * (`--co-duration-wave`); com `prefers-reduced-motion`, elas trocam todas de
+ * uma vez, com um esmaecer.
+ */
+export function Plate({ slices, size = "lg", over = false, label = "Composição do prato", className }: PlateProps) {
+  const classe = className ? `co-plate ${className}` : "co-plate";
+  return (
+    <div className={classe} data-size={size}>
+      <PlateArt slices={slices} size={size} over={over} />
+      <Legend
+        className="co-plate__legend"
+        label={label}
+        items={slices.map((s) => ({ label: s.label, tone: s.group, swatch: "hex" as const }))}
+      />
+    </div>
+  );
+}

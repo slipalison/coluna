@@ -158,6 +158,42 @@ const MONTAGENS: Record<string, () => ReactNode> = {
       A meta foi ajustada.
     </coluna.Notice>
   ),
+  Plate: () => (
+    <coluna.Plate
+      over
+      slices={[
+        { group: "protein", fraction: 0.4, label: "Frango · 150 g" },
+        { group: "carb", fraction: 0.35, label: "Arroz · 120 g" },
+        { group: "veg", fraction: 0.3, label: "Brócolis · 80 g" },
+      ]}
+    />
+  ),
+  RecipeCard: () => (
+    <coluna.RecipeCard
+      title="Frango com arroz"
+      href="#receita"
+      kcal="520"
+      time="35 min"
+      origin="À mão"
+      slices={[
+        { group: "protein", fraction: 0.5, label: "Frango · 150 g" },
+        { group: "carb", fraction: 0.5, label: "Arroz · 120 g" },
+      ]}
+    />
+  ),
+  Skeleton: () => <coluna.Skeleton label="Carregando receitas" count={3} />,
+  Toast: () => (
+    <coluna.Toast
+      open
+      message="Almoço marcado como feito"
+      actionLabel="Desfazer"
+      onAction={nada}
+      onClose={nada}
+      duration={6000}
+      maxDuration={30000}
+      tone="warn"
+    />
+  ),
   PageHeader: () => <coluna.PageHeader title="Livro" subtitle="12 receitas" />,
   Pager: () => (
     <coluna.Pager label="Dia" current="Hoje" previousLabel="Ontem" nextLabel="Amanhã" onPrevious={nada} onNext={nada} />
