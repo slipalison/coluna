@@ -23,6 +23,7 @@ import {
   soEstesMexemNoPadding,
   soOsTokensDeclaram,
   BARRA_DE_ACAO,
+  RECUO_COM_AVISO,
 } from "./test/folha";
 
 /**
@@ -409,6 +410,8 @@ it("a altura da faixa do relógio é pública e declarada só no :root, a partir
       "scroll-padding-top",
       "--co-actionbar-height",
       "scroll-padding-bottom",
+      // O aviso aberto soma a altura dele ao recuo de baixo (ADR-025, adendo).
+      "--co-toast-reserve",
     ],
   ]);
 
@@ -632,6 +635,8 @@ it("só a faixa, o recuo da rolagem e a folha de altura cheia leem a altura dela
       `${BARRA_DE_ACAO.recuoComAbas} scroll-padding-bottom`,
       `${BARRA_DE_ACAO.recuo} scroll-padding-bottom`,
       `${BARRA_DE_ACAO.recuoComAmbas} scroll-padding-bottom`,
+      // E o recuo com o aviso aberto, que soma a altura dele (ADR-025, adendo).
+      ...Object.values(RECUO_COM_AVISO).map((recuo) => `${recuo} scroll-padding-bottom`),
       // Desde o cartão #182, o aviso passageiro (ADR-025): ele flutua dentro
       // da área segura, e acima das abas e da barra de ação pelo mesmo termo
       // `max(...)` delas.
@@ -683,6 +688,7 @@ it("o foco do teclado não fica atrás da faixa: o :root recua a rolagem pela al
     BARRA_DE_ACAO.recuoComAbas,
     BARRA_DE_ACAO.recuo,
     BARRA_DE_ACAO.recuoComAmbas,
+    ...Object.values(RECUO_COM_AVISO),
   ]);
 
   // O MESMO texto da altura da faixa: lê a propriedade que sobrevive ao zero

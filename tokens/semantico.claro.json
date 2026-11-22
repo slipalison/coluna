@@ -122,28 +122,28 @@
     },
     "role-protein": {
       "$type": "other",
-      "$value": "oklch(0.70 0.13 25)",
-      "$description": "Os papeis do alimento (prato, macro, legenda): mesma luminosidade e croma por tema, nenhum grita mais que o outro. Sempre com nome e quantidade ao lado (ADR-005)."
+      "$value": "oklch(0.63 0.13 25)",
+      "$description": "Os papeis do alimento (prato, macro, legenda): o matiz e o croma da identidade, e luminancias distintas entre os seis (do mais claro ao mais escuro: carb, dairy, veg, protein, fruit, fat), para um setor nao se fundir ao vizinho em cinza (ADR-025, adendo). Sempre com nome e quantidade ao lado (ADR-005)."
     },
     "role-carb": {
       "$type": "other",
-      "$value": "oklch(0.76 0.13 80)"
+      "$value": "oklch(0.82 0.13 80)"
     },
     "role-veg": {
       "$type": "other",
-      "$value": "oklch(0.70 0.13 150)"
+      "$value": "oklch(0.67 0.13 150)"
     },
     "role-fruit": {
       "$type": "other",
-      "$value": "oklch(0.70 0.13 350)"
+      "$value": "oklch(0.58 0.13 350)"
     },
     "role-dairy": {
       "$type": "other",
-      "$value": "oklch(0.70 0.104 240)"
+      "$value": "oklch(0.74 0.104 240)"
     },
     "role-fat": {
       "$type": "other",
-      "$value": "oklch(0.70 0.13 300)"
+      "$value": "oklch(0.51 0.13 300)"
     },
     "grain-opacity": {
       "$type": "other",

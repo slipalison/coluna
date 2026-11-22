@@ -450,6 +450,20 @@ export const BARRA_DE_ACAO = {
 } as const;
 
 /**
+ * O recuo de baixo da rolagem com o aviso passageiro aberto e fixo (ADR-025,
+ * adendo): a condição de cada caso das barras mais o aviso (dois `:has()`, que
+ * pesam mais que a de uma só), e o aviso sozinho. É o que o `Toast` soma ao
+ * recuo das barras para o foco não parar atrás dele (WCAG 2.2, 2.4.11).
+ */
+const AVISO_ABERTO = '.co-toast[data-open="true"]:not([data-position])';
+export const RECUO_COM_AVISO = {
+  sozinho: `:root:has(${AVISO_ABERTO})`,
+  comAbas: `${BARRA_DE_ACAO.recuoComAbas}:has(${AVISO_ABERTO})`,
+  comBarra: `${BARRA_DE_ACAO.recuo}:has(${AVISO_ABERTO})`,
+  comAmbas: `${BARRA_DE_ACAO.recuoComAmbas}:has(${AVISO_ABERTO})`,
+} as const;
+
+/**
  * A trava de toque além da barra de ação (ADR-013, adendo 1.8.2), na forma
  * normalizada da leitura acima. Três regras armam, nesta ordem na folha: a dos
  * controles da barra (`barra`, a da 1.8.1), a da camada da folha `overlay`

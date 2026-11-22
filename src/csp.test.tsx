@@ -161,6 +161,7 @@ const MONTAGENS: Record<string, () => ReactNode> = {
   Plate: () => (
     <coluna.Plate
       over
+      summary="Passou 40 kcal do alvo do almoço"
       slices={[
         { group: "protein", fraction: 0.4, label: "Frango · 150 g" },
         { group: "carb", fraction: 0.35, label: "Arroz · 120 g" },
@@ -172,6 +173,7 @@ const MONTAGENS: Record<string, () => ReactNode> = {
     <coluna.RecipeCard
       title="Frango com arroz"
       href="#receita"
+      summary="Fecha 100% do alvo do almoço"
       kcal="520"
       time="35 min"
       origin="À mão"

@@ -28,14 +28,16 @@ export interface ToastProps {
   duration: number;
   /**
    * O teto, em ms, contado desde que abriu, com ou sem pausa: passou dele, o
-   * aviso fecha mesmo com o foco dentro (e o foco volta). Também é de quem usa,
-   * e precisa ser maior que `duration`.
+   * aviso fecha — menos com o FOCO dentro. Quem está com o foco no "Desfazer"
+   * pelo teclado ou pelo leitor de tela não perde a ação por demorar (WCAG
+   * 2.2.1): o teto fica de pé e o aviso fecha quando o foco sai. O ponteiro em
+   * cima não segura o teto: quem usa o mouse sai de cima quando quiser.
+   * Também é de quem usa, e PRECISA ser maior que `duration`: a API recusa
+   * (`RangeError`) um teto menor ou igual, que anularia a pausa.
    *
-   * O teto vence a pausa: quem chega ao "Desfazer" pelo teclado ou pelo leitor
-   * de tela e demora perde o aviso. Por isso ele deve ser folgado (dezenas de
-   * segundos), e a ação que o aviso oferece tem de existir também fora dele
-   * (a refeição feita se desmarca, a receita apagada volta da lixeira) — o
-   * aviso é o atalho, nunca o único caminho.
+   * A ação que o aviso oferece deve existir também fora dele (a refeição feita
+   * se desmarca, a receita apagada volta da lixeira) — o aviso é o atalho,
+   * nunca o único caminho.
    */
   maxDuration: number;
   /** `warn` para o que deu errado e não bloqueia ("Não deu para trocar agora"): ícone de atenção junto do texto. */
@@ -57,6 +59,15 @@ export interface ToastProps {
 }
 
 /**
+ * A tecla que leva o foco ao aviso aberto, de qualquer lugar da página: o aviso
+ * fixo não é a próxima parada do Tab (ele mora onde foi montado no documento), e
+ * os segundos de `duration` correriam enquanto a pessoa tabula até lá. Alt+N, e
+ * não F6 (o navegador toma o F6 para a barra de endereço). O anúncio do aviso diz
+ * a tecla.
+ */
+export const TOAST_FOCUS_SHORTCUT = "Alt+N";
+
+/**
  * O aviso passageiro, com uma ação: "Desfazer".
  *
  * - ANUNCIA POR REGIÃO VIVA. A região (`role="status"`, educada) existe sempre,
@@ -64,15 +75,16 @@ export interface ToastProps {
  *   com o texto o leitor de tela pode não ler. Fechado, ela fica vazia e não
  *   ocupa espaço. O anúncio diz também que há uma ação ("Ação no aviso:
  *   Desfazer"), que senão só quem vê ficaria sabendo.
- * - NÃO ROUBA O FOCO. Quem estava digitando continua digitando; o aviso é a
- *   próxima parada do Tab depois de onde ele está no documento, e o Esc o
- *   dispensa.
+ * - NÃO ROUBA O FOCO. Quem estava digitando continua digitando. Quem quer a
+ *   ação aperta Alt+N (`TOAST_FOCUS_SHORTCUT`), de qualquer lugar, e o foco
+ *   vai ao aviso; o Esc, com o foco dentro, o dispensa.
  * - DEVOLVE O FOCO. Fechou com o foco dentro (a ação, o ×, o Esc, o teto), o
  *   foco volta para `returnFocus` ou para onde estava antes de entrar — nunca
  *   cai no `<body>` com o botão que sumiu.
  * - SOME NO TEMPO DE QUEM USA, E PAUSA. `duration` só conta enquanto o aviso não
  *   tem foco nem ponteiro (WCAG 2.2.1); `maxDuration` é o teto, contado desde
- *   que abriu, também dado por quem usa.
+ *   que abriu, também dado por quem usa — e que espera o foco sair, se ele
+ *   estiver dentro.
  *
  * Nada de estilo injetado: a entrada é uma classe com `@keyframes`, e com
  * `prefers-reduced-motion` ela esmaece em vez de subir (ADR-025).
@@ -91,9 +103,16 @@ export function Toast({
   position = "fixed",
   className,
 }: ToastProps) {
+  if (!(maxDuration > duration)) {
+    throw new RangeError(
+      `Toast: maxDuration (${maxDuration} ms) precisa ser maior que duration (${duration} ms); um teto menor ou igual anula a pausa.`,
+    );
+  }
   const caixa = useRef<HTMLDivElement>(null);
   const origem = useRef<HTMLElement | null>(null);
   const focoDentro = useRef(false);
+  /** O teto passou com o foco dentro: o aviso espera o foco sair para fechar. */
+  const tetoVencido = useRef(false);
   const ponteiroDentro = useRef(false);
   const restante = useRef(duration);
   const inicio = useRef(0);
@@ -137,14 +156,34 @@ export function Toast({
   useEffect(() => {
     if (!open) return;
     restante.current = duration;
+    tetoVencido.current = false;
     contar();
-    const teto = setTimeout(() => fechar("timeout"), Math.max(maxDuration, duration));
+    // O foco dentro segura o teto: quem está no "Desfazer" não o perde por demorar.
+    const teto = setTimeout(() => {
+      if (focoDentro.current) tetoVencido.current = true;
+      else fechar("timeout");
+    }, maxDuration);
     return () => {
       clearTimeout(teto);
       if (relogio.current !== undefined) clearTimeout(relogio.current);
       relogio.current = undefined;
     };
   }, [open, duration, maxDuration, contar, fechar]);
+
+  // O atalho: de qualquer lugar da página, leva o foco ao aviso aberto. O foco
+  // entra pelo `onFocus` da caixa, que guarda de onde veio para devolver.
+  useEffect(() => {
+    if (!open) return;
+    const ouvir = (evento: KeyboardEvent) => {
+      if (!evento.altKey || evento.ctrlKey || evento.metaKey || evento.shiftKey || evento.code !== "KeyN") return;
+      const alvo = caixa.current?.querySelector<HTMLElement>(".co-toast__action, .co-toast__close");
+      if (!alvo) return;
+      evento.preventDefault();
+      alvo.focus();
+    };
+    document.addEventListener("keydown", ouvir);
+    return () => document.removeEventListener("keydown", ouvir);
+  }, [open]);
 
   // Fechou por fora (quem consome pôs `open` em false) com o foco dentro: devolve.
   useLayoutEffect(() => {
@@ -174,7 +213,10 @@ export function Toast({
         const para = evento.relatedTarget;
         if (para instanceof Node && caixa.current?.contains(para)) return;
         focoDentro.current = false;
-        if (open) contar();
+        if (!open) return;
+        // O teto passou enquanto o foco estava dentro: sai o foco, fecha o aviso.
+        if (tetoVencido.current) fechar("timeout");
+        else contar();
       }}
       onPointerEnter={() => {
         ponteiroDentro.current = true;
@@ -200,7 +242,9 @@ export function Toast({
         {open ? (
           <Text as="span" variant="body">
             {message}
-            {actionLabel ? <VisuallyHidden>{`. Ação no aviso: ${actionLabel}.`}</VisuallyHidden> : null}
+            {actionLabel ? (
+              <VisuallyHidden>{`. Ação no aviso: ${actionLabel}. ${TOAST_FOCUS_SHORTCUT} leva o foco ao aviso.`}</VisuallyHidden>
+            ) : null}
           </Text>
         ) : null}
       </div>

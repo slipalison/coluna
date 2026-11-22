@@ -87,3 +87,44 @@ faria as meias-voltas piscarem.
 - `.claude/rules/ux.md` §3 perde a linha do aviso com "Desfazer" (#61) e o `Skeleton` da linha do #64; o campo de
   data continua dívida do #64.
 - O número que rola e o vidro do menu continuam fora (F4).
+
+## Adendo (2026-11-22) — a revisão de UX do PR da Coluna (slipalison/coluna#22)
+
+A revisão independente mediu quatro defeitos de piso, todos BLOCK, e o PR os conserta (cada um com o teste que reprova
+o código de antes):
+
+1. **`Toast`: o teto não fecha o aviso com o foco dentro.** A decisão da §3 dizia que o teto vencia a pausa, e quem
+   chegava ao "Desfazer" pelo teclado e demorava perdia a ação (WCAG 2.2.1). Agora o teto só fecha sem foco dentro;
+   com o foco dentro, ele espera o foco sair e fecha com `timeout`. O ponteiro em cima continua sem segurar o teto. A
+   API recusa (`RangeError`) `maxDuration` menor ou igual a `duration`, que anulava a pausa. E como o aviso fixo não é
+   a próxima parada do Tab, **Alt+N** (`TOAST_FOCUS_SHORTCUT`) leva o foco ao aviso aberto, de qualquer lugar, e o
+   anúncio diz a tecla. (F6 não: o navegador o toma.)
+2. **`Toast` fixo cobre o item focado (WCAG 2.4.11).** O aviso aberto soma ao `scroll-padding-bottom` do `:root` o
+   `bottom` dele em cada caso (sem barras, com as abas, com a barra de ação, com as duas) mais `--co-toast-reserve`
+   (a borda, o respiro e três linhas de corpo) e um respiro. São quatro regras `:root:has(A):has(aviso)`, que pesam
+   mais que as das barras sozinhas, para somar em vez de trocar.
+3. **`Plate` e o cartão: quanto falta para o alvo em texto.** `summary` é obrigatório no `Plate` e no `RecipeCard`
+   ("Fecha 90% do alvo do almoço", "Falta 10% para o alvo", "Passou 40 kcal do alvo"): escrito por quem consome, visível
+   junto da legenda e lido pelo leitor de tela, como o "Passou 40 kcal do alvo" de antes. O prato continua sem calcular
+   nada. A célula vazia ganha o contorno de `--co-control` (3:1 sobre `bg`, `surface` e `surface-2`), com
+   `vector-effect: non-scaling-stroke`, e não só o trilho `surface-3`, que mede 1,2:1 contra o fundo.
+4. **Os seis grupos do prato têm luminâncias distintas.** O ADR-022 §3 pedia "a mesma luminosidade"; a regra de UX da
+   Coluna pede o contrário ("luminâncias distintas"; o caso histórico era proteína × gordura em 1,03:1), e o piso
+   vence. Só a luminosidade OKLCH dos seis tokens muda, com o matiz e o croma da identidade, nos dois temas: do mais
+   claro ao mais escuro, carboidrato, laticínio, hortaliça, proteína, fruta e gordura. Piso medido na luminância
+   relativa do WCAG, nos dois jeitos de voltar ao sRGB: todo par ≥ 1,2:1 e os vizinhos na ordem do prato (proteína,
+   carboidrato, hortaliça, fruta, laticínio, gordura) ≥ 1,5:1. Por isso a distância da tinta de ação cai de 0,2 para
+   0,1 em luminância: o piso entre os seis não cabe numa faixa tão estreita. Nenhum texto mora sobre a cor de um
+   grupo (a legenda, o `Dot` e a `MacroBar` põem o nome ao lado, em tinta), então o contraste de texto não muda; a borda
+   que a mudança afeta é a da célula vazia, no item 3.
+
+Valores (OKLCH L, matiz e croma intactos):
+
+| grupo | claro, antes → depois | escuro, antes → depois |
+|---|---|---|
+| `role-protein` | 0,70 → 0,63 | 0,68 → 0,69 |
+| `role-carb` | 0,76 → 0,82 | 0,74 → 0,88 |
+| `role-veg` | 0,70 → 0,67 | 0,68 → 0,72 |
+| `role-fruit` | 0,70 → 0,58 | 0,68 → 0,63 |
+| `role-dairy` | 0,70 → 0,74 | 0,68 → 0,80 |
+| `role-fat` | 0,70 → 0,51 | 0,68 → 0,57 |

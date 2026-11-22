@@ -205,6 +205,12 @@
    * nenhuma vale 0; com elas, as regras `:root:has(...)` da tela trocam este
    * zero pelo mesmo termo da reserva (ADR-013). */
   scroll-padding-bottom: 0px;
+  /* A altura que o aviso aberto (`Toast`, fixo) pode ocupar, para o recuo de
+   * baixo da rolagem: a borda, o respiro e uma mensagem de até TRÊS linhas de
+   * corpo (o botão de 44px cabe nelas). Um token, e não a medida do aviso
+   * montado, pelo mesmo motivo de `--co-actionbar-height`. Declarada SÓ aqui. */
+  --co-toast-reserve: calc(var(--co-border-width) * 2 + var(--co-space-4) * 2 + var(--co-space-8) * 2
+    + var(--co-text-17) * var(--co-leading-normal) * 3);
 }
 
 /* ----------------------------------------------------------------- tela --- */
@@ -3173,10 +3179,16 @@ fieldset.co-nav-list {
 
 .co-plate[data-size="sm"] { gap: var(--co-space-8) var(--co-space-12); }
 
-.co-plate__legend {
+/* O texto do prato: o resumo de quanto fecha do alvo e a legenda, em coluna. */
+.co-plate__text {
+  display: flex;
   flex: 1 1 10rem;
+  flex-direction: column;
+  gap: var(--co-space-4);
   min-width: 0;
 }
+
+.co-plate__legend { min-width: 0; }
 
 /* No grande, a legenda é uma coluna: um grupo por linha, lido de cima a baixo
  * ao lado do prato. */
@@ -3221,6 +3233,18 @@ fieldset.co-nav-list {
   transform-box: fill-box;
   transform-origin: center;
   animation: co-plate-celula var(--co-duration-base) var(--co-ease-spring) backwards;
+}
+
+/*
+ * A célula vazia diz quanto falta para o alvo, e por isso se vê: o contorno é o
+ * limite de controle (3:1 sobre a superfície, nos dois temas), e não só o
+ * trilho `surface-3`, que mede 1,2:1 contra o fundo. O traço não escala com o
+ * prato, para o mini não virar um borrão (WCAG 1.4.11).
+ */
+.co-plate__cell:not([data-group]) {
+  stroke: var(--co-control);
+  stroke-width: var(--co-control-width);
+  vector-effect: non-scaling-stroke;
 }
 
 .co-plate__cell[data-group="protein"] { fill: var(--co-role-protein); }
@@ -3357,6 +3381,40 @@ fieldset.co-nav-list {
   bottom: calc(73px - var(--co-space-10)
     + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8)))
     + var(--co-actionbar-height) + var(--co-space-8));
+}
+
+/*
+ * O aviso passageiro aberto e fixo (`Toast`) cobre o rodapé da janela, e o foco
+ * do teclado não pode parar atrás dele (WCAG 2.2, 2.4.11): o recuo de baixo da
+ * rolagem soma a altura reservada do aviso (`--co-toast-reserve`) e um respiro
+ * ao `bottom` DELE — o MESMO texto da regra do aviso em cada caso (abaixo, em
+ * "aviso passageiro") —, e a condição é a mesma das barras mais o aviso aberto.
+ * Cada caso vem depois dos de uma só condição e pesa mais que eles na cascata
+ * (dois `:has()`), então o aviso sobe o recuo das barras em vez de trocá-lo.
+ * Sem aviso aberto, nada disto vale.
+ */
+:root:has(.co-toast[data-open="true"]:not([data-position])) {
+  scroll-padding-bottom: calc(max(var(--co-space-16), calc(var(--co-safe-bottom) + var(--co-space-8)))
+    + var(--co-toast-reserve) + var(--co-space-8));
+}
+
+:root:has(.co-screen[data-tabbar="true"]):has(.co-toast[data-open="true"]:not([data-position])) {
+  scroll-padding-bottom: calc(73px - var(--co-space-10)
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8))) + var(--co-space-8)
+    + var(--co-toast-reserve) + var(--co-space-8));
+}
+
+:root:has(.co-screen[data-actionbar="true"] > .co-screen__actionbar :not(:empty)):has(.co-toast[data-open="true"]:not([data-position])) {
+  scroll-padding-bottom: calc(var(--co-actionbar-height) - var(--co-space-10)
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8))) + var(--co-space-8)
+    + var(--co-toast-reserve) + var(--co-space-8));
+}
+
+:root:has(.co-screen[data-tabbar="true"][data-actionbar="true"] > .co-screen__actionbar :not(:empty)):has(.co-toast[data-open="true"]:not([data-position])) {
+  scroll-padding-bottom: calc(73px - var(--co-space-10)
+    + max(var(--co-space-10), calc(var(--co-safe-bottom) + var(--co-space-8)))
+    + var(--co-actionbar-height) + var(--co-space-8)
+    + var(--co-toast-reserve) + var(--co-space-8));
 }
 
 .co-toast[data-open="true"] {

@@ -10,8 +10,10 @@ import { Toast } from "./Toast";
  *
  * Anuncia por região viva (que existe antes da mensagem), não rouba o foco,
  * some no tempo dado por quem usa e **pausa** enquanto tiver o foco ou o
- * ponteiro, até um teto também dado por quem usa. Fechou com o foco dentro, o
- * foco volta para onde estava. O Esc dispensa.
+ * ponteiro, até um teto também dado por quem usa (maior que o tempo, ou a API
+ * recusa). Com o foco dentro, o teto não fecha o aviso: ele espera o foco sair.
+ * **Alt+N** leva o foco ao aviso aberto, de qualquer lugar. Fechou com o foco
+ * dentro, o foco volta para onde estava. O Esc dispensa.
  *
  * Nas histórias ele fica no fluxo (`position="static"`); no app, preso
  * embaixo, acima das abas e da barra de ação.
@@ -53,9 +55,9 @@ export const MensagemLonga: Story = {
 };
 
 /**
- * De verdade: marque feita, e o aviso aparece por 6 s. Passe o ponteiro ou
- * leve o foco (Tab) até ele, e o tempo para; o teto é de 30 s. Desfazer
- * devolve o foco a "Marcar feita".
+ * De verdade: marque feita, e o aviso aparece por 6 s. Passe o ponteiro, leve
+ * o foco (Alt+N) até ele, e o tempo para; o teto é de 30 s, e com o foco no
+ * aviso ele espera o foco sair. Desfazer devolve o foco a "Marcar feita".
  */
 export const DeVerdade: Story = {
   name: "De verdade",

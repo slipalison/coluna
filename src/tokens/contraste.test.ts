@@ -484,31 +484,113 @@ describe.each(TEMAS)("a cor da hora no tema %s, o dia inteiro", (_nome, tema) =>
 
 // ------------------------------------------------- os papéis do alimento --
 
+/**
+ * Os seis grupos do prato, na ordem em que o app os escreve (a ordem do `Plate`:
+ * proteína, carboidrato, hortaliça, fruta, laticínio, gordura). Vizinho nesta
+ * ordem é setor vizinho no prato.
+ */
+const PAPEIS = ["role-protein", "role-carb", "role-veg", "role-fruit", "role-dairy", "role-fat"] as const;
+
+/**
+ * "Luminâncias distintas" (`.claude/rules/ux.md` §1, linha Cor; Lei da
+ * Similaridade): em cinza, ou para quem não distingue o matiz, um setor não se
+ * funde ao vizinho. O piso é medido na luminância relativa do WCAG: QUALQUER par
+ * de grupos passa de 1,2:1, e os vizinhos na ordem do prato, de 1,5:1. A
+ * identidade pedia o contrário (a mesma luminosidade, o caso histórico de
+ * proteína × gordura em 1,03:1), e o piso vence (ADR-025, adendo).
+ */
+const PISO_ENTRE_GRUPOS = 1.2;
+const PISO_ENTRE_VIZINHOS = 1.5;
+
+/** A razão de luminância entre cada par de luminâncias, com o par que a deu. */
+function razoesDosPares(luminancias: readonly number[], nomes: readonly string[]) {
+  const pares: { par: string; vizinhos: boolean; razao: number }[] = [];
+  for (let a = 0; a < luminancias.length; a += 1) {
+    for (let b = a + 1; b < luminancias.length; b += 1) {
+      const [maior, menor] = [Math.max(luminancias[a] ?? 0, luminancias[b] ?? 0), Math.min(luminancias[a] ?? 0, luminancias[b] ?? 0)];
+      pares.push({ par: `${nomes[a]} × ${nomes[b]}`, vizinhos: b === a + 1, razao: (maior + 0.05) / (menor + 0.05) });
+    }
+  }
+  return pares;
+}
+
+/** Os pares que ficam abaixo do piso, em texto: vazio é o que se quer. */
+function paresAbaixoDoPiso(luminancias: readonly number[], nomes: readonly string[]) {
+  return razoesDosPares(luminancias, nomes)
+    .filter(({ vizinhos, razao }) => razao < (vizinhos ? PISO_ENTRE_VIZINHOS : PISO_ENTRE_GRUPOS))
+    .map(({ par, vizinhos, razao }) => `${par}${vizinhos ? " (vizinhos)" : ""} deu ${razao.toFixed(2)}:1`);
+}
+
+describe("a isca: os seis grupos na mesma luminosidade reprovam", () => {
+  it("a identidade de antes (L 0,70, o carboidrato 0,76) fica abaixo do piso em quase todo par", () => {
+    // Prova que a medida morde: o conjunto que o #21 escreveu tem de reprovar.
+    const antes = ["role-protein", "role-carb", "role-veg", "role-fruit", "role-dairy", "role-fat"].map((_papel, i) =>
+      luminancia(cor(`oklch(${i === 1 ? 0.76 : 0.7} ${i === 4 ? 0.104 : 0.13} ${[25, 80, 150, 350, 240, 300][i]})`)),
+    );
+    expect(paresAbaixoDoPiso(antes, PAPEIS).length).toBeGreaterThanOrEqual(10);
+  });
+});
+
 describe.each(TEMAS)("os papéis do alimento no tema %s", (_nome, tema) => {
-  const PAPEIS = ["role-protein", "role-carb", "role-veg", "role-fruit", "role-dairy", "role-fat"] as const;
   const partes = (token: string) => {
     const casado = /^oklch\(([\d.]+) ([\d.]+) ([\d.]+)\)$/.exec(cru(tema[token]));
     if (!casado) throw new Error(`${token} não é oklch(l c h)`);
     return { l: Number(casado[1]), c: Number(casado[2]), h: Number(casado[3]) };
   };
 
-  it("têm os matizes da identidade e a mesma luminosidade (o carboidrato, +0,06), nenhum grita mais que o outro", () => {
+  it("têm os matizes da identidade, e o croma da identidade (o laticínio, ×0,8)", () => {
     expect(PAPEIS.map((papel) => partes(papel).h)).toEqual([25, 80, 150, 350, 240, 300]);
-    const base = partes("role-protein").l;
+    const croma = partes("role-protein").c;
     for (const papel of PAPEIS) {
-      expect(partes(papel).l, papel).toBeCloseTo(papel === "role-carb" ? base + 0.06 : base, 5);
+      expect(partes(papel).c, papel).toBeCloseTo(papel === "role-dairy" ? croma * 0.8 : croma, 5);
     }
   });
 
-  it("se separam da tinta de ação: nenhum papel é acromático nem tem a luminosidade da tinta", () => {
+  it("têm luminâncias distintas: todo par passa de 1,2:1 e os vizinhos do prato, de 1,5:1, nos dois jeitos de voltar ao sRGB", () => {
+    // Só a luminosidade dos tokens muda: o matiz e o croma são os do tema. Uma
+    // cor OKLCH pode cair fora do sRGB, e os navegadores a trazem de volta ou
+    // cortando o canal ou reduzindo o croma: o piso vale nos dois.
+    for (const caminho of ["cortada", "reduzida"] as const) {
+      const luz = PAPEIS.map((papel) => {
+        const { l, c, h } = partes(papel);
+        return luminancia(oklchNosDoisCaminhos(l, c, h)[caminho]);
+      });
+      expect(paresAbaixoDoPiso(luz, PAPEIS), `${caminho}, no tema ${_nome}`).toEqual([]);
+    }
+  });
+
+  it("se separam da tinta de ação: nenhum papel é acromático nem tem a luminância da tinta", () => {
     // A cor do dado nunca é o único sinal (o nome e a quantidade vão junto,
     // ADR-005), e por isso o piso de 3:1 do WCAG 1.4.11 não se aplica a ela.
     // O que se garante aqui é que ela não se confunde com a ação (a tinta) nem
-    // com o estado: croma de verdade e luminosidade longe da tinta.
+    // com o estado: croma de verdade e luminância longe da tinta. A distância
+    // era de 0,2 com os seis na mesma luminosidade; com os seis em degraus, o
+    // piso de 1,2:1 entre eles não cabe numa faixa tão estreita, e ela é 0,1.
     const tinta = luminancia(cor(cru(tema["ink"])));
     for (const papel of PAPEIS) {
       expect(partes(papel).c, papel).toBeGreaterThan(0.09);
-      expect(Math.abs(luminancia(cor(cru(tema[papel]))) - tinta), papel).toBeGreaterThan(0.2);
+      expect(Math.abs(luminancia(cor(cru(tema[papel]))) - tinta), papel).toBeGreaterThan(0.1);
     }
+  });
+});
+
+describe.each(TEMAS)("o prato, no tema %s: a célula vazia se vê", (_nome, tema) => {
+  const valor = (token: string) => cor(cru(tema[token]));
+
+  it("a célula vazia se contorna com o limite de controle, que passa em 3:1 sobre todo fundo onde o prato mora", () => {
+    // O trilho `surface-3` mede 1,2:1 contra o fundo: a parte que falta para o
+    // alvo só existia como uma mancha. O contorno é o desenho que a mostra.
+    expect(Object.fromEntries(bloco(".co-plate__cell:not([data-group])"))).toMatchObject({
+      stroke: "var(--co-control)",
+      "stroke-width": "var(--co-control-width)",
+    });
+    for (const fundo of ["bg", "surface", "surface-2"]) {
+      const r = razao(valor("control"), valor(fundo));
+      expect(r, `o contorno da célula vazia sobre ${fundo} deu ${r.toFixed(2)}:1`).toBeGreaterThanOrEqual(PISO_DESENHO);
+    }
+  });
+
+  it("a isca: o trilho sozinho, sem contorno, fica abaixo de 3:1 sobre o fundo", () => {
+    expect(razao(valor("surface-3"), valor("bg"))).toBeLessThan(PISO_DESENHO);
   });
 });

@@ -21,6 +21,7 @@ const meta = {
     kcal: "520",
     time: "35 min",
     origin: "À mão",
+    summary: "Fecha 100% do alvo do almoço",
     slices: [
       { group: "protein", fraction: 0.35, label: "Frango · 150 g" },
       { group: "carb", fraction: 0.35, label: "Arroz · 120 g" },
@@ -57,6 +58,7 @@ export const OLivro: Story = {
           kcal="320"
           time="10 min"
           origin="Com a IA"
+          summary="Falta 10% para o alvo do almoço"
           slices={[
             { group: "protein", fraction: 0.4, label: "Ovo · 100 g" },
             { group: "veg", fraction: 0.3, label: "Espinafre · 60 g" },
@@ -69,6 +71,7 @@ export const OLivro: Story = {
           kcal="1.020"
           time="5 min"
           origin="À mão"
+          summary="Fecha 100% do alvo do lanche"
           slices={[
             { group: "dairy", fraction: 0.4, label: "Iogurte · 170 g" },
             { group: "fruit", fraction: 0.35, label: "Banana · 100 g" },

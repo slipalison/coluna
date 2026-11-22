@@ -7,10 +7,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PLATE_CELLS, Plate, plateCounts, plateFill, type PlateSlice } from "./molecules/Plate";
 import { RecipeCard } from "./molecules/RecipeCard";
 import { Skeleton } from "./molecules/Skeleton";
-import { Toast, type ToastCloseReason } from "./molecules/Toast";
+import { Toast, TOAST_FOCUS_SHORTCUT, type ToastCloseReason } from "./molecules/Toast";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import "./styles.css";
-import { bloco, dentroDe, lugar, REGRAS } from "./test/folha";
+import { aparelho, avaliar, bloco, dentroDe, lugar, REGRAS } from "./test/folha";
 
 /**
  * As peças do livro de receitas (cartão slipalison/basalto#182), cada uma com
@@ -43,6 +43,8 @@ async function semViolacao(conteudo: ReactNode, tema: (typeof TEMAS)[number]) {
   unmount();
   return resultado.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`);
 }
+
+const RESUMO = "Fecha 90% do alvo do almoço";
 
 const ALMOCO: PlateSlice[] = [
   { group: "protein", fraction: 0.3, label: "Frango · 150 g" },
@@ -83,7 +85,7 @@ describe("Plate", () => {
   });
 
   it("a legenda em texto vem sempre, com o nome e os gramas; o desenho sai aria-hidden", () => {
-    const { container } = render(<Plate slices={ALMOCO} size="sm" />);
+    const { container } = render(<Plate slices={ALMOCO} summary={RESUMO} size="sm" />);
     const legenda = screen.getByRole("list", { name: "Composição do prato" });
     expect(within(legenda).getAllByRole("listitem").map((li) => li.textContent)).toEqual(
       ALMOCO.map((s) => s.label),
@@ -94,7 +96,7 @@ describe("Plate", () => {
   });
 
   it("a amostra da legenda é o hexágono, no tom do grupo", () => {
-    const { container } = render(<Plate slices={ALMOCO} />);
+    const { container } = render(<Plate slices={ALMOCO} summary={RESUMO} />);
     const amostras = [...container.querySelectorAll(".co-legend__swatch")];
     expect(amostras.map((a) => [a.getAttribute("data-swatch"), a.getAttribute("data-tone")])).toEqual(
       ALMOCO.map((s) => ["hex", s.group]),
@@ -102,9 +104,9 @@ describe("Plate", () => {
   });
 
   it("quando a composição muda, só as células que trocam de grupo nascem de novo (a onda)", () => {
-    const { container, rerender } = render(<Plate slices={ALMOCO} />);
+    const { container, rerender } = render(<Plate slices={ALMOCO} summary={RESUMO} />);
     const antes = [...container.querySelectorAll(".co-plate__cell")];
-    rerender(<Plate slices={ALMOCO.map((s) => (s.group === "fat" ? { ...s, fraction: 0.1 } : s))} />);
+    rerender(<Plate summary={RESUMO} slices={ALMOCO.map((s) => (s.group === "fat" ? { ...s, fraction: 0.1 } : s))} />);
     const depois = [...container.querySelectorAll(".co-plate__cell")];
     const novas = depois.filter((c, i) => c !== antes[i]);
     expect(novas.length).toBeGreaterThan(0);
@@ -122,7 +124,7 @@ describe("Plate", () => {
   });
 
   it("passou do alvo: o aro fica tracejado na cor de atenção", () => {
-    const { container } = render(<Plate slices={ALMOCO} over />);
+    const { container } = render(<Plate slices={ALMOCO} summary={RESUMO} over />);
     expect(container.querySelector("svg")).toHaveAttribute("data-over", "true");
     expect(Object.fromEntries(bloco('.co-plate__art[data-over="true"] .co-plate__rim'))).toMatchObject({
       stroke: "var(--co-warn)",
@@ -130,12 +132,30 @@ describe("Plate", () => {
     });
   });
 
+  it("quanto falta para o alvo está em texto, visível e lido: o resumo vem junto da legenda, fora do desenho aria-hidden", () => {
+    const { container } = render(<Plate slices={ALMOCO} summary="Falta 10% para o alvo do almoço" />);
+    const resumo = screen.getByText("Falta 10% para o alvo do almoço");
+    // Não está dentro do desenho (aria-hidden), nem escondido: é texto de verdade.
+    expect(resumo.closest("[aria-hidden='true']")).toBeNull();
+    expect(container.querySelector("svg")?.contains(resumo)).toBe(false);
+    expect(resumo.closest(".co-plate__text")).toContainElement(screen.getByRole("list", { name: "Composição do prato" }));
+  });
+
+  it("o prato mini do cartão também diz quanto falta, em texto, e não só no desenho", () => {
+    render(
+      <RecipeCard title="Omelete" slices={ALMOCO.slice(0, 1)} summary="Falta 70% para o alvo do almoço" kcal="320" time="10 min" origin="À mão" />,
+    );
+    const resumo = screen.getByText("Falta 70% para o alvo do almoço");
+    expect(resumo.closest("[aria-hidden='true']")).toBeNull();
+    expect(screen.getByRole("article")).toContainElement(resumo);
+  });
+
   it.each(TEMAS)("no tema %s, o mini e o grande passam no axe", async (tema) => {
     expect(
       await semViolacao(
         <>
-          <Plate slices={ALMOCO} size="sm" />
-          <Plate slices={ALMOCO} size="lg" over label="Prato do almoço" />
+          <Plate slices={ALMOCO} summary={RESUMO} size="sm" />
+          <Plate slices={ALMOCO} summary={RESUMO} size="lg" over label="Prato do almoço" />
         </>,
         tema,
       ),
@@ -147,7 +167,7 @@ describe("Plate", () => {
 
 describe("RecipeCard", () => {
   const cartao = (extra: Partial<Parameters<typeof RecipeCard>[0]> = {}) => (
-    <RecipeCard title="Frango com arroz" slices={ALMOCO} kcal="520" time="35 min" origin="À mão" {...extra} />
+    <RecipeCard title="Frango com arroz" slices={ALMOCO} summary={RESUMO} kcal="520" time="35 min" origin="À mão" {...extra} />
   );
 
   it("o nome do link é o título, e o resto continua texto: kcal da base, tempo, origem e a legenda", () => {
@@ -349,19 +369,83 @@ describe("Toast", () => {
     expect(fechou).toHaveBeenCalledWith("timeout");
   });
 
-  it("o teto fecha mesmo com o foco dentro, e o foco volta", async () => {
+  it("com o foco dentro, o teto NÃO fecha o aviso: o Desfazer fica, e ele fecha quando o foco sai", async () => {
     const fechou = vi.fn();
     const eu = usuario();
     render(<ComAviso aoFechar={fechou} duracao={4000} teto={12000} />);
     const marcar = screen.getByRole("button", { name: "Marcar feita" });
     await eu.click(marcar);
     await eu.tab();
-    expect(screen.getByRole("button", { name: "Desfazer" })).toHaveFocus();
+    const desfazer = screen.getByRole("button", { name: "Desfazer" });
+    expect(desfazer).toHaveFocus();
+    // Muito além do teto de 12 s: quem demora a decidir no teclado não perde a ação (WCAG 2.2.1).
+    avancar(120000);
+    expect(fechou).not.toHaveBeenCalled();
+    expect(desfazer).toHaveFocus();
+    // O foco sai: o teto já tinha passado, e o aviso fecha com o motivo `timeout`.
+    act(() => marcar.focus());
+    expect(fechou).toHaveBeenCalledWith("timeout");
+    expect(marcar).toHaveFocus();
+  });
+
+  it("o teto continua fechando o aviso sem foco dentro, ainda que o tempo da pausa não tenha acabado", async () => {
+    const fechou = vi.fn();
+    const { container } = render(<ComAviso aoFechar={fechou} duracao={4000} teto={12000} />);
+    await usuario().click(screen.getByRole("button", { name: "Marcar feita" }));
+    const aviso = container.querySelector(".co-toast") as HTMLElement;
+    // O ponteiro em cima pausa o tempo, mas não segura o teto.
+    fireEvent.pointerEnter(aviso);
     avancar(11000);
     expect(fechou).not.toHaveBeenCalled();
     avancar(1100);
     expect(fechou).toHaveBeenCalledWith("timeout");
+  });
+
+  it(`${TOAST_FOCUS_SHORTCUT} leva o foco ao aviso aberto, de onde a pessoa estiver, e o foco volta ao fechar`, async () => {
+    const fechou = vi.fn();
+    const eu = usuario();
+    render(<ComAviso aoFechar={fechou} duracao={4000} teto={20000} />);
+    const marcar = screen.getByRole("button", { name: "Marcar feita" });
+    // Sem aviso aberto, a tecla não faz nada.
+    marcar.focus();
+    fireEvent.keyDown(document.body, { key: "n", code: "KeyN", altKey: true });
     expect(marcar).toHaveFocus();
+    await eu.click(marcar);
+    // Sem o Alt, ou com outro modificador, não é o atalho.
+    fireEvent.keyDown(document.body, { key: "n", code: "KeyN" });
+    fireEvent.keyDown(document.body, { key: "n", code: "KeyN", altKey: true, ctrlKey: true });
+    expect(marcar).toHaveFocus();
+    // O atalho leva o foco ao Desfazer, sem passar pelas paradas do meio do documento.
+    const acionou = fireEvent.keyDown(document.body, { key: "n", code: "KeyN", altKey: true });
+    expect(acionou, "o atalho consome a tecla").toBe(false);
+    expect(screen.getByRole("button", { name: "Desfazer" })).toHaveFocus();
+    // E o foco volta para onde estava quando o aviso fecha.
+    await eu.keyboard("{Escape}");
+    expect(fechou).toHaveBeenCalledWith("dismiss");
+    expect(marcar).toHaveFocus();
+  });
+
+  it("o anúncio do aviso diz a tecla que leva o foco até ele", async () => {
+    render(<ComAviso />);
+    await usuario().click(screen.getByRole("button", { name: "Marcar feita" }));
+    expect(screen.getByRole("status")).toHaveTextContent(`${TOAST_FOCUS_SHORTCUT} leva o foco ao aviso`);
+  });
+
+  it("a API recusa um teto menor ou igual ao tempo: ele anularia a pausa", () => {
+    const erro = vi.spyOn(console, "error").mockImplementation(() => {});
+    for (const [duracao, teto] of [
+      [5000, 5000],
+      [5000, 4000],
+      [5000, Number.NaN],
+    ] as const) {
+      expect(
+        () => render(<Toast open message="x" onClose={vi.fn()} duration={duracao} maxDuration={teto} />),
+        `duration ${duracao}, maxDuration ${teto}`,
+      ).toThrow(/maxDuration .* precisa ser maior que duration/);
+    }
+    // O controle: um teto maior passa.
+    expect(() => render(<Toast open message="x" onClose={vi.fn()} duration={5000} maxDuration={5001} />)).not.toThrow();
+    erro.mockRestore();
   });
 
   it("a isca: sem a pausa, o tempo acabaria com o foco no Desfazer", async () => {
@@ -402,6 +486,65 @@ describe("Toast", () => {
         tema,
       ),
     ).toEqual([]);
+  });
+});
+
+// ------------------------------------------ o foco não fica atrás do aviso --
+
+describe("o recuo da rolagem com o aviso aberto (WCAG 2.2, 2.4.11)", () => {
+  const AVISO = ".co-toast[data-open=\"true\"]:not([data-position])";
+  const TABS = '.co-screen[data-tabbar="true"]';
+  const ACAO = '.co-screen[data-actionbar="true"] > .co-screen__actionbar :not(:empty)';
+  const AMBAS = '.co-screen[data-tabbar="true"][data-actionbar="true"] > .co-screen__actionbar :not(:empty)';
+  // Cada caso: o recuo do aviso aberto e o `bottom` do aviso fixo no MESMO caso.
+  const CASOS = [
+    ["sem barras", `:root:has(${AVISO})`, ".co-toast"],
+    ["com as abas", `:root:has(${TABS}):has(${AVISO})`, `:root:has(${TABS}) .co-toast:not([data-position])`],
+    ["com a barra de ação", `:root:has(${ACAO}):has(${AVISO})`, `:root:has(${ACAO}) .co-toast:not([data-position])`],
+    ["com as duas", `:root:has(${AMBAS}):has(${AVISO})`, `:root:has(${AMBAS}) .co-toast:not([data-position])`],
+  ] as const;
+  const valor = (seletor: string, propriedade: string) => Object.fromEntries(bloco(seletor))[propriedade] ?? "";
+
+  it.each(CASOS)("%s: o recuo de baixo passa do topo do aviso, em toda área segura", (_caso, recuo, aviso) => {
+    for (const baixo of [0, 34]) {
+      const tela = aparelho(0, 0, baixo, 0);
+      const base = avaliar(valor(aviso, "bottom"), tela);
+      const reserva = avaliar("var(--co-toast-reserve)", tela);
+      const padding = avaliar(valor(recuo, "scroll-padding-bottom"), tela);
+      // A reserva comporta o aviso de três linhas (borda, respiro, 3 × 25,5 de corpo): mais de 90 px.
+      expect(reserva, "reserva do aviso").toBeGreaterThan(90);
+      // O recuo cobre onde o aviso começa (o `bottom` dele) e a altura dele, com um respiro por cima.
+      expect(padding, `${recuo} com a área ${baixo}px`).toBeGreaterThanOrEqual(base + reserva);
+    }
+  });
+
+  it("o aviso aberto SOMA ao recuo das barras, e não o troca: o recuo com barra passa do recuo da barra sozinha", () => {
+    const tela = aparelho(0, 0, 0, 0);
+    const barras = [
+      [`:root:has(${TABS})`, CASOS[1][1]],
+      [`:root:has(${ACAO})`, CASOS[2][1]],
+      [`:root:has(${AMBAS})`, CASOS[3][1]],
+    ] as const;
+    for (const [sem, com] of barras) {
+      expect(avaliar(valor(com, "scroll-padding-bottom"), tela), com).toBeGreaterThan(
+        // O recuo da barra já guarda 31px de repouso, que o aviso (a 8px da barra) aproveita:
+        // o resto da altura reservada, mais de 60px, vem somado.
+        avaliar(valor(sem, "scroll-padding-bottom"), tela) + 60,
+      );
+    }
+  });
+
+  it("a condição de cada caso pesa mais na cascata que a do caso de que ele parte (dois :has() contra um)", () => {
+    // `:root:has(A):has(B)` vale mais que `:root:has(B)` e que `:root:has(A)`:
+    // com as duas condições, o caso composto é o que vale, em vez de o aviso
+    // sozinho (que ignoraria a barra) ou a barra sozinha (que ignoraria o aviso).
+    const doisHas = CASOS.slice(1).map(([, recuo]) => (recuo.match(/:has\(/g) ?? []).length);
+    expect(doisHas).toEqual([2, 2, 2]);
+    expect((CASOS[0][1].match(/:has\(/g) ?? []).length).toBe(1);
+  });
+
+  it("o aviso estático (nas histórias e dentro de outra peça) não mexe no recuo da janela", () => {
+    for (const [, recuo] of CASOS) expect(recuo).toContain(":not([data-position])");
   });
 });
 

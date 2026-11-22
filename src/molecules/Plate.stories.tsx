@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { Button } from "../atoms/Button";
 import { Stack } from "../atoms/Stack";
-import { Text } from "../atoms/Text";
 import { Plate, type PlateSlice } from "./Plate";
 
 /**
@@ -13,8 +12,12 @@ import { Plate, type PlateSlice } from "./Plate";
  * alimento, todos com a mesma luminosidade.
  *
  * O prato **recebe a composição pronta** (grupo, fração e rótulo com os
- * gramas) e não calcula nada. A legenda em texto vem **sempre** junto: a cor
- * nunca é o único sinal (ADR-005), e o desenho sai `aria-hidden`.
+ * gramas) e não calcula nada. A legenda em texto vem **sempre** junto, e o
+ * `summary` (obrigatório) diz quanto do alvo o prato fecha: a cor nunca é o
+ * único sinal (ADR-005), e o desenho sai `aria-hidden`.
+ *
+ * Os seis grupos têm luminâncias distintas (em cinza, um setor não se funde ao
+ * vizinho), e a célula vazia tem contorno de controle.
  */
 const ALMOCO: PlateSlice[] = [
   { group: "protein", fraction: 0.3, label: "Frango · 150 g" },
@@ -27,7 +30,7 @@ const ALMOCO: PlateSlice[] = [
 const meta = {
   title: "Moléculas/Plate",
   component: Plate,
-  args: { slices: ALMOCO, size: "lg", over: false },
+  args: { slices: ALMOCO, summary: "Fecha 100% do alvo do almoço", size: "lg", over: false },
   argTypes: {
     size: { control: "inline-radio", options: ["sm", "lg"] },
   },
@@ -57,27 +60,19 @@ export const OsSeisGrupos: Story = {
   },
 };
 
-/** Faltando para o alvo: a parte vazia fica junta, no fim, e o prato ainda não fecha. */
+/** Faltando para o alvo: a parte vazia fica junta, no fim, contornada, e o resumo diz quanto falta. */
 export const FaltandoParaOAlvo: Story = {
   name: "Faltando para o alvo",
-  args: { slices: ALMOCO.slice(0, 2) },
+  args: { slices: ALMOCO.slice(0, 2), summary: "Falta 40% para o alvo do almoço" },
 };
 
 /**
- * Passou do alvo: o aro fica tracejado na cor de atenção. O texto que diz
- * quanto passou é do app, ao lado — o aro sozinho não diz nada a quem não vê
- * a cor.
+ * Passou do alvo: o aro fica tracejado na cor de atenção. O `summary` diz
+ * quanto passou — o aro sozinho não diz nada a quem não vê a cor.
  */
 export const PassouDoAlvo: Story = {
   name: "Passou do alvo",
-  render: (args) => (
-    <Stack gap={12}>
-      <Plate {...args} over />
-      <Text variant="footnote" tone="secondary">
-        Passou 40 kcal do alvo.
-      </Text>
-    </Stack>
-  ),
+  args: { over: true, summary: "Passou 40 kcal do alvo do almoço" },
 };
 
 /**
@@ -92,7 +87,12 @@ export const AOnda: Story = {
     const fatias = mais ? ALMOCO.map((s) => (s.group === "protein" ? { ...s, fraction: 0.4, label: "Frango · 200 g" } : s)) : ALMOCO;
     return (
       <Stack gap={16}>
-        <Plate {...args} slices={fatias} over={mais} />
+        <Plate
+          {...args}
+          slices={fatias}
+          over={mais}
+          summary={mais ? "Passou 40 kcal do alvo do almoço" : "Fecha 100% do alvo do almoço"}
+        />
         <div>
           <Button variant="secondary" onClick={() => trocar((v) => !v)}>
             {mais ? "Voltar para 150 g" : "Pôr 200 g de frango"}

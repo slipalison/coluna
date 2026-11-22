@@ -26,6 +26,7 @@ import {
   normalizar,
   paddingQueVale,
   partes,
+  RECUO_COM_AVISO,
   REGRAS,
   SEM_AREA,
   TRAVA_DE_TOQUE,
@@ -283,6 +284,9 @@ it("a barra de ação é fixa, na camada das abas e abaixo do painel, com o fund
       // só lê a condição, e não mexe na barra.
       `${BARRA_DE_ACAO.recuo} .co-toast:not([data-position])`,
       `${BARRA_DE_ACAO.recuoComAmbas} .co-toast:not([data-position])`,
+      // E o recuo com o aviso aberto, que a soma da altura dele ao da barra (ADR-025, adendo).
+      RECUO_COM_AVISO.comBarra,
+      RECUO_COM_AVISO.comAmbas,
     ].sort(),
   );
   // A divisão tem dois seletores (o primeiro nível e o botão em qualquer

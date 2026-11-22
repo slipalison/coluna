@@ -8,6 +8,12 @@ export interface RecipeCardProps {
   title: string;
   /** A composição do prato mini, pronta (a mesma do `Plate`). */
   slices: readonly PlateSlice[];
+  /**
+   * Quanto o prato fecha do alvo, escrito por quem consome ("Fecha 90% do alvo
+   * do almoço", "Falta 10% para o alvo"). Obrigatório, como no `Plate`: o
+   * desenho do prato é `aria-hidden`, e a parte vazia dele é informação.
+   */
+  summary: string;
   /** As kcal da proporção base, já escritas em pt-BR: "520", "1.020". A unidade é do cartão. */
   kcal: string;
   /** O tempo total, escrito: "35 min", "1 h 10 min". */
@@ -35,11 +41,13 @@ export interface RecipeCardProps {
  * percorre. O anel de foco contorna o cartão, por fora.
  *
  * O prato mini nunca vem sem a legenda (ADR-005): os grupos com os gramas
- * ficam em texto, embaixo dos números.
+ * ficam em texto, embaixo dos números, e o `summary` diz quanto do alvo o
+ * prato fecha, já que o desenho sai `aria-hidden`.
  */
 export function RecipeCard({
   title,
   slices,
+  summary,
   kcal,
   time,
   origin,
@@ -73,6 +81,9 @@ export function RecipeCard({
             {kcal}
           </Text>{" "}
           kcal · {time} · {origin}
+        </Text>
+        <Text as="p" className="co-recipe-card__summary" variant="footnote" tone="secondary">
+          {summary}
         </Text>
         <Legend
           className="co-recipe-card__legend"

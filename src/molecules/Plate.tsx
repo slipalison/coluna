@@ -1,3 +1,4 @@
+import { Text } from "../atoms/Text";
 import { Legend } from "./Legend";
 
 /**
@@ -24,14 +25,23 @@ export interface PlateProps {
   /** A composição pronta, na ordem em que as fatias se seguem no prato, do topo, no sentido do relógio. */
   slices: readonly PlateSlice[];
   /**
+   * Quanto o prato fecha do alvo, ou quanto falta, escrito por quem consome:
+   * "Fecha 90% do alvo do almoço", "Falta 10% para o alvo", "Passou 40 kcal do
+   * alvo". É OBRIGATÓRIO: a parte vazia do prato é informação ("essa receita
+   * fecha a minha refeição?") e o desenho é `aria-hidden` — sem este texto,
+   * quem não vê o desenho não tem a resposta (WCAG 1.1.1). O prato o mostra
+   * junto da legenda, visível, e é ele que o leitor de tela lê.
+   */
+  summary: string;
+  /**
    * `sm` é o prato mini, do cartão de receita e do painel do editor; `lg` é o
    * grande, da receita aberta.
    */
   size?: "sm" | "lg";
   /**
    * A receita passou do alvo. O aro do prato fica tracejado, na cor de
-   * atenção; o número que diz quanto passou é do app, em texto, ao lado — o
-   * aro sozinho não diz nada a quem não vê a cor (ADR-005).
+   * atenção; o número que diz quanto passou é o `summary`, em texto — o aro
+   * sozinho não diz nada a quem não vê a cor (ADR-005).
    */
   over?: boolean;
   /** O nome da legenda para o leitor de tela. */
@@ -195,12 +205,15 @@ export function PlateArt({ slices, size = "lg", over = false, skeleton = false, 
  *
  * Um mosaico de 37 colunas hexagonais, vistas de cima, que se completa
  * exatamente quando a receita fecha o alvo da refeição. Cada célula tem a cor
- * do grupo do alimento, com a mesma luminosidade em todos os grupos, para
- * nenhum gritar mais que o outro.
+ * do grupo do alimento, e os seis grupos têm luminâncias distintas entre si:
+ * em cinza, ou para quem não distingue o matiz, um setor não se funde ao
+ * vizinho. A célula vazia tem contorno de controle (3:1), e não só um fundo
+ * quase igual ao da tela.
  *
  * A cor nunca é o único sinal (ADR-005): a legenda, com o nome e os gramas de
- * cada fatia, vem SEMPRE junto, em texto. Por isso o desenho sai `aria-hidden`
- * — quem não vê a cor lê a legenda, que é uma lista com nome.
+ * cada fatia, vem SEMPRE junto, em texto, e o `summary` diz quanto do alvo o
+ * prato fecha. Por isso o desenho sai `aria-hidden` — quem não vê o desenho lê
+ * a legenda, que é uma lista com nome, e o resumo.
  *
  * O prato recebe a composição pronta e não calcula nada: a fração de cada
  * grupo vem de quem consome. Quando ela muda, as células que trocam de cor
@@ -208,16 +221,28 @@ export function PlateArt({ slices, size = "lg", over = false, skeleton = false, 
  * (`--co-duration-wave`); com `prefers-reduced-motion`, elas trocam todas de
  * uma vez, com um esmaecer.
  */
-export function Plate({ slices, size = "lg", over = false, label = "Composição do prato", className }: PlateProps) {
+export function Plate({
+  slices,
+  summary,
+  size = "lg",
+  over = false,
+  label = "Composição do prato",
+  className,
+}: PlateProps) {
   const classe = className ? `co-plate ${className}` : "co-plate";
   return (
     <div className={classe} data-size={size}>
       <PlateArt slices={slices} size={size} over={over} />
-      <Legend
-        className="co-plate__legend"
-        label={label}
-        items={slices.map((s) => ({ label: s.label, tone: s.group, swatch: "hex" as const }))}
-      />
+      <div className="co-plate__text">
+        <Text as="p" variant="footnote" tone="secondary" className="co-plate__summary">
+          {summary}
+        </Text>
+        <Legend
+          className="co-plate__legend"
+          label={label}
+          items={slices.map((s) => ({ label: s.label, tone: s.group, swatch: "hex" as const }))}
+        />
+      </div>
     </div>
   );
 }

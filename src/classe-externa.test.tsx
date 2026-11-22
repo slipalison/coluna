@@ -76,10 +76,10 @@ const CASOS: [nome: string, elemento: React.ReactElement, classeDoSistema: strin
     />,
     "co-segmented",
   ],
-  ["Plate", <Plate className="x" key="pl" slices={[{ group: "veg", fraction: 0.5, label: "Brócolis · 80 g" }]} />, "co-plate"],
+  ["Plate", <Plate className="x" key="pl" summary="Falta 50% para o alvo" slices={[{ group: "veg", fraction: 0.5, label: "Brócolis · 80 g" }]} />, "co-plate"],
   [
     "RecipeCard",
-    <RecipeCard className="x" key="rc" title="Omelete" slices={[]} kcal="320" time="10 min" origin="À mão" />,
+    <RecipeCard className="x" key="rc" title="Omelete" slices={[]} summary="Falta 100% para o alvo" kcal="320" time="10 min" origin="À mão" />,
     "co-recipe-card",
   ],
   ["Skeleton", <Skeleton className="x" key="sk" label="Carregando" />, "co-skeleton"],
